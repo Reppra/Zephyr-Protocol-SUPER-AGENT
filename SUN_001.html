@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>SUN_001 - REDBOLT fps2 WASM performance showcase</title>
 <link rel="icon" href="data:,">
 <style>
@@ -43,7 +45,9 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
 <div id="crosshair"></div>
 <div id="perf">
   <div class="line"><span class="label">WASM FRAME:</span><span class="value" id="perfFrameMs">0</span> ms</div>
-  <div class="line"><span class="label">RENDER:</span><span class="value" id="perfRenderMs">0</span> ms</div>
+  <div class="line"><span class="label">SIM:</span><span class="value" id="perfSimMs">0</span> ms</div>
+  <div class="line"><span class="label">DRAW:</span><span class="value" id="perfDrawMs">0</span> ms</div>
+  <div class="line"><span class="label">DROPPED:</span><span class="value" id="perfDropped">0</span> ms</div>
   <div class="line"><span class="label">FPS:</span><span class="value" id="perfFps">0</span></div>
 </div>
 <div id="hud">
@@ -56,10 +60,10 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
 <div id="overlay">
   <div class="overlay-title">REDBOLT fps2</div>
   <div class="overlay-subtitle">
-    Clean WASM performance showcase â every function carries an error handler<br>
+    Clean WASM performance showcase — every function carries an error handler<br>
     WASD: Move &nbsp;|&nbsp; Mouse: Look &nbsp;|&nbsp; Click: ENTER WORLD
   </div>
-  <button class="overlay-btn" id="overlayBtn">ENTER WORLD</button>
+  <button class="overlay-btn" id="overlayBtn" role="button" aria-label="Enter World" tabindex="0">ENTER WORLD</button>
 </div>
 <script>
 /* SUN_001 inlined: tools/wasm/wasm.js (sha256 cfcc0f395004) - verbatim, zero edits. Exposes window.wasmEngine. */
@@ -836,7 +840,7 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
 </script>
 <script>
 /*==============================================================================
-  tools/game/fps/fps2.html â clean WASM performance showcase (P-0035 REDBOLT)
+  tools/game/fps/fps2.html — clean WASM performance showcase (P-0035 REDBOLT)
   ==============================================================================
   Every declared function carries a statically-detectable error handler:
   A1_total { return { ok, error }, never throws } or box_ui showErr(...).
@@ -906,15 +910,17 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
 
   /* ---- input / camera ---- */
   const keys = {};
-  let mouse = { dx: 0, dy: 0 };
+  let mouse = { dx: 0, dy: 0, buttons: 0 };
   let isPointerLocked = false;
   let playerYaw = 0, playerPitch = 0;
   window.addEventListener('keydown', e => { keys[e.code] = true;
     if (e.code === 'Escape' && isPointerLocked) document.exitPointerLock(); });
   window.addEventListener('keyup', e => { keys[e.code] = false; });
   window.addEventListener('mousedown', e => {
+    if (e.button === 0) mouse.buttons |= 1;
     if (!isPointerLocked){ try { document.getElementById('glcanvas').requestPointerLock(); } catch(e){} return; }
   });
+  window.addEventListener('mouseup', e => { if (e.button === 0) mouse.buttons &= ~1; });
   window.addEventListener('contextmenu', e => e.preventDefault());
   window.addEventListener('mousemove', e => {
     if (isPointerLocked){ mouse.dx += e.movementX; mouse.dy += e.movementY; }
@@ -926,6 +932,7 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
   function clearInput(){
     for (const k in keys) keys[k] = false;
     mouse.dx = 0; mouse.dy = 0;
+    mouse.buttons = 0;
     return { ok: true, error: null };
   }
   window.addEventListener('blur', clearInput);
@@ -1128,8 +1135,12 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
   canvas.addEventListener('webglcontextlost', onContextLost, false);
   canvas.addEventListener('webglcontextrestored', onContextRestored, false);
   function resizeGL(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = window.innerWidth * dpr, h = window.innerHeight * dpr;
+    if (canvas.width !== w || canvas.height !== h){
+      canvas.width = w;
+      canvas.height = h;
+    }
     if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
     return { ok: true, error: null };
   }
@@ -1259,7 +1270,7 @@ void main(){
     I32[IB + 0] = keysBits;
     I32[IB + 1] = mouse.dx | 0;
     I32[IB + 2] = mouse.dy | 0;
-    I32[IB + 3] = 0;
+    I32[IB + 3] = (mouse.buttons & 1) | (keys['Space'] ? 1 : 0);
     F32[IB + 4] = dt;
     F32[IB + 5] = fwd.x;
     F32[IB + 6] = fwd.z;
@@ -1352,6 +1363,7 @@ void main(){
 
       const tSim0 = performance.now();
       simAcc += frameMs;
+      let droppedMs = 0;
       let steps = 0;
       while (simAcc >= FIXED_DT && steps < MAX_STEPS){
         writeInput(FIXED_DT / 1000);
@@ -1359,7 +1371,10 @@ void main(){
         simAcc -= FIXED_DT;
         steps++;
       }
-      if (simAcc >= FIXED_DT) simAcc = 0;
+      if (simAcc >= FIXED_DT){
+        droppedMs = simAcc - FIXED_DT;
+        simAcc = FIXED_DT;
+      }
       const tSim1 = performance.now();
 
       const p = readPlayer().ok;
@@ -1384,11 +1399,13 @@ void main(){
       gl.uniformMatrix4fv(uModelLoc, false, m4Identity().ok);
       gl.uniform3f(uCamPosLoc, camX, camY, camZ);
 
+      const tDraw0 = performance.now();
       if (quadCount > 0){
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexVBO);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexVBO);
         gl.drawElements(gl.TRIANGLES, quadCount * 6, gl.UNSIGNED_INT, 0);
       }
+      const tDraw1 = performance.now();
       const tRender1 = performance.now();
 
       document.getElementById('hudWave').textContent = g.wave;
@@ -1396,8 +1413,10 @@ void main(){
       document.getElementById('hudScore').textContent = g.score;
       document.getElementById('hudPos').textContent =
         Math.floor(p.x) + ', ' + Math.floor(p.y) + ', ' + Math.floor(p.z);
-      document.getElementById('perfFrameMs').textContent = (tSim1 - tSim0).toFixed(2);
-      document.getElementById('perfRenderMs').textContent = (tRender1 - tRender0).toFixed(2);
+      document.getElementById('perfFrameMs').textContent = (tRender1 - tRender0).toFixed(2);
+      document.getElementById('perfSimMs').textContent = (tSim1 - tSim0).toFixed(2);
+      document.getElementById('perfDrawMs').textContent = (tDraw1 - tDraw0).toFixed(2);
+      document.getElementById('perfDropped').textContent = droppedMs.toFixed(0);
       document.getElementById('perfFps').textContent = fps;
 
       requestAnimationFrame(loop);
@@ -1414,21 +1433,29 @@ void main(){
   async function boot(){
     try {
       const lr = await loadWasm();
-      if (!lr.ok) return { ok: false, error: lr.error };
-      if (!initWebGL().ok) return { ok: false, error: 'WebGL init failed' };
+      if (!lr.ok){ showErr('WASM kernel load failed: ' + lr.error); return { ok: false, error: lr.error }; }
+      if (!initWebGL().ok){ showErr('WebGL2 init failed'); return { ok: false, error: 'webgl2 unavailable' }; }
       resizeGL();
       ex.init(12345);
       ex.genArena(12345);
       const sp = spawnPlayer();
-      if (!sp.ok) return { ok: false, error: sp.error };
+      if (!sp.ok){ showErr('Player spawn failed: ' + sp.error); return { ok: false, error: sp.error }; }
       const gm = buildGreedyMesh();
-      if (!gm.ok) return { ok: false, error: gm.error };
-      if (!initGLResources().ok) return { ok: false, error: 'GL resources failed' };
+      if (!gm.ok){ showErr('Greedy mesh build failed: ' + gm.error); return { ok: false, error: gm.error }; }
+      if (!initGLResources().ok){ showErr('GL resources failed'); return { ok: false, error: 'gl resources failed' }; }
 
       document.getElementById('overlayBtn').addEventListener('click', () => {
         gameStarted = true;
         document.getElementById('overlay').classList.add('hidden');
         try { canvas.requestPointerLock(); } catch (e) {}
+      });
+      document.getElementById('overlayBtn').addEventListener('keydown', (e) => {
+        if (e.code === 'Enter' || e.code === 'Space'){
+          e.preventDefault();
+          gameStarted = true;
+          document.getElementById('overlay').classList.add('hidden');
+          try { canvas.requestPointerLock(); } catch (e) {}
+        }
       });
       if (SHOT_MODE){
         gameStarted = true;
