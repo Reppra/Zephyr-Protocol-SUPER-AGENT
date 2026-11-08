@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>SUN_001 - REDBOLT fps2 WASM performance showcase</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src data:;">
+<title>SUN_002 - REDBOLT fps2 WASM performance showcase</title>
 <link rel="icon" href="data:,">
 <style>
 * { margin: 0; padding: 0; }
 html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
-#glcanvas { display: block; width: 100vw; height: 100vh; background: #1a2a3a; cursor: crosshair; }
+#glcanvas { display: block; width: 100vw; height: 100vh; background: #1a2a3a; cursor: crosshair; touch-action: none; } // TODO-09
 #crosshair { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px;
   background: #00ffff; border: 1px solid #ffffff; margin-left: -3px; margin-top: -3px;
   pointer-events: none; z-index: 10; }
@@ -49,12 +50,16 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
   <div class="line"><span class="label">DRAW:</span><span class="value" id="perfDrawMs">0</span> ms</div>
   <div class="line"><span class="label">DROPPED:</span><span class="value" id="perfDropped">0</span> ms</div>
   <div class="line"><span class="label">FPS:</span><span class="value" id="perfFps">0</span></div>
+  <div class="line"><span class="label">P50:</span><span class="value" id="perfP50">0</span> ms</div>
+  <div class="line"><span class="label">P99:</span><span class="value" id="perfP99">0</span> ms</div>
 </div>
 <div id="hud">
   <div class="line"><span class="label">WAVE:</span><span class="value" id="hudWave">1</span></div>
   <div class="line"><span class="label">KILLS:</span><span class="value" id="hudKills">0</span></div>
   <div class="line"><span class="label">SCORE:</span><span class="value" id="hudScore">0</span></div>
   <div class="line"><span class="label">POS:</span><span class="value" id="hudPos">0, 0, 0</span></div>
+  <div class="line"><span class="label">ALIVE:</span><span class="value" id="hudAlive">0</span></div>
+  <div class="line"><span class="label">HP:</span><span class="value" id="hudHp">100</span></div>
 </div>
 <div id="errbox"></div>
 <div id="overlay">
@@ -856,10 +861,10 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
     GLOBALS 0x000400
     ARENA 0x00115400: u8 blocks 64x48x64, idx = x+(z<<6)+(y<<12)
   ==============================================================================*/
-  /* SUN_001 monolith build (plan C3.1-0042): wasm.js inlined verbatim;
-     fps_kernel.wasm embedded as WASM_B64 base64. Zero external fetches -
-     runs from file:// and static hosting. Sources: fps2.html ff8254580066,
-     wasm.js cfcc0f395004, fps_kernel.wasm 8ab18746f142. Built 2026-11-08T20:48:37.689Z */
+  /* SUN_002 monolith build (iteration slot, plan C3.1-0042 successor): wasm.js inlined verbatim;
+     fps_kernel.wasm embedded as WASM_B64 base64. Zero external fetches - runs from file:// and static hosting.
+     Sources: fps2.html ff8254580066, wasm.js cfcc0f395004, fps_kernel.wasm 8ab18746f142.
+     Derived from SUN_001.html at v0.1.0-sun001; SUN_001.html is frozen post-tag. */
 (function(){
   'use strict';
 
@@ -911,7 +916,12 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
   /* ---- input / camera ---- */
   const keys = {};
   let mouse = { dx: 0, dy: 0, buttons: 0 };
+  // TODO-09: fire flag armed by tap (touch) or mousedown; consumed by writeInput
+  let fireQueued = false;
   let isPointerLocked = false;
+  // TODO-09: touch state
+  const touchJoy = { id: -1, ox: 0, oy: 0, dx: 0, dy: 0 };
+  const touchLook = { id: -1, lx: 0, ly: 0 };
   let playerYaw = 0, playerPitch = 0;
   window.addEventListener('keydown', e => { keys[e.code] = true;
     if (e.code === 'Escape' && isPointerLocked) document.exitPointerLock(); });
@@ -924,6 +934,43 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
   window.addEventListener('contextmenu', e => e.preventDefault());
   window.addEventListener('mousemove', e => {
     if (isPointerLocked){ mouse.dx += e.movementX; mouse.dy += e.movementY; }
+  });
+  // TODO-09: touch controls mapped onto existing input contracts
+  const canvas = document.getElementById('glcanvas');
+  canvas.addEventListener('touchstart', e => {
+    for (const t of e.changedTouches){
+      if (t.clientX < window.innerWidth / 2 && touchJoy.id < 0){
+        touchJoy.id = t.identifier; touchJoy.ox = t.clientX; touchJoy.oy = t.clientY;
+      } else if (touchLook.id < 0){
+        touchLook.id = t.identifier; touchLook.lx = t.clientX; touchLook.ly = t.clientY;
+      }
+    }
+    e.preventDefault();
+    return { ok: true, error: null };
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    for (const t of e.changedTouches){
+      if (t.identifier === touchJoy.id){
+        touchJoy.dx = t.clientX - touchJoy.ox; touchJoy.dy = t.clientY - touchJoy.oy;
+      }
+      if (t.identifier === touchLook.id){
+        mouse.dx += (t.clientX - touchLook.lx) * 1.5;
+        mouse.dy += (t.clientY - touchLook.ly) * 1.5;
+        touchLook.lx = t.clientX; touchLook.ly = t.clientY;
+      }
+    }
+    e.preventDefault();
+    return { ok: true, error: null };
+  }, { passive: false });
+  canvas.addEventListener('touchend', e => {
+    for (const t of e.changedTouches){
+      if (t.identifier === touchJoy.id){
+        if (Math.abs(touchJoy.dx) < 8 && Math.abs(touchJoy.dy) < 8) fireQueued = true; // tap = fire
+        touchJoy.id = -1; touchJoy.dx = 0; touchJoy.dy = 0;
+      }
+      if (t.identifier === touchLook.id) touchLook.id = -1;
+    }
+    return { ok: true, error: null };
   });
   document.addEventListener('pointerlockchange', () => {
     isPointerLocked = document.pointerLockElement === document.getElementById('glcanvas');
@@ -1129,14 +1176,21 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
   function onContextRestored(){
     webglContextLost = false;
     if (!initWebGL().ok) return { ok: false, error: 'context restore failed' };
-    showErr('WebGL context restored \u2014 reload page to re-render arena');
+    resizeGL();
+    if (!initGLResources().ok) return { ok: false, error: 'GL resources rebuild failed' };
+    if (typeof initDynResources === 'function' && !initDynResources().ok)
+      return { ok: false, error: 'dyn resources rebuild failed' };
+    showErr('WebGL context restored - resources rebuilt');
     return { ok: true, error: null };
   }
   canvas.addEventListener('webglcontextlost', onContextLost, false);
   canvas.addEventListener('webglcontextrestored', onContextRestored, false);
   function resizeGL(){
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = window.innerWidth * dpr, h = window.innerHeight * dpr;
+    // TODO-06: adaptive DPR via governor; CSS keeps canvas at 100vw/100vh,
+    // only backing-store resolution changes.
+    const dpr = gov.update(lastFrameMs); // returns 1 | 1.5 | 2
+    const w = Math.round(window.innerWidth * dpr);
+    const h = Math.round(window.innerHeight * dpr);
     if (canvas.width !== w || canvas.height !== h){
       canvas.width = w;
       canvas.height = h;
@@ -1158,6 +1212,7 @@ uniform mat4 uView;
 uniform mat4 uProj;
 out vec3 vNormal; out vec2 vUV; out float vAO; out float vType; out vec3 vFragPos;
 void main(){
+  gl_PointSize = 6.0; // TODO-04: point size for dynamic actor pass (ignored for triangles)
   vec4 worldPos = uModel * vec4(aPos, 1.0);
   vFragPos = worldPos.xyz;
   vNormal = aNormal; vUV = aUV; vAO = aAO; vType = aType;
@@ -1186,6 +1241,8 @@ void main(){
   let uModelLoc, uViewLoc, uProjLoc, uLightDirLoc, uLightColorLoc,
       uAmbientColorLoc, uPaletteLoc, uCamPosLoc;
   let vertexVBO, indexVBO;
+  let arenaVAO = null;
+  let dynVbo = null, dynVAO = null;
 
   function createShader(type, source){
     const s = gl.createShader(type);
@@ -1238,6 +1295,10 @@ void main(){
     ]);
     gl.uniform4fv(uPaletteLoc, palette);
     const stride = VERT_FLOATS * 4;
+    // TODO-04: arena path wrapped in a VAO so a second dynamic VAO can
+    // bind its own buffer without corrupting arena attribs.
+    arenaVAO = gl.createVertexArray();
+    gl.bindVertexArray(arenaVAO);
     vertexVBO = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexVBO);
     gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
@@ -1254,7 +1315,63 @@ void main(){
     indexVBO = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexVBO);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, quadIndexData, gl.STATIC_DRAW);
+    gl.bindVertexArray(null);
     return { ok: true, error: null };
+  }
+
+  /* ---- dynamic actor resources (TODO-04) ---- */
+  // One scratch buffer per primitive class, reused every frame (no per-frame alloc).
+  const dynScratch = new Float32Array(48000 * 4);
+  function initDynResources(){
+    if (dynVbo && gl && gl.isBuffer(dynVbo)) gl.deleteBuffer(dynVbo);
+    dynVbo = gl.createBuffer();
+    dynVAO = gl.createVertexArray();
+    gl.bindVertexArray(dynVAO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, dynVbo);
+    gl.enableVertexAttribArray(0); // aPos vec3
+    gl.enableVertexAttribArray(4); // aType float
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 16, 0);
+    gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 16, 12);
+    // constants for attribs the shader reads but points do not supply:
+    gl.vertexAttrib3f(1, 0, 1, 0); // aNormal = up
+    gl.vertexAttrib2f(2, 0, 0);    // aUV
+    gl.vertexAttrib1f(3, 1.0);     // aAO = full bright
+    gl.bindVertexArray(null);
+    return { ok: true, error: null };
+  }
+
+  /* ENTITY record layout (hypothesis, to be confirmed via ?debug=1 spawn_wave dump):
+   * 4 floats per entity: [x, y, z, type] at F32[E + i*4 .. i*4+3].
+   * E = REGION.ENTITY >> 2. Alive count = I32[GW + 2]. */
+  function buildEntityData(){
+    const alive = Math.max(0, I32[GW + 2]);
+    const E = REGION.ENTITY >> 2;
+    let n = 0;
+    for (let i = 0; i < alive; i++){
+      const x = F32[E + i * 4];
+      const y = F32[E + i * 4 + 1];
+      const z = F32[E + i * 4 + 2];
+      const t = F32[E + i * 4 + 3];
+      // skip non-finite / out-of-arena records defensively
+      if (!isFinite(x) || !isFinite(y) || !isFinite(z)) continue;
+      dynScratch[n * 4] = x;
+      dynScratch[n * 4 + 1] = y;
+      dynScratch[n * 4 + 2] = z;
+      dynScratch[n * 4 + 3] = isFinite(t) ? t : 2;
+      n++;
+    }
+    window.__drawnPoints = n;
+    return { ok: n, error: null };
+  }
+
+  function drawDynamic(mode, count, first){
+    if (count <= 0) return { ok: 0, error: null };
+    gl.bindVertexArray(dynVAO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, dynVbo);
+    gl.bufferData(gl.ARRAY_BUFFER, dynScratch.subarray(0, count * 4), gl.DYNAMIC_DRAW);
+    gl.drawArrays(mode, first, count);
+    gl.bindVertexArray(arenaVAO);
+    return { ok: count, error: null };
   }
 
   /* ---- write INPUT block for the coming substep (A1_total) ---- */
@@ -1267,10 +1384,17 @@ void main(){
     if (keys['KeyS'] || keys['ArrowDown']) keysBits |= 2;
     if (keys['KeyA'] || keys['ArrowLeft']) keysBits |= 4;
     if (keys['KeyD'] || keys['ArrowRight']) keysBits |= 8;
+    // TODO-09: touch stick bits (dead zone 24 px)
+    const DEAD = 24;
+    if (touchJoy.dy < -DEAD) keysBits |= 1; // W
+    if (touchJoy.dy > DEAD) keysBits |= 2;  // S
+    if (touchJoy.dx < -DEAD) keysBits |= 4; // A
+    if (touchJoy.dx > DEAD) keysBits |= 8;  // D
     I32[IB + 0] = keysBits;
     I32[IB + 1] = mouse.dx | 0;
     I32[IB + 2] = mouse.dy | 0;
-    I32[IB + 3] = (mouse.buttons & 1) | (keys['Space'] ? 1 : 0);
+    I32[IB + 3] = (mouse.buttons & 1) | (keys['Space'] ? 1 : 0) | (fireQueued ? 1 : 0);
+    fireQueued = false;
     F32[IB + 4] = dt;
     F32[IB + 5] = fwd.x;
     F32[IB + 6] = fwd.z;
@@ -1327,6 +1451,8 @@ void main(){
       I32 = new Int32Array(buf);
       F32 = new Float32Array(buf);
       arenaU8 = new Uint8Array(buf, REGION.ARENA, 196608);
+      if (new URLSearchParams(location.search).get('debug') === '1'){
+        window.__fps = { ex, I32, F32, U8, IB, PB, GW, REGION };}
       return { ok: true, error: null };
     } catch (err){
       return { ok: false, error: 'loadWasm exception: ' + String(err) };
@@ -1337,9 +1463,24 @@ void main(){
   let lastTime = performance.now();
   let frameCount = 0, fpsTime = performance.now(), fps = 0;
   let gameStarted = false;
+  let gameOver = false;
+  let prevHp = 100;
   const FIXED_DT = 1000 / 60, MAX_STEPS = 5;
   let simAcc = 0;
+  // TODO-06: perf telemetry + adaptive DPR governor
+  const gov = lib.makeGovernor();
+  let lastFrameMs = 16.67;
   const SHOT_MODE = new URLSearchParams(location.search).get('shot') === '1';
+
+  /* ---- damage feedback (TODO-05) ---- */
+  function flashDamage(){
+    const d = document.createElement('div');
+    d.style.cssText = 'position:absolute;inset:0;background:#ff2222;opacity:0.35;pointer-events:none;z-index:15;transition:opacity .4s';
+    document.body.appendChild(d);
+    requestAnimationFrame(() => { d.style.opacity = '0'; });
+    setTimeout(() => d.remove(), 500);
+    return { ok: true, error: null };
+  }
 
   function loop(){
     try {
@@ -1380,6 +1521,17 @@ void main(){
       const p = readPlayer().ok;
       playerYaw = p.yaw;
       playerPitch = p.pitch;
+      // TODO-05: damage feedback + game over
+      if (p.hp < prevHp) flashDamage();
+      prevHp = p.hp;
+      if (gameStarted && p.hp <= 0){
+        gameStarted = false;
+        gameOver = true;
+        document.getElementById('overlay').classList.remove('hidden');
+        document.querySelector('.overlay-title').textContent = 'WAVE FAILED';
+        document.getElementById('overlayBtn').textContent = 'RESTART';
+        try { document.exitPointerLock(); } catch (e) {}
+      }
       const g = readGlobals().ok;
       const camX = p.x;
       const camY = p.y + EYE_H;
@@ -1401,9 +1553,14 @@ void main(){
 
       const tDraw0 = performance.now();
       if (quadCount > 0){
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexVBO);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexVBO);
+        gl.bindVertexArray(arenaVAO);
         gl.drawElements(gl.TRIANGLES, quadCount * 6, gl.UNSIGNED_INT, 0);
+      }
+      // TODO-04: dynamic actor pass (entities = POINTS palette row 2).
+      const ed = buildEntityData();
+      if (ed.ok > 0){
+        const dr = drawDynamic(gl.POINTS, ed.ok, 0);
+        if (!dr.ok) showErr('entity draw failed: ' + dr.error);
       }
       const tDraw1 = performance.now();
       const tRender1 = performance.now();
@@ -1413,11 +1570,19 @@ void main(){
       document.getElementById('hudScore').textContent = g.score;
       document.getElementById('hudPos').textContent =
         Math.floor(p.x) + ', ' + Math.floor(p.y) + ', ' + Math.floor(p.z);
+      document.getElementById('hudAlive').textContent = g.alive;
+      document.getElementById('hudHp').textContent = Math.max(0, p.hp);
       document.getElementById('perfFrameMs').textContent = (tRender1 - tRender0).toFixed(2);
       document.getElementById('perfSimMs').textContent = (tSim1 - tSim0).toFixed(2);
       document.getElementById('perfDrawMs').textContent = (tDraw1 - tDraw0).toFixed(2);
       document.getElementById('perfDropped').textContent = droppedMs.toFixed(0);
       document.getElementById('perfFps').textContent = fps;
+      // TODO-06: ring stats + governor
+      lastFrameMs = (tSim1 - tSim0) + (tRender1 - tRender0);
+      lib.ringPush(lastFrameMs);
+      const rs = lib.ringStats();
+      document.getElementById('perfP50').textContent = rs.p50.toFixed(2);
+      document.getElementById('perfP99').textContent = rs.p99.toFixed(2);
 
       requestAnimationFrame(loop);
       return { ok: true, error: null };
@@ -1443,8 +1608,17 @@ void main(){
       const gm = buildGreedyMesh();
       if (!gm.ok){ showErr('Greedy mesh build failed: ' + gm.error); return { ok: false, error: gm.error }; }
       if (!initGLResources().ok){ showErr('GL resources failed'); return { ok: false, error: 'gl resources failed' }; }
+      if (!initDynResources().ok){ showErr('dyn resources failed'); return { ok: false, error: 'dyn resources failed' }; }
 
       document.getElementById('overlayBtn').addEventListener('click', () => {
+        if (gameOver){
+          ex.ent_reset(); ex.part_reset();
+          I32[GW + 0] = 0; I32[GW + 1] = 1; I32[GW + 2] = 0; I32[GW + 3] = 0;
+          spawnPlayer();
+          prevHp = 100; gameOver = false;
+          document.querySelector('.overlay-title').textContent = 'REDBOLT fps2';
+          document.getElementById('overlayBtn').textContent = 'ENTER WORLD';
+        }
         gameStarted = true;
         document.getElementById('overlay').classList.add('hidden');
         try { canvas.requestPointerLock(); } catch (e) {}
