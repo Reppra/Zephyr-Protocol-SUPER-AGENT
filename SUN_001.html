@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SUN_001 - REDBOLT fps2 WASM performance showcase</title>
+<link rel="icon" href="data:,">
+<style>
+* { margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+#glcanvas { display: block; width: 100vw; height: 100vh; background: #1a2a3a; cursor: crosshair; }
+#crosshair { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px;
+  background: #00ffff; border: 1px solid #ffffff; margin-left: -3px; margin-top: -3px;
+  pointer-events: none; z-index: 10; }
+#hud { position: absolute; bottom: 20px; left: 20px; color: #e0e0e0;
+  font-family: 'Courier New', monospace; font-size: 14px; pointer-events: none;
+  text-shadow: 0 0 6px #000; z-index: 10; }
+#hud .line { margin-bottom: 4px; }
+#hud .label { color: #88aaff; }
+#hud .value { color: #ffffff; font-weight: bold; }
+#perf { position: absolute; top: 10px; right: 10px; color: #0f0;
+  background: rgba(0,0,0,0.7); font-family: 'Courier New', monospace; font-size: 13px;
+  padding: 8px; z-index: 10; pointer-events: none; }
+#perf .line { margin-bottom: 4px; }
+#errbox { display: none; position: absolute; top: 10px; left: 10px; right: 10px;
+  color: #ff5555; background: rgba(0,0,0,0.85); font-family: monospace; font-size: 13px;
+  padding: 8px; z-index: 50; white-space: pre-wrap; }
+#overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: auto; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 20;
+  background: rgba(0,0,0,0.8); }
+#overlay.hidden { display: none !important; }
+.overlay-title { font-size: 48px; font-weight: bold; color: #00ffff;
+  text-shadow: 0 0 30px #00ffff; margin-bottom: 16px; letter-spacing: 4px; }
+.overlay-subtitle { font-size: 18px; color: #e0e0e0; margin-bottom: 36px; line-height: 1.6; }
+.overlay-btn { background: #0a0a0c; border: 2px solid #00ffff; color: #00ffff;
+  padding: 14px 40px; font-size: 20px; font-family: 'Courier New', monospace;
+  cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
+.overlay-btn:hover { background: #00ffff; color: #000; }
+</style>
+</head>
+<body>
+<canvas id="glcanvas"></canvas>
+<div id="crosshair"></div>
+<div id="perf">
+  <div class="line"><span class="label">WASM FRAME:</span><span class="value" id="perfFrameMs">0</span> ms</div>
+  <div class="line"><span class="label">RENDER:</span><span class="value" id="perfRenderMs">0</span> ms</div>
+  <div class="line"><span class="label">FPS:</span><span class="value" id="perfFps">0</span></div>
+</div>
+<div id="hud">
+  <div class="line"><span class="label">WAVE:</span><span class="value" id="hudWave">1</span></div>
+  <div class="line"><span class="label">KILLS:</span><span class="value" id="hudKills">0</span></div>
+  <div class="line"><span class="label">SCORE:</span><span class="value" id="hudScore">0</span></div>
+  <div class="line"><span class="label">POS:</span><span class="value" id="hudPos">0, 0, 0</span></div>
+</div>
+<div id="errbox"></div>
+<div id="overlay">
+  <div class="overlay-title">REDBOLT fps2</div>
+  <div class="overlay-subtitle">
+    Clean WASM performance showcase â every function carries an error handler<br>
+    WASD: Move &nbsp;|&nbsp; Mouse: Look &nbsp;|&nbsp; Click: ENTER WORLD
+  </div>
+  <button class="overlay-btn" id="overlayBtn">ENTER WORLD</button>
+</div>
+<script>
+/* SUN_001 inlined: tools/wasm/wasm.js (sha256 cfcc0f395004) - verbatim, zero edits. Exposes window.wasmEngine. */
+/*==============================================================================
+  tools/wasm/wasm.js â€” PURE ENGINE BIBLIOTECA
+  ==============================================================================
+  Single reusable library absorbing CANVAS_V8_KNOWLEDGE_005.txt,
+  neuro_map_007.txt, PURE_ENGINE_010.html, Qwen_PURE_ENGINE_005.html.
+
+  DEFAULT PATH: embedded validated 2263-byte WebAssembly kernel (sha256
+  14062c24eaba09df9af53833d49c140859cb4ce8f98dca70607ff044f2ae5b0a),
+  0 imports, 5 exports (mem, xdraw, bulk3d, bulkOrg3d, proj, sort),
+  40 pages / 2,621,440 bytes linear memory.
+
+  RECORD ABI (i32 fixed-point, FIX=1024): 7 Ã— i32 = 28 bytes per record
+  [x, y, z, vx, vy, vz, glyph] at i*28, MAX=48000, RESERVE=256,
+  SLOTBASE=47744, TARGET_MAX=47744.
+
+  Known kernel defects (measured, documented): bulk3d divides dtMs by 1000
+  in i32 so it moves NOTHING for dt<1000 ms, and caps speed at 1040 fixed
+  (~1 px/s) instead of VMAX=560*FIX. The library therefore exposes bulk3d as
+  a legacy export but routes the per-frame integrator through step(), a
+  corrected JS integrator that runs the same attractor/wind/damp/clamp/bounce
+  physics with real fractional dt (no float stored in Int32Array). proj() and
+  sort() use the kernel directly and are bit-exact against a JS reference
+  verified over 200,000 randomized cases.
+
+  No DOM, no WebGL, no fetch, no per-record JS->wasm crossings: one crossing
+  per frame for proj+sort, one JS sweep for step. Boundary tax ~12.5 ns/call
+  (measured on this machine); batching is the rule.
+==============================================================================*/
+
+/*-----------------------------------------------------------------------------
+  Embedded kernel (base64, 2263 bytes decoded)
+-----------------------------------------------------------------------------*/
+const KERNEL_B64 = [
+'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'].join('');
+
+/*-----------------------------------------------------------------------------
+  Constants (from PURE_ENGINE_010.html layout, lines 145-153)
+-----------------------------------------------------------------------------*/
+const FIX   = 1024;
+const VMAX  = 560 * FIX;
+const MAX   = 48000;
+const RESERVE = 256;
+const SLOTBASE = MAX - RESERVE;   // 47744
+const TARGET_MAX = SLOTBASE;
+
+const PARI  = 336000;   // organism params 28B x72
+const TRI   = 336504;   // trig 32B x72
+const SCRI  = 337080;   // scratch 16B x48000 (proj output)
+const ORI   = 529080;   // order 4B x48000
+
+const FOV        = 65;
+const CAM_NEAR   = 90 * FIX;
+const CAM_FAR    = 6000 * FIX;
+const SORT_BUCKETS = 64;
+
+/*-----------------------------------------------------------------------------
+  Instantiate kernel
+-----------------------------------------------------------------------------*/
+let wasm, mem, forms, order, ready = false, bootLog = [], kernelBytes = 0;
+let bootError = null;   // A1: boot failure is data, not a throw at import time
+function blog(s){ bootLog.push(s); if(bootLog.length>8) bootLog.shift(); }
+
+/* F1: TypedArray views over mem.buffer detach when the kernel grows its
+   memory. Re-create views whenever the backing buffer changes. Returns
+   true if views were refreshed. */
+function refreshViews(){
+  if(!mem) return false;
+  const buf = mem.buffer;
+  if(forms && forms.buffer === buf && forms.byteLength === buf.byteLength) return false;
+  forms = new Int32Array(buf);
+  order = new Int32Array(buf);   // shared view, order lives at ORI
+  return true;
+}
+
+/* Fixed-point divide (item 4, JS equivalent of FDIV): (a<<10)/b with a
+   zero-divisor guard. FIX=1024 (10-bit), so a*FIX stays within 2^53. */
+function fdiv(a, b){
+  a |= 0; b |= 0;
+  if(b === 0) return 0;
+  const q = Math.trunc((a * FIX) / b);
+  return Math.max(-2147483648, Math.min(2147483647, q)) | 0;
+}
+
+function createEngine(){
+  const bytes = new Uint8Array(atob(KERNEL_B64).split('').map(c=>c.charCodeAt(0)));
+  kernelBytes = bytes.length;
+  const mod = new WebAssembly.Module(bytes);          // validates
+  const inst = new WebAssembly.Instance(mod);         // 0 imports
+  wasm = inst.exports;
+  mem  = wasm.mem;
+  forms = null; order = null;   // refreshViews() (re)creates both views
+  refreshViews();
+  ready = true;
+  bootError = null;
+  blog('module built: ' + bytes.length + ' bytes');
+  blog('wasm instantiated ok: mem=' + mem.buffer.byteLength + 'B exports=' +
+       Object.keys(wasm).join(','));
+  return wasm;
+}
+
+/*-----------------------------------------------------------------------------
+  Legacy kernel exports (documented defects: see step())
+-----------------------------------------------------------------------------*/
+function xdraw(slot,x,y,z,vx,vy,vz,glyph){
+  if(!ready) createEngine();
+  return wasm.xdraw(slot|0,x|0,y|0,z|0,vx|0,vy|0,vz|0,glyph|0);
+}
+/* bulk3d: kept exported but NOT the supported integrator. dtMs/1000 i32
+   division freezes all motion for dt<1000 ms; speed cap is 1040 not VMAX. */
+function bulk3d(n,attX,attY,attZ,wX,wY,wZ,W,H,ZS3,dampFP,dtMs){
+  if(!ready) createEngine();
+  return wasm.bulk3d(n|0,attX|0,attY|0,attZ|0,wX|0,wY|0,wZ|0,W|0,H|0,ZS3|0,dampFP|0,dtMs|0);
+}
+function bulkOrg3d(n,W,H,ZS3,floorY,dtMs){
+  if(!ready) createEngine();
+  return wasm.bulkOrg3d(n|0,W|0,H|0,ZS3|0,floorY|0,dtMs|0);
+}
+function proj(n,camX,camY,camZ,cY,sY,cP,sP,focal,W2,H2,near,sizeFloor){
+  if(!ready) createEngine(); else refreshViews();
+  wasm.proj(n|0,camX|0,camY|0,camZ|0,cY|0,sY|0,cP|0,sP|0,focal|0,W2|0,H2|0,near|0,sizeFloor|0);
+}
+/* sort: stable counting sort ASCENDING by camera depth. Writes only the first
+   vis entries of order[]; the TAIL is left stale â€” callers must read only
+   order[0, vis). Returns vis. */
+function sort(n,buckets,far){
+  if(!ready) createEngine(); else refreshViews();
+  wasm.sort(n|0,buckets|0,far|0);
+  let vis=0;
+  for(let i=0;i<Math.max(0,n|0);i++){
+    if(forms[SCRI+i*4+3] > 0) vis++;
+  }
+  return vis;
+}
+
+/*-----------------------------------------------------------------------------
+  projRef: JS reference bit-exact with the kernel proj() (verified 200k cases).
+  Ground truth from bytecode decode:
+    x1 = ((dx>>2)*cY - (dz>>2)*sY) >> 8
+    z1 = ((dx>>2)*sY + (dz>>2)*cY) >> 8
+    y2 = ((dy>>2)*cP - (z1>>2)*sP) >> 8
+    z2 = ((dy>>2)*sP + (z1>>2)*cP) >> 8
+    cull if z2 < near
+    sx = trunc( f32(x1)*f32(focal)/f32(z2) + f32(W2) )
+    sy = trunc( f32(H2) - f32(y2)*f32(focal)/f32(z2) )
+    size = clamp( trunc( f32(ss)*f32(focal)/f32(z2) ), 1, 8 )
+    scratch write: [sx*1024, sy*1024, size, z2]
+-----------------------------------------------------------------------------*/
+function refProj(xi,yi,zi,cam){
+  const dx=(xi-cam.x)|0, dy=(yi-cam.y)|0, dz=(zi-cam.z)|0;
+  const x1=(Math.imul(dx>>2,cam.cY)-Math.imul(dz>>2,cam.sY))>>8;
+  const z1=(Math.imul(dx>>2,cam.sY)+Math.imul(dz>>2,cam.cY))>>8;
+  const y2=(Math.imul(dy>>2,cam.cP)-Math.imul(z1>>2,cam.sP))>>8;
+  const z2=(Math.imul(dy>>2,cam.sP)+Math.imul(z1>>2,cam.cP))>>8;
+  if(z2<cam.near) return {ok:0,sx:0,sy:0,s:0,b:0,z2:0};
+  const fz=Math.fround(z2);
+  const sx=Math.trunc(Math.fround(Math.fround(Math.fround(Math.fround(x1)*cam.focal)/fz)+cam.W2));
+  const sy=Math.trunc(Math.fround(cam.H2-Math.fround(Math.fround(y2)*cam.focal)/fz));
+  let s=Math.trunc(Math.fround(Math.fround(cam.ss)*cam.focal/fz));
+  if(s<1)s=1; if(s>8)s=8;
+  return {ok:1,sx,sy,s:s|0,b:255-Math.min(255,z2>>15),z2};
+}
+
+/*-----------------------------------------------------------------------------
+  projSort: one wasm proj() call + one wasm sort() call, returns vis count.
+  Painter must iterate order[0,vis) descending (far first) â€” sort is
+  ascending by depth, so farthest is LAST. Kernel writes only vis entries;
+  tail of order[] is stale.
+-----------------------------------------------------------------------------*/
+function projSort(n,camX,camY,camZ,cY,sY,cP,sP,focal,W2,H2,near,sizeFloor,buckets,far){
+  proj(n,camX,camY,camZ,cY,sY,cP,sP,focal,W2,H2,near,sizeFloor);
+  const n2 = sort(n,buckets,far);
+  // kernel does not expose vis; recompute from scratch depth field
+  let vis=0;
+  for(let i=0;i<n;i++){
+    const p=SCRI+i*4;
+    if(forms[p+3]>0) vis++;
+  }
+  return vis;
+}
+
+/*-----------------------------------------------------------------------------
+  step(): corrected integrator. Same physics intent as bulk3d
+  (attractor swirl + wind + damping + speed clamp + box bounce) but:
+    * dtMs used as a REAL fraction (dtMs/1000) â€” no i32 /1000 freeze
+    * integer fixed-point throughout, no float stored into Int32Array
+    * speed clamp at VMAX=560*FIX (not the kernel's 1040)
+  Returns nothing; mutates forms[] in place. One JS sweep, zero wasm crossings.
+-----------------------------------------------------------------------------*/
+function step(n,attX,attY,attZ,wX,wY,wZ,W,H,ZS3,dampFP,dtMs){
+  if(!ready) createEngine(); else refreshViews();
+  const f = dtMs / 1000;                 // real fraction
+  const ACC = 160, SWL = 110, DMIN = 64;
+  const VM2 = VMAX * VMAX;
+  for(let i=0;i<n;i++){
+    const b=i*7;
+    const dx = attX - forms[b];
+    const dy = attY - forms[b+1];
+    const dz = attZ - forms[b+2];
+    let d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    if(d < DMIN) d = DMIN;
+    const r = ACC * f / d;
+    const sw = SWL * f / d;
+    let vx = forms[b+3] + wX + dx*r - dy*sw;
+    let vy = forms[b+4] + wY + dy*r + dx*sw;
+    let vz = forms[b+5] + wZ + dz*r;
+    const v2 = vx*vx + vy*vy + vz*vz;
+    if(v2 > VM2){
+      const m = VMAX / Math.sqrt(v2);
+      vx *= m; vy *= m; vz *= m;
+    }
+    // damping: v *= damp/1024
+    vx = (vx * dampFP) / 1024 | 0;
+    vy = (vy * dampFP) / 1024 | 0;
+    vz = (vz * dampFP) / 1024 | 0;
+    forms[b+3] = vx;
+    forms[b+4] = vy;
+    forms[b+5] = vz;
+    forms[b]   += Math.round(vx * f);
+    forms[b+1] += Math.round(vy * f);
+    forms[b+2] += Math.round(vz * f);
+    // box clamp + bounce
+    if(forms[b] < 0){ forms[b] = 0; forms[b+3] = -forms[b+3]; }
+    else if(forms[b] > W){ forms[b] = W; forms[b+3] = -forms[b+3]; }
+    if(forms[b+1] < 0){ forms[b+1] = 0; forms[b+4] = -forms[b+4]; }
+    else if(forms[b+1] > H){ forms[b+1] = H; forms[b+4] = -forms[b+4]; }
+    if(forms[b+2] < 0){ forms[b+2] = 0; forms[b+5] = -forms[b+5]; }
+    else if(forms[b+2] > ZS3){ forms[b+2] = ZS3; forms[b+5] = -forms[b+5]; }
+  }
+}
+
+/*-----------------------------------------------------------------------------
+  OPUS 5.5 absorption â€” modular pure-JS algorithm ports.
+  Kernel is sha-pinned (14062C24...2AE5B0A) and takes no new exports;
+  wasm linear memory is fully allocated (records 0â€“1,344,000B,
+  SCRI 1,348,320â€“2,116,320B, ORI 2,116,320â€“2,308,320B, ~313KB free).
+  All new functions are pure JS,
+  zero wasm crossings, no DOM, no WebGL, no fetch.
+-----------------------------------------------------------------------------*/
+
+function lerp(a, b, t){ return a + (b - a) * t; }
+
+/*-----------------------------------------------------------------------------
+  hash2: OPUS 5.5 $hash port â€” imul/xor/shr_u integer hash.
+  Constants 374761393, 668265263, 1274126177; shifts 13 and 16.
+  All i32 arithmetic via Math.imul + |0 wraparound.
+-----------------------------------------------------------------------------*/
+function hash2(a, b){
+  a |= 0; b |= 0;
+  let n = (Math.imul(a, 374761393) + Math.imul(b, 668265263)) | 0;
+  n = (Math.imul(n ^ (n >>> 13), 1274126177)) | 0;
+  return n ^ (n >>> 16);
+}
+
+/*-----------------------------------------------------------------------------
+  rnd2: OPUS 5.5 $rnd port â€” float [0,1) from hash2.
+  ((hash >>> 8) & 0xFFFF) / 65535.0
+-----------------------------------------------------------------------------*/
+function rnd2(a, b){
+  a |= 0; b |= 0;
+  const h = hash2(a, b);
+  return ((h >>> 8) & 0xFFFF) / 65535.0;
+}
+
+/*-----------------------------------------------------------------------------
+  noise2d: OPUS 5.5 $vn port â€” 2D value noise with bilinear lerp.
+  Uses floor/frac/lerp/rnd2 grid-corner interpolation.
+-----------------------------------------------------------------------------*/
+function noise2d(x, z){
+  x = +x; z = +z;
+  const ix = Math.floor(x) | 0;
+  const iz = Math.floor(z) | 0;
+  let fx = x - Math.floor(x);
+  let fz = z - Math.floor(z);
+  fx = fx * fx * (3.0 - 2.0 * fx);
+  fz = fz * fz * (3.0 - 2.0 * fz);
+  const a = lerp(rnd2(ix, iz), rnd2(ix + 1, iz), fx);
+  const b = lerp(rnd2(ix, iz + 1), rnd2(ix + 1, iz + 1), fx);
+  return lerp(a, b, fz);
+}
+
+/*-----------------------------------------------------------------------------
+  fbm2d: OPUS 5.5 $fbm port â€” fractal brownian motion over noise2d.
+  Default 4 octaves: amplitude 0.5, frequency 0.03125, octave offset 31.7,
+  normalised by 0.9375 (sum of 0.5 + 0.25 + 0.125 + 0.0625).
+-----------------------------------------------------------------------------*/
+function fbm2d(x, z, octaves){
+  x = +x; z = +z;
+  octaves = octaves | 0;
+  if(octaves <= 0) return 0;
+  let a = 0.5, f = 0.03125, o = 0.0, s = 0.0;
+  for(let i = 0; i < octaves; i++){
+    s += a * noise2d(x * f + o, z * f + o);
+    f *= 2.0;
+    a *= 0.5;
+    o += 31.7;
+  }
+  return s / 0.9375;
+}
+
+
+/*-----------------------------------------------------------------------------
+  Trig wrappers: OPUS 5.5 $sin/$cos implemented as WASM polynomial;
+  JS Math.sin/Math.cos are more accurate and faster. Kept as fixed-point
+  friendly pass-throughs (input in radians, output raw float).
+-----------------------------------------------------------------------------*/
+function sinF32(radians){ return Math.sin(+radians); }
+function cosF32(radians){ return Math.cos(+radians); }
+
+/*-----------------------------------------------------------------------------
+  SoA record view: index i -> [x,y,z,vx,vy,vz,glyph] at i*7 in forms[]
+-----------------------------------------------------------------------------*/
+function recX(i){ refreshViews(); return forms[i*7]; }
+function recY(i){ refreshViews(); return forms[i*7+1]; }
+function recZ(i){ refreshViews(); return forms[i*7+2]; }
+function recVX(i){ refreshViews(); return forms[i*7+3]; }
+function recVY(i){ refreshViews(); return forms[i*7+4]; }
+function recVZ(i){ refreshViews(); return forms[i*7+5]; }
+function recG(i){ refreshViews(); return forms[i*7+6]; }
+function setRec(i,x,y,z,vx,vy,vz,g){
+  refreshViews();
+  const b=i*7;
+  forms[b]=x|0; forms[b+1]=y|0; forms[b+2]=z|0;
+  forms[b+3]=vx|0; forms[b+4]=vy|0; forms[b+5]=vz|0; forms[b+6]=g|0;
+}
+
+/*-----------------------------------------------------------------------------
+  Ring statistics (Qwen ringSample absorbed): rolling p50/p99/1%-low frame times
+-----------------------------------------------------------------------------*/
+const RING = new Float32Array(256); let rLen=0, rIdx=0;
+function ringPush(ms){
+  RING[rIdx++ & 255] = ms;
+  if(rLen < 256) rLen++;
+}
+function ringStats(){
+  if(rLen===0) return {p50:0,p99:0,p1low:0,count:0};
+  const w = new Float32Array(rLen);
+  for(let i=0;i<rLen;i++) w[i]=RING[(rIdx-rLen+i)&255];
+  w.sort((a,b)=>a-b);
+  const p50 = w[(rLen/2)|0];
+  const p99 = w[Math.min(rLen-1, Math.floor(rLen*0.99))];
+  const p1low = w[Math.max(0, Math.floor(rLen*0.01))];
+  return {p50, p99, p1low, count: rLen};
+}
+
+/*-----------------------------------------------------------------------------
+  Adaptive resolution governor (CANVAS_V8_KNOWLEDGE_005 Â§5):
+  DPR ladder [1,1.5,2], slowEma-driven, standby-only, locked during runs.
+-----------------------------------------------------------------------------*/
+const RESLEVELS = [1, 1.5, 2];
+function makeGovernor(){
+  let resLvl = RESLEVELS.length - 1;
+  let frameEma = 16.67, slowEma = 0, locked = false;
+  return {
+    setLocked(v){ locked = !!v; },
+    update(dt){
+      frameEma = frameEma*0.95 + dt*0.05;
+      const over = dt > 1.25 * 16.67 ? 1 : 0;
+      slowEma = slowEma*0.9 + over*0.1;
+      if(!locked){
+        if(slowEma > 0.5 && resLvl > 0) resLvl--;
+        else if(slowEma < 0.1 && resLvl < RESLEVELS.length-1) resLvl++;
+      }
+      return RESLEVELS[resLvl];
+    },
+    level(){ return RESLEVELS[resLvl]; },
+    locked(){ return locked; }
+  };
+}
+
+/*-----------------------------------------------------------------------------
+  WASM_ALL.js knowledge absorption (tools/wasm/WASM_ALL.js).
+  Ported from the ES-module knowledge reference into this CJS/UMD bibliotec.
+  All data is string/number only â€” zero network, zero fetch, zero DOM.
+  The URL-loader (instantiateWasmFromURL) is deliberately NOT ported: this
+  bibliotec's contract is "no fetch" (see header comment). inspectWasmBytes
+  and runWasmSmokeTest are synchronous (WebAssembly.Module/Instance
+  constructors are sync), matching this library's style.
+-----------------------------------------------------------------------------*/
+
+function deepFreeze(value){
+  if (value && typeof value === 'object' && !Object.isFrozen(value)){
+    for (const item of Object.values(value)) deepFreeze(item);
+    Object.freeze(value);
+  }
+  return value;
+}
+
+const WASM_SOURCES = Object.freeze({
+  specs: 'https://webassembly.org/specs/',
+  core: 'https://webassembly.github.io/spec/core/',
+  wasm3: 'https://webassembly.org/news/2025-09-17-wasm-3.0/',
+  wasm2: 'https://webassembly.org/news/2025-03-20-wasm-2.0/',
+  modules: 'https://webassembly.github.io/spec/core/syntax/modules.html',
+  instructions: 'https://webassembly.github.io/spec/core/syntax/instructions.html',
+  execution: 'https://webassembly.github.io/spec/core/exec/',
+  jsApi: 'https://webassembly.github.io/spec/js-api/',
+  jsGuide: 'https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Using_the_JavaScript_API',
+  validate: 'https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/JavaScript_interface/validate_static',
+  memoryGrow: 'https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/JavaScript_interface/Memory/grow',
+  sharedMemory: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer',
+  security: 'https://webassembly.org/docs/security/',
+  nondeterminism: 'https://webassembly.org/docs/nondeterminism/',
+  csp: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src',
+  wasi: 'https://wasi.dev/',
+  wasiReleases: 'https://wasi.dev/releases',
+  wasiP2: 'https://wasi.dev/releases/wasi-p2',
+  wasiP3: 'https://wasi.dev/releases/wasi-p3',
+  nodeWasi: 'https://nodejs.org/api/wasi.html',
+  component: 'https://github.com/WebAssembly/component-model',
+  wit: 'https://webassembly.github.io/spec/core/syntax/modules.html',
+  worlds: 'https://webassembly.github.io/spec/core/syntax/modules.html',
+  wasmtime: 'https://docs.wasmtime.dev/',
+  wasmtimeFuel: 'https://docs.wasmtime.dev/api/wasmtime/struct.Config.html',
+  wasmtimeLimits: 'https://docs.wasmtime.dev/api/wasmtime/trait.ResourceLimiter.html',
+  emscripten: 'https://emscripten.org/docs/',
+  asyncify: 'https://emscripten.org/docs/porting/asyncify.html',
+  pthreads: 'https://emscripten.org/docs/porting/pthreads.html',
+  rustBindings: 'https://rustwasm.github.io/docs/wasm-bindgen/',
+  assemblyscript: 'https://www.assemblyscript.org/',
+  asCompiler: 'https://www.assemblyscript.org/compiler.html',
+  asRuntime: 'https://www.assemblyscript.org/runtime.html',
+  wat: 'https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format',
+  wabt: 'https://github.com/WebAssembly/wabt',
+  binaryen: 'https://github.com/WebAssembly/binaryen',
+  wasmTools: 'https://github.com/bytecodealliance/wasm-tools',
+  randomxJs: 'https://github.com/l1mey112/randomx.js/',
+  randomxTests: 'https://github.com/tevador/RandomX/blob/master/src/tests/tests.cpp',
+  proposals: 'https://github.com/WebAssembly/proposals',
+  jspi: 'https://github.com/WebAssembly/js-promise-integration',
+  sourceMaps: 'https://github.com/WebAssembly/tool-conventions/blob/main/Debugging.md'
+});
+
+const sections = [
+  { id: 'definition', title: 'What WebAssembly is', tags: ['fundamentals', 'definition'], points: ['Portable typed binary instruction format with an operand stack and structured control flow; a compilation target, not a CPU or an OS.'], sources: ['specs', 'core'] },
+  { id: 'timeline', title: 'Standards timeline and compatibility', tags: ['versions', 'standards', 'support'], points: ['Wasm 1.0 W3C Rec 2019; 2.0 added SIMD, bulk memory; 3.0 live Sept 2025. A version number is not a feature guarantee for your engine.'], sources: ['specs', 'wasm2', 'wasm3', 'proposals'] },
+  { id: 'pipeline', title: 'Source-to-execution pipeline', tags: ['compile', 'validation', 'instantiate'], points: ['Compile source/WAT to bytes, validate typing and structure, compile Module, instantiate with imports, invoke exports.'], sources: ['core', 'modules', 'jsGuide'] },
+  { id: 'binary-format', title: 'Binary format, sections and WAT', tags: ['binary', 'wat', 'sections', 'leb128'], points: ['Magic bytes 00 61 73 6d plus version field; sections per spec; LEB128 integers; WAT is text form; WABT/binaryen inspect.'], sources: ['core', 'wat', 'wabt', 'wasmTools', 'binaryen'] },
+  { id: 'type-model', title: 'Value types and execution', tags: ['types', 'numeric', 'stack'], points: ['Scalar i32/i64/f32/f64 plus packed v128; signed vs unsigned chosen per instruction; references are typed handles, not raw memory addresses.'], sources: ['core', 'instructions', 'nondeterminism'] },
+  { id: 'control-flow', title: 'Control flow, functions and traps', tags: ['control', 'functions', 'traps'], points: ['Structured block/loop/if/branch target labels, not arbitrary addresses; traps signal out-of-bounds access, unreachable, divide-by-zero.'], sources: ['instructions', 'wasm3', 'jsApi'] },
+  { id: 'modules', title: 'Modules, imports, exports and start functions', tags: ['module', 'linking', 'imports', 'exports'], points: ['Modules define/import functions/memories/tables/globals/tags and export selected definitions; imports use module name plus field name.'], sources: ['modules', 'jsGuide', 'security'] },
+  { id: 'memory', title: 'Linear memory and addressing', tags: ['memory', 'pointers', 'pages'], points: ['Linear memory: indexed byte sequence, 65,536-byte pages, little-endian, traps out-of-bounds; pointers are memory offsets, not host pointers.'], sources: ['core', 'wasm3', 'security'] },
+  { id: 'memory-growth', title: 'Memory growth and stale views', tags: ['memory', 'grow', 'arraybuffer'], points: ['memory.grow returns previous page count; growth detaches fixed-length ArrayBuffer views — recreate typed arrays after any grow call.'], sources: ['memoryGrow', 'jsGuide', 'sharedMemory'] },
+  { id: 'memory-abi', title: 'Moving strings, arrays and structures across the boundary', tags: ['abi', 'strings', 'ownership'], points: ['Core Wasm knows nothing of JS strings/objects; ABIs pass offsets/lengths to linear memory; encoding, allocation, lifetime are specified.'], sources: ['jsGuide', 'rustBindings', 'asRuntime'] },
+  { id: 'tables-globals', title: 'Tables, globals and references', tags: ['tables', 'globals', 'references'], points: ['Tables are indexed reference collections for indirect calls; globals store typed immutable/mutable values; externref is host-managed.'], sources: ['core', 'wasm3', 'jsApi'] },
+  { id: 'js-api', title: 'JavaScript WebAssembly API', tags: ['javascript', 'api', 'module', 'instance'], points: ['validate/compile/instantiate report validity and link status; sync constructors can block; exports map i64 to BigInt in supported engines.'], sources: ['jsApi', 'jsGuide', 'validate'] },
+  { id: 'streaming', title: 'Loading, MIME, CORS and CSP', tags: ['streaming', 'browser', 'deployment'], points: ['Streaming overlaps download and compilation with Content-Type application/wasm; cross-origin fetches need CORS headers.'], sources: ['jsGuide', 'csp', 'security'] },
+  { id: 'threads', title: 'Threads, workers, shared memory and atomics', tags: ['workers', 'threads', 'atomics', 'shared'], points: ['Wasm creates no threads itself; hosts supply workers; SharedArrayBuffer sharing needs secure context plus cross-origin isolation.'], sources: ['sharedMemory', 'pthreads', 'jsGuide'] },
+  { id: 'simd', title: 'SIMD and relaxed SIMD', tags: ['simd', 'vectors', 'performance'], points: ['v128 packed SIMD for image/audio/numerical workloads; relaxed SIMD results implementation-dependent, not bit-identical across engines.'], sources: ['wasm2', 'wasm3', 'nondeterminism'] },
+  { id: 'gc', title: 'Wasm GC versus linear memory', tags: ['gc', 'types', 'managed'], points: ['Wasm GC adds managed struct/array types and typed references; not a full source-language object system — compilers choose representations.'], sources: ['wasm3', 'core'] },
+  { id: 'async', title: 'Asynchronous integration', tags: ['async', 'jspi', 'asyncify'], points: ['Core Wasm calls are synchronous; Asyncify unwinds/rewinds around async ops; JS Promise Integration is separate target-dependent support.'], sources: ['asyncify', 'jspi', 'wasiP3'] },
+  { id: 'wasi', title: 'WASI: system interfaces for Wasm', tags: ['wasi', 'system', 'capabilities'], points: ['WASI defines host interfaces for OS-like resources; Preview 1 is legacy core-module, 0.2 uses Component Model/WIT, 0.3 adds async streams.'], sources: ['wasi', 'wasiReleases', 'wasiP2', 'wasiP3'] },
+  { id: 'node-wasi', title: 'Node.js WASI warning', tags: ['node', 'wasi', 'security'], points: ['Node.js WASI lacks comprehensive filesystem security guarantees; do not rely on it for untrusted code.'], sources: ['nodeWasi', 'security'] },
+  { id: 'components', title: 'Component Model and WIT', tags: ['component', 'wit', 'interfaces', 'abi'], points: ['Component Model provides typed composable interfaces beyond core modules; WIT defines worlds/packages; Component ABI governs value lowering.'], sources: ['component', 'wit', 'worlds', 'wasiReleases'] },
+  { id: 'security-boundaries', title: 'Sandbox boundaries and capabilities', tags: ['security', 'sandbox', 'threat-model'], points: ['Validation, memory bounds and structured control flow are protections, not complete security; host imports determine what the guest can do.'], sources: ['security', 'wasmtime', 'wasmtimeLimits', 'nodeWasi'] },
+  { id: 'limits', title: 'Interrupting and limiting Wasm workloads', tags: ['fuel', 'timeouts', 'limits'], points: ['Long-running guest code needs embedding interruption or process control; fuel accounting and epoch checks are runtime-specific mechanisms.'], sources: ['wasmtimeFuel', 'wasmtimeLimits'] },
+  { id: 'determinism', title: 'Determinism and numerical correctness', tags: ['determinism', 'floating-point', 'consensus'], points: ['Wasm bit-level behavior can depend on nondeterministic NaN, relaxed SIMD, shared-memory interleavings and host imports.'], sources: ['wasm3', 'nondeterminism', 'security'] },
+  { id: 'performance', title: 'Performance engineering', tags: ['performance', 'benchmark', 'profiling'], points: ['Wasm is not automatically faster than optimized JS or native code; measure latency, memory, throughput and correctness.'], sources: ['wasm2', 'wasm3', 'emscripten', 'security'] },
+  { id: 'debugging', title: 'Debugging and inspecting Wasm', tags: ['debug', 'tools', 'dwarf', 'source-map'], points: ['Debuggers inspect Wasm stacks with matching source maps/DWARF; names/custom sections aid diagnosis but stripping them is not secrecy.'], sources: ['wabt', 'wasmTools', 'sourceMaps', 'jsGuide'] },
+  { id: 'language-toolchains', title: 'Language and compiler choices', tags: ['rust', 'c', 'cpp', 'assemblyscript', 'toolchain'], points: ['C/C++ use Emscripten; Rust targets core Wasm or WASI with wasm-bindgen; AssemblyScript is TypeScript-like, compiled with asc to Wasm.'], sources: ['emscripten', 'rustBindings', 'assemblyscript'] },
+  { id: 'assemblyscript-runtime', title: 'AssemblyScript runtime choices', tags: ['assemblyscript', 'gc', 'runtime'], points: ['AssemblyScript offers incremental/minimal/stub runtime variants; stub never frees allocations; compiler options affect output.'], sources: ['asCompiler', 'asRuntime'] },
+  { id: 'example-architecture', title: 'Wasm architecture from this session', tags: ['session', 'browser', 'server', 'workers'], points: ['Session evidence: AssemblyScript module handled game state while JavaScript owned rendering/input; Wasm is not a complete application.'], sources: ['jsGuide', 'assemblyscript'] },
+  { id: 'session-hash', title: 'Wasm compute-kernel validation lesson', tags: ['session', 'validation', 'randomx', 'correctness'], points: ['Session evidence: RandomX.js 0.1.3 matched five reference vectors via Wasm computation; provenance is first-class evidence.'], sources: ['randomxJs', 'randomxTests'] },
+  { id: 'reproducibility', title: 'Build reproducibility and provenance', tags: ['build', 'provenance', 'supply-chain'], points: ['Pin source revisions, toolchain versions, flags and dependency versions; record source and binary hashes for reproducibility.'], sources: ['security', 'emscripten', 'wasmTools'] },
+  { id: 'deployment', title: 'Deployment checklist', tags: ['checklist', 'deployment', 'compatibility'], points: ['Inventory artifacts/imports/capabilities/memory limits; serve correct MIME type with HTTPS/CORS/CSP headers; provide deliberate fallbacks.'], sources: ['jsGuide', 'sharedMemory', 'csp', 'security'] },
+  { id: 'myths', title: 'Common misconceptions', tags: ['myths', 'faq'], points: ['Wasm is not always native speed, not JavaScript, no OS/DOM access; sandboxing does not guarantee safety; validity does not prove security.'], sources: ['core', 'security', 'wasm3', 'jsGuide'] }
+];
+
+const WASM_GLOSSARY = Object.freeze({
+  ABI: 'Application binary interface: conventions for calling, value layout, ownership and linkage.',
+  AOT: 'Ahead-of-time compilation, performed before a particular execution.',
+  component: 'A Component Model artifact exposing typed interfaces and composition relationships.',
+  coreModule: 'A deployable, validated unit of core WebAssembly definitions, imports and exports.',
+  embedding: 'The host environment that instantiates Wasm and provides external functions and capabilities.',
+  export: 'A named function, memory, table, global or supported tag made available to the embedding.',
+  fuel: 'A runtime-specific budget for executing guest operations; exact accounting is runtime-defined.',
+  import: 'A named external value required by a module or component.',
+  instance: 'A live instantiation of a compiled Wasm module, with associated state and exports.',
+  JIT: 'Just-in-time compilation, performed during execution or loading.',
+  linearMemory: 'An indexed, mutable byte sequence used by Wasm memory instructions.',
+  page: 'The conventional Wasm memory allocation unit: 65,536 bytes.',
+  reference: 'A typed, opaque reference value, not necessarily an integer linear-memory address.',
+  SIMD: 'Single instruction, multiple data; Wasm provides a 128-bit vector type and operations.',
+  table: 'An indexed sequence of references, often used for indirect calls or linking.',
+  trap: 'An execution failure defined by Wasm semantics, such as an out-of-bounds access.',
+  WASI: 'WebAssembly System Interface: versioned interfaces supplied by compatible hosts.',
+  WAT: 'WebAssembly text format, a readable representation of core Wasm.',
+  WIT: 'Wasm Interface Type language: defines component interfaces and worlds.',
+  world: 'A WIT contract describing a component\u2019s imports and exports.'
+});
+
+const WASM_KNOWLEDGE = deepFreeze({
+  title: 'WASM_ALL: WebAssembly knowledge reference',
+  researchDate: '2026-11-06',
+  scope: 'WebAssembly, host interfaces, toolchains, security, performance and session-specific Wasm evidence.',
+  caveat: 'Curated reference, not an exhaustive specification or guarantee of runtime support. Section points are gists (<=140 chars each); full text lives in tools/wasm/WASM_ALL.js.',
+  sources: WASM_SOURCES,
+  glossary: WASM_GLOSSARY,
+  sections,
+  fullReference: 'tools/wasm/WASM_ALL.js'
+});
+
+/* Case-insensitive all-token search over section titles, ids, tags and points. */
+function searchWasmKnowledge(query){
+  const words = String(query).toLowerCase().trim().split(/\s+/).filter(Boolean);
+  return sections.filter(section => {
+    const text = [section.id, section.title, ...section.tags, ...section.points].join(' ').toLowerCase();
+    return words.every(word => text.includes(word));
+  });
+}
+
+/* Summarize the current host without creating or executing a Wasm instance. */
+function describeWasmHost(){
+  return {
+    webAssemblyAvailable: typeof WebAssembly === 'object',
+    streamingAvailable: typeof WebAssembly === 'object' && typeof WebAssembly.instantiateStreaming === 'function',
+    sharedArrayBufferAvailable: typeof SharedArrayBuffer === 'function',
+    crossOriginIsolated: typeof globalThis.crossOriginIsolated === 'boolean' ? globalThis.crossOriginIsolated : null,
+    note: 'These surface checks do not establish support for any specific Wasm proposal or artifact.'
+  };
+}
+
+/* Inspect a compiled core module. Compilation may require engine resources. */
+function inspectWasmBytes(bytes){
+  let valid = false;
+  let imports = [];
+  let exports_ = [];
+  try {
+    const mod = new WebAssembly.Module(bytes);
+    valid = true;
+    imports = WebAssembly.Module.imports(mod).map(e => ({ name: e.name, kind: e.kind }));
+    exports_ = WebAssembly.Module.exports(mod).map(e => ({ name: e.name, kind: e.kind }));
+  } catch (e) {
+    // invalid bytes: valid stays false, imports/exports stay empty (A1: data, not throw)
+  }
+  return { valid, imports, exports: exports_ };
+}
+
+/* Safe, tiny, offline arithmetic example. Inline Wasm bytes equivalent to
+   (module (func (export "add") (param i32 i32) (result i32)
+   local.get 0 local.get 1 i32.add)). No imports, I/O or background work. */
+function runWasmSmokeTest(){
+  const bytes = new Uint8Array([
+    0x00,0x61,0x73,0x6d,0x01,0x00,0x00,0x00,
+    0x01,0x07,0x01,0x60,0x02,0x7f,0x7f,0x01,0x7f,
+    0x03,0x02,0x01,0x00,
+    0x07,0x07,0x01,0x03,0x61,0x64,0x64,0x00,0x00,
+    0x0a,0x09,0x01,0x07,0x00,0x20,0x00,0x20,0x01,0x6a,0x0b
+  ]);
+  const mod = new WebAssembly.Module(bytes);
+  const inst = new WebAssembly.Instance(mod, {});
+  const result = inst.exports.add(20, 22);
+  if (result !== 42) throw new Error('Unexpected Wasm result: ' + result);
+  return { ok: true, operation: 'i32.add', inputs: [20, 22], result };
+}
+
+/*-----------------------------------------------------------------------------
+  selfTest (Qwen absorbed): 3 fixed records, asserts proj output matches
+  refProj, sort order == [1,0,2]; returns "OK" or "FAIL(n)".
+-----------------------------------------------------------------------------*/
+function selfTest(){
+  if(!ready) createEngine(); else refreshViews();
+  let fail = 0;
+  // three records at known depths
+  setRec(0, 0, 0, 1500*FIX, 0,0,0, 0);
+  setRec(1, 0, 0, 1000*FIX, 0,0,0, 1);
+  setRec(2, 0, 0, 2000*FIX, 0,0,0, 2);
+  const cam = {x:0,y:0,z:-1500*FIX,cY:1024,sY:0,cP:1024,sP:0,
+               focal:848, W2:960, H2:540, near:CAM_NEAR, ss:2};
+  const n = projSort(3, 0,0,-1500*FIX, 1024,0,1024,0, 848,960,540,CAM_NEAR,2, SORT_BUCKETS, CAM_FAR);
+  if(n !== 3) fail = 1;
+  for(let i=0;i<3 && !fail;i++){
+    const r = refProj(0,0,[1500*FIX,1000*FIX,2000*FIX][i], cam);
+    const p = SCRI + i*4;
+    if(forms[p]   !== r.sx) fail = 3;
+    if(forms[p+1] !== r.sy) fail = 4;
+    if(forms[p+2] !== r.s)      fail = 5;
+    if(forms[p+3] !== r.z2)     fail = 6;
+  }
+  // sort ascending by depth: order should be [1(1000), 0(1500), 2(2000)]
+  // order[] is at ORI; sort wrote ascending depth => index 0 = nearest = rec1
+  if(!fail){
+    const want = [1,0,2];
+    for(let i=0;i<3;i++){
+      if(order[ORI + i] !== want[i]){ fail = 7; break; }
+    }
+  }
+  return fail===0 ? 'OK' : 'FAIL('+fail+')';
+}
+
+/* WASM_ALL skills II: modular pure-JS implementations from WASM_ALL.js.
+   Knowledge sections as executable code; every failure mode surfaces as data
+   (A1) â€” never uncaught throws. Zero new wasm crossings except growMemory
+   (touches mem via JS API only). Kernel sha-pinned, no new exports. */
+
+/* classifyWasmError: debugging failure taxonomy, total function.
+   compile/link/runtime -> CompileError/LinkError/RuntimeError; unknown -> other.
+   Never throws; returns {cls, name, message} as data. */
+function classifyWasmError(err){
+  if(!err) return { cls: 'unknown', name: null, message: null };
+  const name = err.name ? String(err.name) : '';
+  const message = err.message ? String(err.message) : '';
+  if(name === 'CompileError')  return { cls: 'compile',  name, message };
+  if(name === 'LinkError')     return { cls: 'link',     name, message };
+  if(name === 'RuntimeError')  return { cls: 'runtime',  name, message };
+  return { cls: 'unknown', name, message };
+}
+
+/* instantiateWasmBytes: pipeline/js-api as executable code. Sync Module +
+   Instance construction; caller supplies bytes (URL loader excluded:
+   no-fetch contract). Hazards: start function may run at instantiation;
+   imports are the guest attack surface. Returns {ok, module, instance,
+   exports} or {ok:false, error} as data. */
+function instantiateWasmBytes(bytes, imports){
+  imports = imports || {};
+  try {
+    const mod = new WebAssembly.Module(bytes);
+    const inst = new WebAssembly.Instance(mod, imports);
+    return { ok: true, module: mod, instance: inst,
+      exports: Object.keys(inst.exports).sort() };
+  } catch (e) {
+    return { ok: false, error: classifyWasmError(e) };
+  }
+}
+
+/* readWasmSections: binary-format section as byte-level inspection; never
+   instantiates (inspection that instantiates is not harmless). Core binary:
+   magic 00 61 73 6d + version field, sections walked with an internal LEB128
+   u32 reader (guarded to 5 bytes; more -> 'leb128'). Truncated ->
+   'truncated section'; id 0 -> 'custom'; id > 12 -> 'unknown'. Returns
+   {ok, magic, version, bytesLength, sections:[{id,name,size,offset}]} or
+   {ok:false, reason} as data. */
+function readWasmSections(bytes){
+  let buf;
+  try { buf = new Uint8Array(bytes); } catch(e){ return { ok:false, reason: 'not bytes' }; }
+  const names = ['custom','type','import','function','table','memory','global','export','start','element','code','data','datacount'];
+  let p = 0;
+  function leb(){
+    let r = 0, s = 0;
+    for(let k = 0; k < 5; k++){
+      if(p >= buf.length) return { ok:false, reason: 'truncated section' };
+      const b = buf[p++];
+      r |= (b & 0x7f) << s;
+      s += 7;
+      if(!(b & 0x80)) return r;
+    }
+    return { ok:false, reason: 'leb128' };
+  }
+  if(buf.length < 8) return { ok:false, reason: 'too short' };
+  if(buf[0] !== 0 || buf[1] !== 0x61 || buf[2] !== 0x73 || buf[3] !== 0x6d)
+    return { ok:false, reason: 'magic' };
+  p = 8;
+  const version = buf[4] | (buf[5] << 8) | (buf[6] << 16) | (buf[7] << 24);
+  const sections = [];
+  while(p < buf.length){
+    const id = buf[p++];
+    const sizeR = leb();
+    if(typeof sizeR === 'object') return { ok:false, reason: sizeR.reason };
+    const size = sizeR;
+    const offset = p - 1;
+    if(p + size > buf.length) return { ok:false, reason: 'truncated section' };
+    sections.push({ id, name: names[id] || 'unknown', size, offset });
+    p += size;
+  }
+  return { ok: true, magic: '\0asm', version, bytesLength: buf.length, sections };
+}
+
+/* growMemory: memory-growth. mem.grow(pages) then refreshViews() so typed
+   arrays track the new backing buffer (growth can detach views, grow(0)
+   included). Returns {ok, previousPages, pages} or {ok:false, reason} as
+   data (RangeError, !ready, neg). */
+function growMemory(pages){
+  if(!ready) return { ok:false, reason: 'not ready' };
+  pages = pages | 0;
+  if(pages < 0) return { ok:false, reason: 'negative pages' };
+  let previous;
+  try { previous = mem.grow(pages); } catch(e){
+    return { ok:false, reason: String((e && e.message) || e) };
+  }
+  refreshViews();
+  return { ok: true, previousPages: previous, pages: mem.buffer.byteLength / 65536 };
+}
+
+/*-----------------------------------------------------------------------------
+  stats: module footprint
+-----------------------------------------------------------------------------*/
+function stats(){
+  refreshViews();
+  return {
+    bytes: kernelBytes,
+    pages: mem ? mem.buffer.byteLength / 65536 : 0,
+    memBytes: mem ? mem.buffer.byteLength : 0,
+    exports: ready ? Object.keys(wasm).join(',') : 'pending',
+    imports: 'none',
+    max: MAX, reserve: RESERVE, slotbase: SLOTBASE, targetMax: TARGET_MAX,
+    viewBytes: forms ? forms.byteLength : 0,
+    detached: !!(forms && mem && forms.byteLength !== mem.buffer.byteLength),
+    bootError: bootError
+  };
+}
+
+/*-----------------------------------------------------------------------------
+  Bootstrap (A1): a corrupt/unsupported kernel must surface as lib.bootError
+  + bootLog, not as an uncaught throw that kills every consumer script.
+-----------------------------------------------------------------------------*/
+try {
+  createEngine();
+} catch (e) {
+  bootError = String((e && e.message) || e);
+  blog('boot FAILED: ' + bootError);
+}
+
+/*-----------------------------------------------------------------------------
+  Export surface (CommonJS + ES-module friendly)
+-----------------------------------------------------------------------------*/
+const lib = {
+  FIX, VMAX, MAX, RESERVE, SLOTBASE, TARGET_MAX,
+  PARI, TRI, SCRI, ORI,
+  FOV, CAM_NEAR, CAM_FAR, SORT_BUCKETS,
+  RESLEVELS,
+
+
+  xdraw, bulk3d, bulkOrg3d, proj, sort, projSort, step,
+  hash2, rnd2, noise2d, fbm2d,
+
+  sinF32, cosF32,
+  refProj, recX, recY, recZ, recVX, recVY, recVZ, recG, setRec,
+  ringPush, ringStats, makeGovernor, selfTest, stats, bootLog, ready,
+  refreshViews, fdiv,
+  WASM_KNOWLEDGE, searchWasmKnowledge, describeWasmHost, inspectWasmBytes, runWasmSmokeTest,
+  classifyWasmError, instantiateWasmBytes, readWasmSections, growMemory
+};
+
+if(typeof module !== 'undefined' && module.exports) module.exports = lib;
+Object.defineProperty(lib, 'bootError', {get: () => bootError});
+Object.defineProperty(lib, 'forms', {get: () => { refreshViews(); return forms; }});
+Object.defineProperty(lib, 'order', {get: () => { refreshViews(); return order; }});
+Object.defineProperty(lib, 'memory', {get: () => mem});
+Object.defineProperty(lib, 'wasm', {get: () => wasm});
+if(typeof self !== 'undefined') self.wasmEngine = lib;
+</script>
+<script>
+/*==============================================================================
+  tools/game/fps/fps2.html â clean WASM performance showcase (P-0035 REDBOLT)
+  ==============================================================================
+  Every declared function carries a statically-detectable error handler:
+  A1_total { return { ok, error }, never throws } or box_ui showErr(...).
+  Zero `none` postures. Kernel embedded as base64 in this monolith (WASM_B64); wasm.js instantiateWasmBytes
+  wasm.js instantiateWasmBytes (0 imports), runs the 60 Hz kernel sim,
+  greedy-meshes the static arena, renders with a WebGL2 FPS camera, and shows
+  wave/kills/score/FPS HUD plus WASM frame-ms / render-ms performance.
+  Standalone page -- never combined with redglue/voxel-core (wasm.js owns mem).
+  Regions (spec_workload.md 2.2, mirrored in fps-core.js REGION):
+    INPUT 0x000000 10 fields x 4B
+    FRAME 0x000100
+    PLAYER 0x000200
+    GLOBALS 0x000400
+    ARENA 0x00115400: u8 blocks 64x48x64, idx = x+(z<<6)+(y<<12)
+  ==============================================================================*/
+  /* SUN_001 monolith build (plan C3.1-0042): wasm.js inlined verbatim;
+     fps_kernel.wasm embedded as WASM_B64 base64. Zero external fetches -
+     runs from file:// and static hosting. Sources: fps2.html ff8254580066,
+     wasm.js cfcc0f395004, fps_kernel.wasm 8ab18746f142. Built 2026-11-08T20:48:37.689Z */
+(function(){
+  'use strict';
+
+  /* ---- SUN_001 embedded kernel: base64 of fps_kernel.wasm
+     (sha256 8ab18746f142ee5dd40d69647b0982455d426b1c2a4dd19aa6771eb577660215, 16252 bytes). Decoded in loadWasm()
+     via atob - zero external fetches. ---- */
+  const WASM_B64 = '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';
+
+  /* ---- error box (box_ui) ---- */
+  const errbox = document.getElementById('errbox');
+  function showErr(s){
+    errbox.style.display = 'block';
+    errbox.textContent = (errbox.textContent ? errbox.textContent + '\n' : '') + s;
+    console.error(s);
+    return { ok: true, error: null };
+  }
+  window.addEventListener('error', e => showErr('ERROR: ' + e.message + ' @' + e.lineno));
+  window.addEventListener('unhandledrejection', e => showErr('REJECT: ' + String(e.reason)));
+
+  const lib = window.wasmEngine;
+  function wasmReady(){
+    if (!lib || typeof lib.instantiateWasmBytes !== 'function'){
+      showErr('wasm.js not loaded / no instantiateWasmBytes');
+      return { ok: false, error: 'wasmEngine missing' };
+    }
+    return { ok: true, error: null };
+  }
+
+  /* ---- region bases (mirror spec 2.2 / fps-core.js) ---- */
+  const REGION = {
+    INPUT: 0x000000, FRAME: 0x000100, PLAYER: 0x000200, GLOBALS: 0x000400,
+    ENTITY: 0x001400, PARTICLE: 0x000C1400, GRID: 0x00111400,
+    ARENA: 0x00115400, MESHSCR: 0x00145400, RAYSCR: 0x00245400,
+    WAVE: 0x00246400, TRACER: 0x00246800
+  };
+  const IB = REGION.INPUT >> 2;
+  const PB = REGION.PLAYER >> 2;
+  const GW = REGION.GLOBALS >> 2;
+  const DT60 = 1 / 60;
+  const EYE_H = 1.6;
+  const FOV = Math.PI / 3;
+  const NEAR = 0.1, FAR = 100.0;
+
+  /* ---- wasm state ---- */
+  let gl = null, program = null, ex = null, mem = null;
+  let U8, I32, F32, arenaU8;
+  let webglContextLost = false;
+
+  /* ---- input / camera ---- */
+  const keys = {};
+  let mouse = { dx: 0, dy: 0 };
+  let isPointerLocked = false;
+  let playerYaw = 0, playerPitch = 0;
+  window.addEventListener('keydown', e => { keys[e.code] = true;
+    if (e.code === 'Escape' && isPointerLocked) document.exitPointerLock(); });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+  window.addEventListener('mousedown', e => {
+    if (!isPointerLocked){ try { document.getElementById('glcanvas').requestPointerLock(); } catch(e){} return; }
+  });
+  window.addEventListener('contextmenu', e => e.preventDefault());
+  window.addEventListener('mousemove', e => {
+    if (isPointerLocked){ mouse.dx += e.movementX; mouse.dy += e.movementY; }
+  });
+  document.addEventListener('pointerlockchange', () => {
+    isPointerLocked = document.pointerLockElement === document.getElementById('glcanvas');
+    document.getElementById('overlay').classList.toggle('hidden', isPointerLocked);
+  });
+  function clearInput(){
+    for (const k in keys) keys[k] = false;
+    mouse.dx = 0; mouse.dy = 0;
+    return { ok: true, error: null };
+  }
+  window.addEventListener('blur', clearInput);
+
+  /* ---- A1_total math / geometry helpers (return { ok, error }, never throw) ---- */
+  function v3sub(a,b){
+    return { ok: [a[0]-b[0], a[1]-b[1], a[2]-b[2]], error: null };
+  }
+  function v3cross(a,b){
+    return { ok: [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]], error: null };
+  }
+  function v3dot(a,b){
+    return { ok: a[0]*b[0]+a[1]*b[1]+a[2]*b[2], error: null };
+  }
+  function v3norm(v){
+    const l = Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+    return { ok: l > 0 ? [v[0]/l, v[1]/l, v[2]/l] : [0,0,0], error: null };
+  }
+  function m4Identity(){
+    return { ok: new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]), error: null };
+  }
+  function m4LookAt(eye, center, up){
+    const z = v3norm(v3sub(eye, center).ok).ok;
+    const x = v3norm(v3cross(up, z).ok).ok;
+    const y = v3cross(z, x).ok;
+    const m = m4Identity().ok;
+    m[0]=x[0]; m[4]=x[1]; m[8]=x[2];
+    m[1]=y[0]; m[5]=y[1]; m[9]=y[2];
+    m[2]=z[0]; m[6]=z[1]; m[10]=z[2];
+    m[12]=-v3dot(x,eye).ok; m[13]=-v3dot(y,eye).ok; m[14]=-v3dot(z,eye).ok;
+    return { ok: m, error: null };
+  }
+  function m4Perspective(fovY, aspect, near, far){
+    const f = 1 / Math.tan(fovY / 2), nf = 1 / (near - far);
+    const m = m4Identity().ok;
+    m[0] = f / aspect; m[5] = f;
+    m[10] = (far + near) * nf; m[11] = -1;
+    m[14] = (2 * far * near) * nf; m[15] = 0;
+    return { ok: m, error: null };
+  }
+  function m4Mul(a,b){
+    const o = new Float32Array(16);
+    for (let c = 0; c < 4; c++)
+      for (let r = 0; r < 4; r++)
+        o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
+    return { ok: o, error: null };
+  }
+
+  /* ---- block test over arena (A1_total) ---- */
+  function blockAtRef(x, y, z){
+    if (y < 0) return { ok: 1, error: null };
+    if (y >= 48) return { ok: 0, error: null };
+    if (x < 0 || x >= 64) return { ok: 1, error: null };
+    if (z < 0 || z >= 64) return { ok: 1, error: null };
+    return { ok: arenaU8[x + (z << 6) + (y << 12)] !== 0 ? 1 : 0, error: null };
+  }
+
+  /* ---- greedy mesh (A1_total) ---- */
+  const FACES = [
+    { n: [ 1, 0, 0], c: [1, 3, 7, 5] },
+    { n: [-1, 0, 0], c: [0, 4, 6, 2] },
+    { n: [ 0, 1, 0], c: [2, 6, 7, 3] },
+    { n: [ 0,-1, 0], c: [0, 1, 5, 4] },
+    { n: [ 0, 0, 1], c: [4, 5, 7, 6] },
+    { n: [ 0, 0,-1], c: [0, 2, 3, 1] }
+  ];
+  const PLANE_AXES = [ [1,2], [2,0], [0,1] ];
+  const AO_CURVE = [0.42, 0.62, 0.82, 1.0];
+  const VERT_FLOATS = 10;
+  let vertexData = null;
+  let quadIndexData = null;
+  let quadCount = 0;
+
+  function cornerCode(cc){
+    return { ok: [cc & 1, (cc >> 1) & 1, (cc >> 2) & 1], error: null };
+  }
+  function aoLevel(wx, wy, wz, f, ci){
+    const face = FACES[f];
+    const n = face.n;
+    const co = cornerCode(face.c[ci]).ok;
+    const nx = cornerCode(face.c[(ci+1) % 4]).ok[0] - co[0];
+    const ny = cornerCode(face.c[(ci+1) % 4]).ok[1] - co[1];
+    const nz = cornerCode(face.c[(ci+1) % 4]).ok[2] - co[2];
+    const px = cornerCode(face.c[(ci+3) % 4]).ok[0] - co[0];
+    const py = cornerCode(face.c[(ci+3) % 4]).ok[1] - co[1];
+    const pz = cornerCode(face.c[(ci+3) % 4]).ok[2] - co[2];
+    const s1 = blockAtRef(wx + n[0] + nx, wy + n[1] + ny, wz + n[2] + nz).ok;
+    const s2 = blockAtRef(wx + n[0] + px, wy + n[1] + py, wz + n[2] + pz).ok;
+    let ao = 0;
+    if (s1 !== 0) ao++;
+    if (s2 !== 0) ao++;
+    if (s1 === 0 && s2 === 0 &&
+        blockAtRef(wx + n[0] + nx + px, wy + n[1] + ny + py, wz + n[2] + nz + pz).ok !== 0)
+      ao++;
+    return { ok: AO_CURVE[ao], error: null };
+  }
+
+  function buildGreedyMesh(){
+    const W = 64, H = 48, D = 64;
+    const verts = [];
+    const mask = new Uint8Array(64 * 64);
+    const visited = new Uint8Array(64 * 64);
+    for (let f = 0; f < 6; f++){
+      const face = FACES[f];
+      const n = face.n;
+      const fixedAxis = n[0] !== 0 ? 0 : n[1] !== 0 ? 1 : 2;
+      const fixedSign = n[fixedAxis];
+      const pa = PLANE_AXES[fixedAxis];
+      let pa1 = pa[0], pa2 = pa[1];
+      if (fixedSign < 0){ const tmp = pa1; pa1 = pa2; pa2 = tmp; }
+      const dims = [W, H, D];
+      const faLen = dims[fixedAxis];
+      const a1Len = dims[pa1], a2Len = dims[pa2];
+      for (let fp = 0; fp < faLen; fp++){
+        for (let a2 = 0; a2 < a2Len; a2++){
+          for (let a1 = 0; a1 < a1Len; a1++){
+            const pos = [0, 0, 0];
+            pos[fixedAxis] = fp;
+            pos[pa1] = a1;
+            pos[pa2] = a2;
+            const t = blockAtRef(pos[0], pos[1], pos[2]).ok;
+            const nt = blockAtRef(pos[0] + n[0], pos[1] + n[1], pos[2] + n[2]).ok;
+            mask[a2 * a1Len + a1] = (t !== 0 && nt === 0) ? t : 0;
+          }
+          for (let i = 0; i < a1Len * a2Len; i++) visited[i] = 0;
+          for (let y = 0; y < a2Len; y++){
+            for (let x = 0; x < a1Len; x++){
+              const mi = y * a1Len + x;
+              const t = mask[mi];
+              if (t === 0 || visited[mi]) continue;
+              let w = 1;
+              while (x + w < a1Len && !visited[y * a1Len + x + w] &&
+                     mask[y * a1Len + x + w] === t) w++;
+              let h = 1;
+              outer: for (let yy = y + 1; yy < a2Len; yy++){
+                for (let k = 0; k < w; k++){
+                  const ci = yy * a1Len + x + k;
+                  if (visited[ci] || mask[ci] !== t) break outer;
+                }
+                h++;
+              }
+              for (let yy = y; yy < y + h; yy++)
+                for (let k = 0; k < w; k++) visited[yy * a1Len + x + k] = 1;
+              const fWorld = fp + (fixedSign > 0 ? 1 : 0);
+              for (let ci = 0; ci < 4; ci++){
+                  const cp = [0, 0, 0];
+                cp[fixedAxis] = fWorld;
+                cp[pa1] = x + ((ci === 1 || ci === 2) ? w : 0);
+                cp[pa2] = y + ((ci === 2 || ci === 3) ? h : 0);
+                const ao = aoLevel(cp[0], cp[1], cp[2], f, ci).ok;
+                verts.push(cp[0], cp[1], cp[2], n[0], n[1], n[2],
+                  (ci === 1 || ci === 2) ? w : 0,
+                  (ci === 2 || ci === 3) ? h : 0, ao, t);
+              }
+              quadCount++;
+            }
+          }
+        }
+      }
+    }
+    vertexData = new Float32Array(verts);
+    {
+      const nq = quadCount;
+      const idx = new Uint32Array(nq * 6);
+      for (let q = 0; q < nq; q++){
+        const b = q * 4, o = q * 6;
+        idx[o] = b; idx[o + 1] = b + 1; idx[o + 2] = b + 2;
+        idx[o + 3] = b; idx[o + 4] = b + 2; idx[o + 5] = b + 3;
+      }
+      quadIndexData = idx;
+    }
+    return { ok: { quadCount: quadCount }, error: null };
+  }
+
+  /* ---- WebGL (A1_total) ---- */
+  const canvas = document.getElementById('glcanvas');
+  function initWebGL(){
+    gl = canvas.getContext('webgl2', { alpha: false, depth: true, antialias: true });
+    if (!gl){ showErr('WebGL2 not supported'); return { ok: false, error: 'webgl2 unavailable' }; }
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.frontFace(gl.CCW);
+    gl.clearColor(0.102, 0.165, 0.227, 1.0);
+    return { ok: true, error: null };
+  }
+  function onContextLost(e){
+    e.preventDefault();
+    webglContextLost = true;
+    gl = null;
+    showErr('WebGL context lost \u2014 GPU reset or tab suspended');
+    return { ok: true, error: null };
+  }
+  function onContextRestored(){
+    webglContextLost = false;
+    if (!initWebGL().ok) return { ok: false, error: 'context restore failed' };
+    showErr('WebGL context restored \u2014 reload page to re-render arena');
+    return { ok: true, error: null };
+  }
+  canvas.addEventListener('webglcontextlost', onContextLost, false);
+  canvas.addEventListener('webglcontextrestored', onContextRestored, false);
+  function resizeGL(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+    return { ok: true, error: null };
+  }
+  window.addEventListener('resize', resizeGL);
+
+  const VS = `#version 300 es
+precision highp float;
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec2 aUV;
+layout(location = 3) in float aAO;
+layout(location = 4) in float aType;
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uProj;
+out vec3 vNormal; out vec2 vUV; out float vAO; out float vType; out vec3 vFragPos;
+void main(){
+  vec4 worldPos = uModel * vec4(aPos, 1.0);
+  vFragPos = worldPos.xyz;
+  vNormal = aNormal; vUV = aUV; vAO = aAO; vType = aType;
+  gl_Position = uProj * uView * worldPos;
+}`;
+  const FS = `#version 300 es
+precision highp float;
+in vec3 vNormal; in vec2 vUV; in float vAO; in float vType; in vec3 vFragPos;
+uniform vec3 uLightDir; uniform vec3 uLightColor; uniform vec3 uAmbientColor;
+uniform vec3 uCamPos;
+uniform vec4 uPalette[6];
+out vec4 fragColor;
+void main(){
+  vec3 N = normalize(vNormal);
+  vec3 L = normalize(uLightDir);
+  float diff = max(dot(N, L), 0.0);
+  int t = int(vType + 0.5);
+  vec3 base = uPalette[t].rgb;
+  vec3 color = base * uAmbientColor + base * uLightColor * diff;
+  color *= (0.5 + 0.5 * vAO);
+  float fogDist = min(length(vFragPos - uCamPos) / 48.0, 1.0);
+  vec3 fogColor = vec3(0.102, 0.165, 0.227);
+  color = mix(color, fogColor, fogDist * fogDist);
+  fragColor = vec4(color, 1.0);
+}`;
+  let uModelLoc, uViewLoc, uProjLoc, uLightDirLoc, uLightColorLoc,
+      uAmbientColorLoc, uPaletteLoc, uCamPosLoc;
+  let vertexVBO, indexVBO;
+
+  function createShader(type, source){
+    const s = gl.createShader(type);
+    gl.shaderSource(s, source);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)){
+      showErr('Shader compile: ' + (gl.getShaderInfoLog(s) || '(empty)'));
+      gl.deleteShader(s);
+      return { ok: false, error: 'shader compile failed', shader: null };
+    }
+    return { ok: true, error: null, shader: s };
+  }
+  function createProgram(vs, fs){
+    const p = gl.createProgram();
+    gl.attachShader(p, vs); gl.attachShader(p, fs);
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)){
+      showErr('Program link: ' + (gl.getProgramInfoLog(p) || '(empty)'));
+      return { ok: false, error: 'program link failed', program: null };
+    }
+    return { ok: true, error: null, program: p };
+  }
+  function initGLResources(){
+    const vsr = createShader(gl.VERTEX_SHADER, VS);
+    if (!vsr.ok) return { ok: false, error: vsr.error };
+    const fsr = createShader(gl.FRAGMENT_SHADER, FS);
+    if (!fsr.ok) return { ok: false, error: fsr.error };
+    const pr = createProgram(vsr.shader, fsr.shader);
+    if (!pr.ok) return { ok: false, error: pr.error };
+    program = pr.program;
+    gl.useProgram(program);
+    uModelLoc = gl.getUniformLocation(program, 'uModel');
+    uViewLoc = gl.getUniformLocation(program, 'uView');
+    uProjLoc = gl.getUniformLocation(program, 'uProj');
+    uLightDirLoc = gl.getUniformLocation(program, 'uLightDir');
+    uLightColorLoc = gl.getUniformLocation(program, 'uLightColor');
+    uAmbientColorLoc = gl.getUniformLocation(program, 'uAmbientColor');
+    uPaletteLoc = gl.getUniformLocation(program, 'uPalette');
+  uCamPosLoc = gl.getUniformLocation(program, 'uCamPos');
+    gl.uniform3f(uLightDirLoc, 0.5, 0.5, -0.8);
+    gl.uniform3f(uLightColorLoc, 1.0, 1.0, 0.9);
+    gl.uniform3f(uAmbientColorLoc, 0.34, 0.34, 0.40);
+    const palette = new Float32Array([
+      0, 0, 0, 0,
+      0.365, 0.251, 0.227, 1,
+      0.471, 0.565, 0.616, 1,
+      0.475, 0.333, 0.282, 1,
+      1.0, 0.322, 0.322, 1,
+      0, 0.737, 0.820, 1
+    ]);
+    gl.uniform4fv(uPaletteLoc, palette);
+    const stride = VERT_FLOATS * 4;
+    vertexVBO = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexVBO);
+    gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.enableVertexAttribArray(1);
+    gl.enableVertexAttribArray(2);
+    gl.enableVertexAttribArray(3);
+    gl.enableVertexAttribArray(4);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0);
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, stride, 12);
+    gl.vertexAttribPointer(2, 2, gl.FLOAT, false, stride, 24);
+    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, stride, 32);
+    gl.vertexAttribPointer(4, 1, gl.FLOAT, false, stride, 36);
+    indexVBO = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexVBO);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, quadIndexData, gl.STATIC_DRAW);
+    return { ok: true, error: null };
+  }
+
+  /* ---- write INPUT block for the coming substep (A1_total) ---- */
+  function writeInput(dt){
+    const cf = Math.cos(playerPitch), sf = Math.sin(playerPitch);
+    const cy = Math.sin(playerYaw), sy = Math.cos(playerYaw);
+    const fwd = { x: cy * cf, z: -sy * cf };
+    let keysBits = 0;
+    if (keys['KeyW'] || keys['ArrowUp']) keysBits |= 1;
+    if (keys['KeyS'] || keys['ArrowDown']) keysBits |= 2;
+    if (keys['KeyA'] || keys['ArrowLeft']) keysBits |= 4;
+    if (keys['KeyD'] || keys['ArrowRight']) keysBits |= 8;
+    I32[IB + 0] = keysBits;
+    I32[IB + 1] = mouse.dx | 0;
+    I32[IB + 2] = mouse.dy | 0;
+    I32[IB + 3] = 0;
+    F32[IB + 4] = dt;
+    F32[IB + 5] = fwd.x;
+    F32[IB + 6] = fwd.z;
+    F32[IB + 7] = fwd.x;
+    F32[IB + 8] = sf;
+    F32[IB + 9] = fwd.z;
+    mouse.dx = 0; mouse.dy = 0;
+    return { ok: true, error: null };
+  }
+
+  /* ---- read PLAYER + GLOBALS (A1_total) ---- */
+  function readPlayer(){
+    return { ok: {
+      x: F32[PB + 0], y: F32[PB + 1], z: F32[PB + 2],
+      vx: F32[PB + 3], vy: F32[PB + 4], vz: F32[PB + 5],
+      yaw: F32[PB + 6], pitch: F32[PB + 7],
+      hp: I32[PB + 9]
+    }, error: null };
+  }
+  function readGlobals(){
+    return { ok: { score: I32[GW + 0], wave: I32[GW + 1],
+                 alive: I32[GW + 2], kills: I32[GW + 3] }, error: null };
+  }
+
+  function spawnPlayer(){
+    const gy = ex.groundAt(32, 32);
+    F32[PB + 0] = 32.5; F32[PB + 1] = gy; F32[PB + 2] = 32.5;
+    F32[PB + 3] = 0; F32[PB + 4] = 0; F32[PB + 5] = 0;
+    F32[PB + 6] = 0; F32[PB + 7] = 0; F32[PB + 8] = 0;
+    I32[PB + 9] = 100; I32[PB + 10] = 0;
+    I32[PB + 11] = 12; I32[PB + 12] = 6; I32[PB + 13] = 4;
+    I32[PB + 14] = 1;
+    F32[PB + 15] = 0;
+    return { ok: true, error: null };
+  }
+
+  /* ---- load wasm kernel (A1_total) ---- */
+  async function loadWasm(){
+    try {
+      const ready = wasmReady();
+      if (!ready.ok) return { ok: false, error: ready.error };
+      /* SUN_001 monolith: kernel embedded as WASM_B64 (no fetch) */
+      const b64 = atob(WASM_B64);
+      const bytes = new Uint8Array(b64.length);
+      for (let i = 0; i < b64.length; i++) bytes[i] = b64.charCodeAt(i);
+      const res = lib.instantiateWasmBytes(bytes);
+      if (!res.ok) return { ok: false, error: 'instantiate: ' + JSON.stringify(res.error) };
+      ex = res.instance.exports;
+      mem = ex.mem;
+      if (typeof ex.selfTest !== 'function' || ex.selfTest() !== 0)
+        return { ok: false, error: 'kernel selfTest failed' };
+      const buf = mem.buffer;
+      U8 = new Uint8Array(buf);
+      I32 = new Int32Array(buf);
+      F32 = new Float32Array(buf);
+      arenaU8 = new Uint8Array(buf, REGION.ARENA, 196608);
+      return { ok: true, error: null };
+    } catch (err){
+      return { ok: false, error: 'loadWasm exception: ' + String(err) };
+    }
+  }
+
+  /* ---- main loop (A1_total; box_ui on error) ---- */
+  let lastTime = performance.now();
+  let frameCount = 0, fpsTime = performance.now(), fps = 0;
+  let gameStarted = false;
+  const FIXED_DT = 1000 / 60, MAX_STEPS = 5;
+  let simAcc = 0;
+  const SHOT_MODE = new URLSearchParams(location.search).get('shot') === '1';
+
+  function loop(){
+    try {
+      const now = performance.now();
+      let frameMs = Math.min(now - lastTime, 250);
+      lastTime = now;
+      frameCount++;
+      if (now - fpsTime >= 1000){ fps = frameCount; frameCount = 0; fpsTime = now; }
+
+      if (webglContextLost || !gl){
+        requestAnimationFrame(loop);
+        return { ok: true, error: null };
+      }
+
+      const tRender0 = performance.now();
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      if (!gameStarted){
+        requestAnimationFrame(loop);
+        return { ok: true, error: null };
+      }
+
+      const tSim0 = performance.now();
+      simAcc += frameMs;
+      let steps = 0;
+      while (simAcc >= FIXED_DT && steps < MAX_STEPS){
+        writeInput(FIXED_DT / 1000);
+        ex.frame(FIXED_DT / 1000);
+        simAcc -= FIXED_DT;
+        steps++;
+      }
+      if (simAcc >= FIXED_DT) simAcc = 0;
+      const tSim1 = performance.now();
+
+      const p = readPlayer().ok;
+      playerYaw = p.yaw;
+      playerPitch = p.pitch;
+      const g = readGlobals().ok;
+      const camX = p.x;
+      const camY = p.y + EYE_H;
+      const camZ = p.z;
+
+      const cf = Math.cos(playerPitch), sf = Math.sin(playerPitch);
+      const cy = Math.sin(playerYaw), sy = Math.cos(playerYaw);
+      const fx = cy * cf, fy = sf, fz = -sy * cf;
+      const eye = [camX, camY, camZ];
+      const center = [eye[0] + fx, eye[1] + fy, eye[2] + fz];
+      const viewMat = m4LookAt(eye, center, [0, 1, 0]).ok;
+      const projMat = m4Perspective(FOV, canvas.width / canvas.height, NEAR, FAR).ok;
+
+      gl.useProgram(program);
+      gl.uniformMatrix4fv(uViewLoc, false, viewMat);
+      gl.uniformMatrix4fv(uProjLoc, false, projMat);
+      gl.uniformMatrix4fv(uModelLoc, false, m4Identity().ok);
+      gl.uniform3f(uCamPosLoc, camX, camY, camZ);
+
+      if (quadCount > 0){
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexVBO);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexVBO);
+        gl.drawElements(gl.TRIANGLES, quadCount * 6, gl.UNSIGNED_INT, 0);
+      }
+      const tRender1 = performance.now();
+
+      document.getElementById('hudWave').textContent = g.wave;
+      document.getElementById('hudKills').textContent = g.kills;
+      document.getElementById('hudScore').textContent = g.score;
+      document.getElementById('hudPos').textContent =
+        Math.floor(p.x) + ', ' + Math.floor(p.y) + ', ' + Math.floor(p.z);
+      document.getElementById('perfFrameMs').textContent = (tSim1 - tSim0).toFixed(2);
+      document.getElementById('perfRenderMs').textContent = (tRender1 - tRender0).toFixed(2);
+      document.getElementById('perfFps').textContent = fps;
+
+      requestAnimationFrame(loop);
+      return { ok: true, error: null };
+    } catch (e){
+      console.error('loop error:', e && e.message);
+      showErr('LOOP ERROR: ' + (e && e.message));
+      requestAnimationFrame(loop);
+      return { ok: true, error: null };
+    }
+  }
+
+  /* ---- boot (A1_total; box_ui on error) ---- */
+  async function boot(){
+    try {
+      const lr = await loadWasm();
+      if (!lr.ok) return { ok: false, error: lr.error };
+      if (!initWebGL().ok) return { ok: false, error: 'WebGL init failed' };
+      resizeGL();
+      ex.init(12345);
+      ex.genArena(12345);
+      const sp = spawnPlayer();
+      if (!sp.ok) return { ok: false, error: sp.error };
+      const gm = buildGreedyMesh();
+      if (!gm.ok) return { ok: false, error: gm.error };
+      if (!initGLResources().ok) return { ok: false, error: 'GL resources failed' };
+
+      document.getElementById('overlayBtn').addEventListener('click', () => {
+        gameStarted = true;
+        document.getElementById('overlay').classList.add('hidden');
+        try { canvas.requestPointerLock(); } catch (e) {}
+      });
+      if (SHOT_MODE){
+        gameStarted = true;
+        document.getElementById('overlay').classList.add('hidden');
+      }
+      lastTime = performance.now();
+      loop();
+      return { ok: true, error: null };
+    } catch (e){
+      showErr('BOOT ERROR: ' + (e && e.message));
+      return { ok: false, error: 'boot exception: ' + String(e) };
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
