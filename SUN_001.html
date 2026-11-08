@@ -936,8 +936,8 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
     if (isPointerLocked){ mouse.dx += e.movementX; mouse.dy += e.movementY; }
   });
   // TODO-09: touch controls mapped onto existing input contracts
-  const canvas = document.getElementById('glcanvas');
-  canvas.addEventListener('touchstart', e => {
+  const glCanvas = document.getElementById('glcanvas');
+  glCanvas.addEventListener('touchstart', e => {
     for (const t of e.changedTouches){
       if (t.clientX < window.innerWidth / 2 && touchJoy.id < 0){
         touchJoy.id = t.identifier; touchJoy.ox = t.clientX; touchJoy.oy = t.clientY;
@@ -948,7 +948,7 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
     e.preventDefault();
     return { ok: true, error: null };
   }, { passive: false });
-  canvas.addEventListener('touchmove', e => {
+  glCanvas.addEventListener('touchmove', e => {
     for (const t of e.changedTouches){
       if (t.identifier === touchJoy.id){
         touchJoy.dx = t.clientX - touchJoy.ox; touchJoy.dy = t.clientY - touchJoy.oy;
@@ -962,7 +962,7 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
     e.preventDefault();
     return { ok: true, error: null };
   }, { passive: false });
-  canvas.addEventListener('touchend', e => {
+  glCanvas.addEventListener('touchend', e => {
     for (const t of e.changedTouches){
       if (t.identifier === touchJoy.id){
         if (Math.abs(touchJoy.dx) < 8 && Math.abs(touchJoy.dy) < 8) fireQueued = true; // tap = fire
