@@ -882,7 +882,12 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
     return { ok: true, error: null };
   }
   window.addEventListener('error', e => showErr('ERROR: ' + e.message + ' @' + e.lineno));
-  window.addEventListener('unhandledrejection', e => showErr('REJECT: ' + String(e.reason)));
+  window.addEventListener('unhandledrejection', e => {
+    const msg = String(e.reason);
+    if (msg.indexOf('PointerLock') >= 0 || msg.indexOf('lock') >= 0) return; // expected: user denied lock
+    showErr('REJECT: ' + msg);
+  });
+  document.addEventListener('pointerlockerror', () => { /* lock denied by browser/user - not an error */ });
 
   const lib = window.wasmEngine;
   function wasmReady(){
@@ -974,7 +979,10 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
   });
   document.addEventListener('pointerlockchange', () => {
     isPointerLocked = document.pointerLockElement === document.getElementById('glcanvas');
-    document.getElementById('overlay').classList.toggle('hidden', isPointerLocked);
+    if (isPointerLocked){
+      document.getElementById('overlay').classList.add('hidden');
+    }
+    // Do not re-show the overlay when lock is lost; game state owns overlay visibility
   });
   function clearInput(){
     for (const k in keys) keys[k] = false;
@@ -1621,14 +1629,16 @@ void main(){
         }
         gameStarted = true;
         document.getElementById('overlay').classList.add('hidden');
-        try { canvas.requestPointerLock(); } catch (e) {}
+        const pl = canvas.requestPointerLock();
+        if (pl && typeof pl.catch === 'function') pl.catch(() => {}); // lock may be denied async
       });
       document.getElementById('overlayBtn').addEventListener('keydown', (e) => {
         if (e.code === 'Enter' || e.code === 'Space'){
           e.preventDefault();
           gameStarted = true;
           document.getElementById('overlay').classList.add('hidden');
-          try { canvas.requestPointerLock(); } catch (e) {}
+          const pl = canvas.requestPointerLock();
+          if (pl && typeof pl.catch === 'function') pl.catch(() => {});
         }
       });
       if (SHOT_MODE){
