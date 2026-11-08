@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src data:;">
-<title>SUN_002 - REDBOLT fps2 WASM performance showcase</title>
+<title>SUN_001 - REDBOLT fps2 WASM performance showcase</title>
 <link rel="icon" href="data:,">
 <style>
 * { margin: 0; padding: 0; }
@@ -873,10 +873,10 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
     GLOBALS 0x000400
     ARENA 0x00115400: u8 blocks 64x48x64, idx = x+(z<<6)+(y<<12)
   ==============================================================================*/
-  /* SUN_002 monolith build (iteration slot, plan C3.1-0042 successor): wasm.js inlined verbatim;
-     fps_kernel.wasm embedded as WASM_B64 base64. Zero external fetches - runs from file:// and static hosting.
-     Sources: fps2.html ff8254580066, wasm.js cfcc0f395004, fps_kernel.wasm 8ab18746f142.
-     Derived from SUN_001.html at v0.1.0-sun001; SUN_001.html is frozen post-tag. */
+  /* SUN_001 monolith build (plan C3.1-0042): wasm.js inlined verbatim;
+     fps_kernel.wasm embedded as WASM_B64 base64. Zero external fetches -
+     runs from file:// and static hosting. Sources: fps2.html ff8254580066,
+     wasm.js cfcc0f395004, fps_kernel.wasm 8ab18746f142. Built 2026-11-08T20:48:37.689Z */
 (function(){
   'use strict';
 
@@ -945,7 +945,12 @@ if(typeof self !== 'undefined') self.wasmEngine = lib;
   window.addEventListener('keyup', e => { keys[e.code] = false; });
   window.addEventListener('mousedown', e => {
     if (e.button === 0) mouse.buttons |= 1;
-    if (!isPointerLocked){ try { document.getElementById('glcanvas').requestPointerLock(); } catch(e){} return; }
+    // Do not acquire pointer lock here when clicking UI buttons; overlayBtn click handler owns it.
+    if (e.target.closest('#overlay, #benchmarkBtn, #copyResultsBtn')) return;
+    if (!isPointerLocked){
+      const pl = document.getElementById('glcanvas').requestPointerLock();
+      if (pl && typeof pl.catch === 'function') pl.catch(() => {});
+    }
   });
   window.addEventListener('mouseup', e => { if (e.button === 0) mouse.buttons &= ~1; });
   window.addEventListener('contextmenu', e => e.preventDefault());
@@ -1764,6 +1769,13 @@ void main(){
       });
       // TODO-11: BENCHMARK button + COPY RESULTS
       document.getElementById('benchmarkBtn').addEventListener('click', () => {
+        // Start the game if not already started (benchmark runs on live sim)
+        if (!gameStarted){
+          gameStarted = true;
+          document.getElementById('overlay').classList.add('hidden');
+          const pl = canvas.requestPointerLock();
+          if (pl && typeof pl.catch === 'function') pl.catch(() => {});
+        }
         document.getElementById('benchmarkResults').style.display = 'block';
         document.getElementById('benchmarkBtn').disabled = true;
         document.getElementById('copyResultsBtn').style.display = 'none';
