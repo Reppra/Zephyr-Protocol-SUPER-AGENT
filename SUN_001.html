@@ -1417,7 +1417,7 @@ void main(){
     if (touchJoy.dx > DEAD) keysBits |= 8;  // D
     I32[IB + 0] = keysBits;
     I32[IB + 1] = mouse.dx | 0;
-    I32[IB + 2] = mouse.dy | 0;
+    I32[IB + 2] = (-mouse.dy) | 0; // negate: screen dy down should pitch camera down
     I32[IB + 3] = (mouse.buttons & 1) | (keys['Space'] ? 1 : 0) | (fireQueued ? 1 : 0);
     fireQueued = false;
     F32[IB + 4] = dt;
