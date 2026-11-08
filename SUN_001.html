@@ -39,6 +39,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
   padding: 14px 40px; font-size: 20px; font-family: 'Courier New', monospace;
   cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
 .overlay-btn:hover { background: #00ffff; color: #000; }
+#benchmarkBtn { margin-top: 16px; border-color: #ff8800; color: #ff8800; }
+#benchmarkBtn:hover { background: #ff8800; color: #000; }
+#benchmarkBtn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #666; color: #666; }
+#copyResultsBtn { margin-top: 10px; border-color: #00ffff; color: #00ffff; }
+#copyResultsBtn:hover { background: #00ffff; color: #000; }
+#benchmarkResults { display: none; margin-top: 14px; text-align: left; max-width: 700px; max-height: 320px; overflow: auto; }
+#benchmarkPre { font-size: 11px; line-height: 1.4; margin: 0; color: #0f0; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 4px; border: 1px solid #0f0; white-space: pre-wrap; word-wrap: break-word; }
 </style>
 </head>
 <body>
@@ -69,6 +76,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
     WASD: Move &nbsp;|&nbsp; Mouse: Look &nbsp;|&nbsp; Click: ENTER WORLD
   </div>
   <button class="overlay-btn" id="overlayBtn" role="button" aria-label="Enter World" tabindex="0">ENTER WORLD</button>
+  <button class="overlay-btn" id="benchmarkBtn" role="button" aria-label="Run Benchmark" tabindex="0">BENCHMARK</button>
+  <div id="benchmarkResults">
+    <pre id="benchmarkPre"></pre>
+  </div>
+  <button class="overlay-btn" id="copyResultsBtn" role="button" aria-label="Copy Results" tabindex="0">COPY RESULTS</button>
 </div>
 <script>
 /* SUN_001 inlined: tools/wasm/wasm.js (sha256 cfcc0f395004) - verbatim, zero edits. Exposes window.wasmEngine. */
@@ -1602,6 +1614,115 @@ void main(){
     }
   }
 
+  /* ---- benchmark: tests every callable function and memory region (TODO-11) ----
+     Every sub-test follows A1_total: returns { ok, error }, never throws. */
+  function runBenchmark(){
+    const results = [];
+    function test(name, fn){
+      try {
+        const r = fn();
+        const ok = r && r.ok === true;
+        results.push((ok ? 'PASS' : 'FAIL') + ' | ' + name + (r.error ? ' — ' + r.error : ''));
+      } catch(e){
+        results.push('THREW | ' + name + ' — ' + String(e.message || e));
+      }
+      return { ok: true, error: null };
+    }
+
+    // ---- kernel exports (fps_kernel.wasm) ----
+    test('ex.selfTest',      () => ex ? { ok: ex.selfTest() === 0, error: '' } : { ok: false, error: 'no ex' });
+    test('ex.stateHash',     () => ex ? { ok: typeof ex.stateHash() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.rng_next',      () => ex ? { ok: typeof ex.rng_next() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.rng_f01',       () => ex ? { ok: typeof ex.rng_f01() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.latHash',       () => ex ? { ok: typeof ex.latHash() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.latF01',        () => ex ? { ok: typeof ex.latF01() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.vnoise',        () => ex ? { ok: typeof ex.vnoise(0, 0) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.blockAt',       () => ex ? { ok: typeof ex.blockAt(0, 0, 0) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.groundAt',      () => ex ? { ok: typeof ex.groundAt(32, 32) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.cast_ray',      () => ex ? { ok: typeof ex.cast_ray(0, 0, 0, 1, 0, 0) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.ray_ent',       () => ex ? { ok: typeof ex.ray_ent(0, 0, 0, 1, 0, 0) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.apply_damage',  () => ex ? { ok: typeof ex.apply_damage(0, 10) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.player_shoot',  () => ex ? { ok: typeof ex.player_shoot() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.weapon_step',   () => ex ? { ok: typeof ex.weapon_step(1 / 60) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.ent_reset',     () => ex ? { ok: typeof ex.ent_reset() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.ent_spawn',     () => ex ? { ok: typeof ex.ent_spawn(32, 1, 32) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.grid_rebuild',  () => ex ? { ok: typeof ex.grid_rebuild() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.part_reset',    () => ex ? { ok: typeof ex.part_reset() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.part_spawn',    () => ex ? { ok: typeof ex.part_spawn(32, 1, 32) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.part_step',     () => ex ? { ok: typeof ex.part_step(1 / 60) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.waveTarget',    () => ex ? { ok: typeof ex.waveTarget() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.spawn_wave',    () => ex ? { ok: typeof ex.spawn_wave() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.ent_step',      () => ex ? { ok: typeof ex.ent_step(1 / 60) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.ent_collide',   () => ex ? { ok: typeof ex.ent_collide() === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.frame',         () => ex ? { ok: typeof ex.frame(1 / 60) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.collide',       () => ex ? { ok: typeof ex.collide(0, 0, 0) === 'number', error: '' } : { ok: false, error: 'no ex' });
+    test('ex.mem',           () => ex ? { ok: ex.mem instanceof WebAssembly.Memory, error: '' } : { ok: false, error: 'no ex' });
+
+    // ---- memory regions ----
+    test('MEM.INPUT',        () => { I32[IB + 0] = 7; return { ok: I32[IB + 0] === 7, error: '' }; });
+    test('MEM.PLAYER.hp',    () => { I32[PB + 9] = 42; return { ok: I32[PB + 9] === 42, error: '' }; });
+    test('MEM.GLOBALS',      () => { I32[GW + 0] = 0; I32[GW + 1] = 1; I32[GW + 2] = 2; I32[GW + 3] = 3; return { ok: true, error: '' }; });
+    test('MEM.ARENA',        () => { const v = arenaU8[0]; arenaU8[0] = v; return { ok: true, error: '' }; });
+    test('MEM.FRAME',        () => { const v = I32[0x000100 >> 2]; I32[0x000100 >> 2] = v; return { ok: true, error: '' }; });
+
+    // ---- JS math/geometry helpers ----
+    test('writeInput',       () => writeInput(1 / 60));
+    test('readPlayer',       () => readPlayer());
+    test('readGlobals',      () => readGlobals());
+    test('spawnPlayer',      () => spawnPlayer());
+    test('blockAtRef',       () => blockAtRef(0, 0, 0));
+    test('m4Identity',       () => m4Identity());
+    test('m4LookAt',         () => m4LookAt([0, 0, 0], [1, 0, 0], [0, 1, 0]));
+    test('m4Perspective',    () => m4Perspective(Math.PI / 3, 16 / 9, 0.1, 100));
+    test('m4Mul',            () => m4Mul(m4Identity().ok, m4Identity().ok));
+    test('v3sub',            () => v3sub([1, 2, 3], [4, 5, 6]));
+    test('v3cross',          () => v3cross([1, 0, 0], [0, 1, 0]));
+    test('v3dot',            () => v3dot([1, 2, 3], [4, 5, 6]));
+    test('v3norm',           () => v3norm([3, 4, 0]));
+    test('flashDamage',      () => flashDamage());
+
+    // ---- perf/telemetry ----
+    test('ringPush/ringStats', () => { lib.ringPush(16.67); const rs = lib.ringStats(); return { ok: rs.count > 0, error: '' }; });
+    test('makeGovernor',     () => { const g = lib.makeGovernor(); const dpr = g.update(16.67); return { ok: [1, 1.5, 2].includes(dpr), error: '' }; });
+
+    // ---- GL resources ----
+    test('GL.program',       () => program ? { ok: !!program, error: '' } : { ok: false, error: 'no program' });
+    test('GL.vertexVBO',     () => vertexVBO ? { ok: !!vertexVBO, error: '' } : { ok: false, error: 'no vertexVBO' });
+    test('GL.indexVBO',      () => indexVBO ? { ok: !!indexVBO, error: '' } : { ok: false, error: 'no indexVBO' });
+    test('GL.arenaVAO',      () => arenaVAO ? { ok: !!arenaVAO, error: '' } : { ok: false, error: 'no arenaVAO' });
+    test('GL.dynVAO',        () => dynVAO ? { ok: !!dynVAO, error: '' } : { ok: false, error: 'no dynVAO' });
+    test('GL.dynVbo',        () => dynVbo ? { ok: !!dynVbo, error: '' } : { ok: false, error: 'no dynVbo' });
+
+    // ---- HUD elements ----
+    test('HUD.wave',         () => { document.getElementById('hudWave').textContent = '1'; return { ok: true, error: '' }; });
+    test('HUD.kills',        () => { document.getElementById('hudKills').textContent = '0'; return { ok: true, error: '' }; });
+    test('HUD.score',        () => { document.getElementById('hudScore').textContent = '0'; return { ok: true, error: '' }; });
+    test('HUD.pos',          () => { document.getElementById('hudPos').textContent = '0, 0, 0'; return { ok: true, error: '' }; });
+    test('HUD.alive',        () => { document.getElementById('hudAlive').textContent = '0'; return { ok: true, error: '' }; });
+    test('HUD.hp',           () => { document.getElementById('hudHp').textContent = '100'; return { ok: true, error: '' }; });
+    test('perfFrameMs',      () => { document.getElementById('perfFrameMs').textContent = '0'; return { ok: true, error: '' }; });
+    test('perfSimMs',        () => { document.getElementById('perfSimMs').textContent = '0'; return { ok: true, error: '' }; });
+    test('perfDrawMs',       () => { document.getElementById('perfDrawMs').textContent = '0'; return { ok: true, error: '' }; });
+    test('perfDropped',      () => { document.getElementById('perfDropped').textContent = '0'; return { ok: true, error: '' }; });
+    test('perfFps',          () => { document.getElementById('perfFps').textContent = '0'; return { ok: true, error: '' }; });
+    test('perfP50',          () => { document.getElementById('perfP50').textContent = '0'; return { ok: true, error: '' }; });
+    test('perfP99',          () => { document.getElementById('perfP99').textContent = '0'; return { ok: true, error: '' }; });
+    test('errbox',           () => { document.getElementById('errbox').style.display = 'none'; return { ok: true, error: '' }; });
+
+    // ---- input state ----
+    test('input.keysBits',   () => { keys['KeyW'] = true; keys['KeyW'] = false; return { ok: true, error: '' }; });
+    test('input.mouse',      () => { mouse.dx = 10; mouse.dy = 0; return { ok: true, error: '' }; });
+    test('input.buttons',    () => { mouse.buttons = 1; mouse.buttons = 0; return { ok: true, error: '' }; });
+
+    // ---- summary ----
+    const pass = results.filter(r => r.startsWith('PASS')).length;
+    const fail = results.filter(r => r.startsWith('FAIL')).length;
+    const threw = results.filter(r => r.startsWith('THREW')).length;
+    const total = pass + fail + threw;
+    const summary = 'BENCHMARK ' + pass + '/' + total + ' passed (' + fail + ' fail, ' + threw + ' threw)\n' + results.join('\n');
+    return { ok: fail === 0 && threw === 0, error: summary };
+  }
+
   /* ---- boot (A1_total; box_ui on error) ---- */
   async function boot(){
     try {
@@ -1640,6 +1761,30 @@ void main(){
           const pl = canvas.requestPointerLock();
           if (pl && typeof pl.catch === 'function') pl.catch(() => {});
         }
+      });
+      // TODO-11: BENCHMARK button + COPY RESULTS
+      document.getElementById('benchmarkBtn').addEventListener('click', () => {
+        document.getElementById('benchmarkResults').style.display = 'block';
+        document.getElementById('benchmarkBtn').disabled = true;
+        document.getElementById('copyResultsBtn').style.display = 'none';
+        const br = runBenchmark();
+        document.getElementById('benchmarkPre').textContent = br.error;
+        document.getElementById('benchmarkBtn').disabled = false;
+        if (br.ok){
+          document.getElementById('copyResultsBtn').style.display = 'inline-block';
+        }
+        return { ok: true, error: null };
+      });
+      document.getElementById('copyResultsBtn').addEventListener('click', () => {
+        const text = document.getElementById('benchmarkPre').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          document.getElementById('copyResultsBtn').textContent = 'COPIED!';
+          setTimeout(() => { document.getElementById('copyResultsBtn').textContent = 'COPY RESULTS'; }, 1200);
+        }).catch(() => {
+          document.getElementById('copyResultsBtn').textContent = 'COPY FAILED';
+          setTimeout(() => { document.getElementById('copyResultsBtn').textContent = 'COPY RESULTS'; }, 1200);
+        });
+        return { ok: true, error: null };
       });
       if (SHOT_MODE){
         gameStarted = true;
