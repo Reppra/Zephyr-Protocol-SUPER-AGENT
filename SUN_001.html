@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>SUN_003 · REDBOLT — neon arena FPS</title>
+<title>SUN_004 · REDBOLT — neon arena FPS</title>
 <style>
 :root{
   --bg:#070b16; --bg2:#0a0e1a; --surface:#111a30; --surface2:#16223e; --overlay:rgba(8,12,24,.82);
@@ -182,7 +182,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 <div id="lowhp"></div>
 
 <div id="topbar">
-  <span class="brand">SUN_003 · <b>REDBOLT</b></span>
+  <span class="brand">SUN_004 · <b>REDBOLT</b></span>
   <span class="spacer"></span>
   <button id="muteBtn" class="iconbtn" title="Toggle sound"><span class="dot"></span><span id="muteLbl">SOUND ON</span></button>
   <button id="pauseBtn" class="iconbtn" style="display:none">PAUSE</button>
@@ -619,7 +619,7 @@ function restoreGraphics(){
     buildArenaMesh();resizeGL();
     contextLost=false;renderScale=1;frameEMA=16;idleAcc=0;adaptCooldown=0;
     $('ctxOverlay').classList.add('hidden');hideErr();
-    try{sessionStorage.removeItem('sun003_ctx_reload');}catch(e){}
+    try{sessionStorage.removeItem('sun004_ctx_reload');}catch(e){}
     running=true;lastT=performance.now();renderOnce();if(!wasRunning)requestAnimationFrame(loop);
     return true;
   }catch(e){
@@ -970,7 +970,7 @@ function toMenu(){
   $('hud').classList.remove('on');$('crosshair').classList.remove('on');$('touch').classList.remove('on');$('pauseBtn').style.display='none';
   $('bgfx').style.display='block';$('gridfx').style.display='block';$('lowhp').style.opacity='0';
 }
-function showErr(msg){const e=$('errbox');e.textContent=msg;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>{e.style.display='none';},6000);if(DEBUG)console.warn('[SUN_003]',msg);}
+function showErr(msg){const e=$('errbox');e.textContent=msg;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>{e.style.display='none';},6000);if(DEBUG)console.warn('[SUN_004]',msg);}
 function hideErr(){const e=$('errbox');e.style.display='none';clearTimeout(e._t);}
 
 /* ============================ BENCHMARK ============================ */
@@ -1134,7 +1134,7 @@ function runBenchmark(){
   const stateRestored=results.find(r=>r.name==='STATE.restored');
   const falsifier=[threw,fail,stateRestored&&stateRestored.status==='PASS',renderFrame&&renderFrame.status==='PASS',untested.length];
   const okAll=threw===0&&fail===0&&untested.length===0&&(renderFrame&&renderFrame.status==='PASS')&&(stateRestored&&stateRestored.status==='PASS');
-  const payload={schema:'SUN_003.benchmark.v1',work:'SUN_003',kernel:K_WASM?'wasm':'js-fallback',kernelBytes:K_BYTES?K_BYTES.length:0,
+  const payload={schema:'SUN_004.benchmark.v1',work:'SUN_004',kernel:K_WASM?'wasm':'js-fallback',kernelBytes:K_BYTES?K_BYTES.length:0,
     timestamp:new Date().toISOString(),totals:{pass,fail,threw,skip,total:results.length},
     coverage:{registered:FN_REGISTRY.length,tested:tested.size,untested},
     gates:{stateRestored:stateRestored?stateRestored.status:'MISSING',renderFrame:renderFrame?renderFrame.status:'MISSING',quadCount},
@@ -1143,7 +1143,7 @@ function runBenchmark(){
 }
 function formatResults(br){
   const p=br.payload;const lines=[];
-  lines.push('SUN_003 · REDBOLT — BENCHMARK '+(br.ok?'PASS':'FAIL'));
+  lines.push('SUN_004 · REDBOLT — BENCHMARK '+(br.ok?'PASS':'FAIL'));
   lines.push('kernel: '+p.kernel+' ('+p.kernelBytes+' bytes) · '+p.timestamp);
   lines.push('totals: PASS '+p.totals.pass+' / FAIL '+p.totals.fail+' / THREW '+p.totals.threw+' / SKIP '+p.totals.skip+' ('+p.totals.total+' tests)');
   lines.push('coverage: '+p.coverage.tested+'/'+p.coverage.registered+' · untested: ['+p.coverage.untested.join(', ')+']');
@@ -1164,7 +1164,7 @@ function paintResults(br){
 }
 function pushConsole(br){
   const text=formatResults(br);
-  console.log('%c SUN_003 · REDBOLT BENCHMARK '+(br.ok?'PASS':'FAIL')+' ','background:#0a0e1a;color:#22e0ff;font-weight:bold;padding:4px 10px;border:1px solid #22e0ff;border-radius:6px');
+  console.log('%c SUN_004 · REDBOLT BENCHMARK '+(br.ok?'PASS':'FAIL')+' ','background:#0a0e1a;color:#22e0ff;font-weight:bold;padding:4px 10px;border:1px solid #22e0ff;border-radius:6px');
   console.log(text);
   console.log('%cBENCHMARK_JSON '+JSON.stringify(br.payload),'color:#5dff8b');
   window.__BENCHMARK_RESULTS__=br.payload;
@@ -1205,8 +1205,8 @@ function bindUI(){
   $('ctxBtn').addEventListener('click',()=>{
     if(gl&&!gl.isContextLost()){restoreGraphics();return;}
     try{
-      if(sessionStorage.getItem('sun003_ctx_reload')==='1'){showErr('Reload already attempted — graphics unavailable on this device.');return;}
-      sessionStorage.setItem('sun003_ctx_reload','1');
+      if(sessionStorage.getItem('sun004_ctx_reload')==='1'){showErr('Reload already attempted — graphics unavailable on this device.');return;}
+      sessionStorage.setItem('sun004_ctx_reload','1');
     }catch(e){}
     location.reload();
   });
@@ -1241,7 +1241,7 @@ function boot(){
   resizeGL();genArena();buildArenaMesh();spawnPlayer();
   bindInput();bindUI();
   bootReady=true;
-  try{sessionStorage.removeItem('sun003_ctx_reload');}catch(e){}
+  try{sessionStorage.removeItem('sun004_ctx_reload');}catch(e){}
   if(DEBUG){
     window.__fps={K,gl,heights,ARENA_W,ARENA_D,player,G};
     window.__SUN={
@@ -1254,7 +1254,7 @@ function boot(){
     };
   }
   running=true;lastT=performance.now();requestAnimationFrame(loop);
-  console.log('%c SUN_003 · REDBOLT ','background:#0a0e1a;color:#ff3b30;font-weight:bold;padding:4px 10px;border:1px solid #ff3b30;border-radius:6px',
+  console.log('%c SUN_004 · REDBOLT ','background:#0a0e1a;color:#ff3b30;font-weight:bold;padding:4px 10px;border:1px solid #ff3b30;border-radius:6px',
     'booted · kernel='+(K_WASM?'WASM':'JS-fallback')+' · quads='+quadCount+' · gpu='+(GPU_RENDERER||'unknown')+' · lowGpu='+LOW_GPU+' · buffer='+W+'x'+H+' · debug='+DEBUG);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
