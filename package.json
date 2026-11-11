@@ -1,0 +1,14 @@
+{
+  "name": "sun-build",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "functions:update": "node tools/functions.mjs update",
+    "functions:check": "node tools/functions.mjs check",
+    "bench": "node tools/bench.mjs"
+  },
+  "devDependencies": {
+    "acorn": "^8.14.0"
+  }
+}

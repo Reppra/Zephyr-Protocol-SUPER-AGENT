@@ -1,0 +1,1059 @@
+{
+  "schema": "zephyr.functions.snapshot.v1",
+  "build": "SUN_011",
+  "version": "0.8.1",
+  "functions": {
+    "buildKernel": {
+      "module": "kernel",
+      "hash": "76d1cd1639278ee7"
+    },
+    "jsKernel": {
+      "module": "kernel",
+      "hash": "36f0e22af0846a0e"
+    },
+    "initKernel": {
+      "module": "kernel",
+      "hash": "12b4b8cdd12b3e33"
+    },
+    "downloadJSON": {
+      "module": "core",
+      "hash": "98a577ad73666362"
+    },
+    "clamp": {
+      "module": "math",
+      "hash": "0ab653087e666533"
+    },
+    "lerp": {
+      "module": "math",
+      "hash": "637257db12c196f6"
+    },
+    "rand01": {
+      "module": "math",
+      "hash": "7ef740ce32594bda"
+    },
+    "v3sub": {
+      "module": "math",
+      "hash": "dd28b98ad97b669d"
+    },
+    "v3dot": {
+      "module": "math",
+      "hash": "3b657e014e563828"
+    },
+    "v3cross": {
+      "module": "math",
+      "hash": "b8af00ee0aa873d9"
+    },
+    "v3norm": {
+      "module": "math",
+      "hash": "20780570b12471df"
+    },
+    "m4Identity": {
+      "module": "math",
+      "hash": "4f7f9bac26600086"
+    },
+    "m4Perspective": {
+      "module": "math",
+      "hash": "97f86e99cd8f34d5"
+    },
+    "m4LookAt": {
+      "module": "math",
+      "hash": "198a86fd7be72a84"
+    },
+    "m4Mul": {
+      "module": "math",
+      "hash": "213e435a5c6e35b7"
+    },
+    "t": {
+      "module": "i18n",
+      "hash": "9fac4d3fe617265f"
+    },
+    "applyLang": {
+      "module": "i18n",
+      "hash": "78775c0f3c9b2f11"
+    },
+    "setLang": {
+      "module": "i18n",
+      "hash": "48e8c90f9189acdb"
+    },
+    "resolveLang": {
+      "module": "i18n",
+      "hash": "e2034ab5f8dca0c8"
+    },
+    "strParity": {
+      "module": "i18n",
+      "hash": "e798673259f70e51"
+    },
+    "strTypos": {
+      "module": "i18n",
+      "hash": "42ed269eb9961cc4"
+    },
+    "applyA11y": {
+      "module": "a11y",
+      "hash": "bb3fa5afe2369755"
+    },
+    "shakeAmp": {
+      "module": "a11y",
+      "hash": "d591f5a27709a47a"
+    },
+    "shapeSpec": {
+      "module": "a11y",
+      "hash": "2ab9e39aa9eee312"
+    },
+    "hapticGate": {
+      "module": "haptics",
+      "hash": "a756e83d895fc76c"
+    },
+    "hapticFire": {
+      "module": "haptics",
+      "hash": "2be1cfa889cbcbe2"
+    },
+    "loadScores": {
+      "module": "scores",
+      "hash": "969f1a826f272473"
+    },
+    "dedupeScores": {
+      "module": "scores",
+      "hash": "7b0abf46d408676b"
+    },
+    "saveScore": {
+      "module": "scores",
+      "hash": "82b140e7c33c18c7"
+    },
+    "purgeScores": {
+      "module": "scores",
+      "hash": "2207712b2a159391"
+    },
+    "renderScores": {
+      "module": "scores",
+      "hash": "ab73da498c1433c2"
+    },
+    "dailySeedAt": {
+      "module": "daily",
+      "hash": "a2b881760e3ec052"
+    },
+    "dailySeed": {
+      "module": "daily",
+      "hash": "7d9fc3cd5a2cda70"
+    },
+    "makeShareCode": {
+      "module": "daily",
+      "hash": "648d6a3588e7e5a7"
+    },
+    "verifyDaily": {
+      "module": "daily",
+      "hash": "f053e47dc8f71364"
+    },
+    "dailyBest": {
+      "module": "daily",
+      "hash": "590ebcbe3dfa44ab"
+    },
+    "saveDaily": {
+      "module": "daily",
+      "hash": "3d72cf35e76f12f5"
+    },
+    "renderDaily": {
+      "module": "daily",
+      "hash": "7193850730404016"
+    },
+    "xpForLevel": {
+      "module": "meta",
+      "hash": "d90125755dbd7ae4"
+    },
+    "levelFromXp": {
+      "module": "meta",
+      "hash": "7c11b34fbde26e2f"
+    },
+    "hasUnlock": {
+      "module": "meta",
+      "hash": "32a5c542cea9821c"
+    },
+    "saveMeta": {
+      "module": "meta",
+      "hash": "633c3de3048142ec"
+    },
+    "applyUnlocks": {
+      "module": "meta",
+      "hash": "5eb41ecd0b75d823"
+    },
+    "migrateMeta": {
+      "module": "meta",
+      "hash": "4369049f0db22280"
+    },
+    "loadMeta": {
+      "module": "meta",
+      "hash": "8545640b119b8da0"
+    },
+    "metaAward": {
+      "module": "meta",
+      "hash": "63d069521925635a"
+    },
+    "unlockLevel": {
+      "module": "meta",
+      "hash": "cf8b07925c0df9ad"
+    },
+    "renderMeta": {
+      "module": "meta",
+      "hash": "c366ec9754302ab3"
+    },
+    "loadAch": {
+      "module": "ach",
+      "hash": "020a785fe9bb8f18"
+    },
+    "unlockAch": {
+      "module": "ach",
+      "hash": "2ee96fb05a9e5f5b"
+    },
+    "sanitizeSettings": {
+      "module": "settings",
+      "hash": "3b296cdc910af61a"
+    },
+    "loadSettings": {
+      "module": "settings",
+      "hash": "9ed2bf1eec743768"
+    },
+    "saveSettings": {
+      "module": "settings",
+      "hash": "7df8cace4c2ef137"
+    },
+    "stickDeadzone": {
+      "module": "settings",
+      "hash": "328f990c3c64bf1b"
+    },
+    "setVol": {
+      "module": "settings",
+      "hash": "3a8a64aee919526b"
+    },
+    "setSens": {
+      "module": "settings",
+      "hash": "37fc5381a7ef3490"
+    },
+    "setSensXY": {
+      "module": "settings",
+      "hash": "c1d704d55dda1690"
+    },
+    "setDeadzone": {
+      "module": "settings",
+      "hash": "a558bfed474e9d27"
+    },
+    "applyLefty": {
+      "module": "settings",
+      "hash": "c4ae8154959d13d9"
+    },
+    "setLefty": {
+      "module": "settings",
+      "hash": "51b59e3ed990e3e5"
+    },
+    "setMusic": {
+      "module": "settings",
+      "hash": "16ae79e64541e73c"
+    },
+    "applySettingsUI": {
+      "module": "settings",
+      "hash": "1a8bac74082fb0af"
+    },
+    "basePerkStats": {
+      "module": "perks",
+      "hash": "d23cc094ec63d972"
+    },
+    "recomputePerks": {
+      "module": "perks",
+      "hash": "d70cace48c51e8a9"
+    },
+    "perkMaxed": {
+      "module": "perks",
+      "hash": "4e7aa850b321b8dd"
+    },
+    "rollPerks": {
+      "module": "perks",
+      "hash": "7ddfaac977f1ef6e"
+    },
+    "takePerk": {
+      "module": "perks",
+      "hash": "e5a66492b85582df"
+    },
+    "renderPerkList": {
+      "module": "perks",
+      "hash": "9a1660607fabb880"
+    },
+    "showPerkOverlay": {
+      "module": "perks",
+      "hash": "b9fc011557d57512"
+    },
+    "choosePerk": {
+      "module": "perks",
+      "hash": "85230ad2ddbb415b"
+    },
+    "rerollPerks": {
+      "module": "perks",
+      "hash": "7304b179d63447c2"
+    },
+    "biomeDef": {
+      "module": "biome",
+      "hash": "62a251697a85aded"
+    },
+    "biomeFor": {
+      "module": "biome",
+      "hash": "9859524f1c2627c2"
+    },
+    "hidx": {
+      "module": "arena",
+      "hash": "cd14410f286c70f0"
+    },
+    "parseSeed": {
+      "module": "arena",
+      "hash": "8dc089e4523e3992"
+    },
+    "randomRunSeed": {
+      "module": "arena",
+      "hash": "4cd65746c68eaf0b"
+    },
+    "seedFromURL": {
+      "module": "arena",
+      "hash": "37f981cf5fd24c9c"
+    },
+    "genArena": {
+      "module": "arena",
+      "hash": "2d52dda16446af59"
+    },
+    "groundAt": {
+      "module": "arena",
+      "hash": "cfdfce733efc8f09"
+    },
+    "blockAt": {
+      "module": "arena",
+      "hash": "c98114c9523dc674"
+    },
+    "arenaColor": {
+      "module": "arena",
+      "hash": "4836aec1c6799aee"
+    },
+    "buildArenaMesh": {
+      "module": "arena",
+      "hash": "9a4dc53275264349"
+    },
+    "syncArenaMesh": {
+      "module": "arena",
+      "hash": "5264dacefa5bec3a"
+    },
+    "matFinite": {
+      "module": "render",
+      "hash": "d6af9468df5257d5"
+    },
+    "createShader": {
+      "module": "render",
+      "hash": "a90178b557b6beef"
+    },
+    "createProgram": {
+      "module": "render",
+      "hash": "8dfaa22a96f9be5a"
+    },
+    "initWebGL": {
+      "module": "render",
+      "hash": "371fd252534e3fec"
+    },
+    "detectGPU": {
+      "module": "render",
+      "hash": "ab2ad138bcf9e440"
+    },
+    "onContextLost": {
+      "module": "render",
+      "hash": "5668bb30a169ff99"
+    },
+    "onContextRestored": {
+      "module": "render",
+      "hash": "1ace8ae24c5c9ff3"
+    },
+    "restoreGraphics": {
+      "module": "render",
+      "hash": "12bd22c7aa77be37"
+    },
+    "computeBufferSize": {
+      "module": "render",
+      "hash": "59ee96dd31a5d068"
+    },
+    "resizeGL": {
+      "module": "render",
+      "hash": "413874affc80fd7b"
+    },
+    "buildEntityData": {
+      "module": "render",
+      "hash": "351b05d4bc258f62"
+    },
+    "buildBeamData": {
+      "module": "render",
+      "hash": "b3c6e40b10118e90"
+    },
+    "gatherLights": {
+      "module": "render",
+      "hash": "58e072f7d22940fb"
+    },
+    "uploadLights": {
+      "module": "render",
+      "hash": "39b1490e942d2eae"
+    },
+    "pushGlow": {
+      "module": "render",
+      "hash": "f0193a2a0eeffa32"
+    },
+    "buildGlowData": {
+      "module": "render",
+      "hash": "bc1c0f87116e63d5"
+    },
+    "drawGlow": {
+      "module": "render",
+      "hash": "2500a10022156614"
+    },
+    "throttleLights": {
+      "module": "render",
+      "hash": "ab9b4d920673857f"
+    },
+    "lightsFinite": {
+      "module": "render",
+      "hash": "522e1622c899ec39"
+    },
+    "recoverView": {
+      "module": "render",
+      "hash": "cc8888c3359a1807"
+    },
+    "meshMeltdownAllowed": {
+      "module": "render",
+      "hash": "544f356567c6afcd"
+    },
+    "nanFirewall": {
+      "module": "render",
+      "hash": "0fb93ada48a49c53"
+    },
+    "drawScene": {
+      "module": "render",
+      "hash": "f9baf2d938603228"
+    },
+    "renderOnce": {
+      "module": "render",
+      "hash": "335fc23d31b7a1b4"
+    },
+    "readCenterNonClear": {
+      "module": "render",
+      "hash": "8d6ca54e221abf00"
+    },
+    "showErr": {
+      "module": "render",
+      "hash": "f29c222b2084782a"
+    },
+    "hideErr": {
+      "module": "render",
+      "hash": "7c80af0b82de250a"
+    },
+    "perfLog": {
+      "module": "render",
+      "hash": "6f944c8ff8b34c37"
+    },
+    "applyQuality": {
+      "module": "render",
+      "hash": "6aaf957eec0f8fc4"
+    },
+    "adaptQuality": {
+      "module": "render",
+      "hash": "d1d11f427158a725"
+    },
+    "applyGain": {
+      "module": "audio",
+      "hash": "7caad7881f4545c9"
+    },
+    "ensureAudio": {
+      "module": "audio",
+      "hash": "74a57e9f36bb1909"
+    },
+    "setMuted": {
+      "module": "audio",
+      "hash": "e0fafe0f2e97b634"
+    },
+    "tone": {
+      "module": "audio",
+      "hash": "569b62d7ebb9d3c8"
+    },
+    "noiseBurst": {
+      "module": "audio",
+      "hash": "c9a6bac2d5aa88f8"
+    },
+    "sfx": {
+      "module": "audio",
+      "hash": "0982ba1fb58d782f"
+    },
+    "musicModeFor": {
+      "module": "audio",
+      "hash": "87aea10e5c0a501f"
+    },
+    "haltMusic": {
+      "module": "audio",
+      "hash": "937030e753c0b580"
+    },
+    "stopMusic": {
+      "module": "audio",
+      "hash": "1ddbdfb901c84776"
+    },
+    "stepMusic": {
+      "module": "audio",
+      "hash": "efc43f7d9834205d"
+    },
+    "startMusic": {
+      "module": "audio",
+      "hash": "555c85dfe283ccce"
+    },
+    "musicState": {
+      "module": "audio",
+      "hash": "4b15c848f1760560"
+    },
+    "setIntensity": {
+      "module": "audio",
+      "hash": "37184bc9c8915a55"
+    },
+    "computeIntensity": {
+      "module": "audio",
+      "hash": "1f7b06e0c9dd58e9"
+    },
+    "startMusicDirector": {
+      "module": "audio",
+      "hash": "2f514d2678b8203b"
+    },
+    "stopMusicDirector": {
+      "module": "audio",
+      "hash": "6d877469fa2c6e9c"
+    },
+    "mdTone": {
+      "module": "audio",
+      "hash": "f52aad80a69a1f20"
+    },
+    "scheduleStep": {
+      "module": "audio",
+      "hash": "256a29faa703cf7a"
+    },
+    "tickMusicDirector": {
+      "module": "audio",
+      "hash": "c727841044981b9b"
+    },
+    "duckMusic": {
+      "module": "audio",
+      "hash": "91ad108e23556f03"
+    },
+    "sfxAt": {
+      "module": "audio",
+      "hash": "2c0174e98bd03748"
+    },
+    "fireArc": {
+      "module": "weapons",
+      "hash": "9c22afe06dd51c85"
+    },
+    "pushBeam": {
+      "module": "weapons",
+      "hash": "b9b34ecc9d2e0687"
+    },
+    "recomputeDerived": {
+      "module": "weapons",
+      "hash": "2057b8877852edf8"
+    },
+    "grantMod": {
+      "module": "weapons",
+      "hash": "7fb212766f740351"
+    },
+    "setWeapon": {
+      "module": "weapons",
+      "hash": "32efb0e29c53376e"
+    },
+    "applyDamage": {
+      "module": "elite",
+      "hash": "dcf563c08a7b85c6"
+    },
+    "telemetryRecord": {
+      "module": "telemetry",
+      "hash": "e287ec8a1d009b39"
+    },
+    "telemetrySummary": {
+      "module": "telemetry",
+      "hash": "686cda69602ae411"
+    },
+    "waveCadence": {
+      "module": "sim",
+      "hash": "5c0bc8ad235c7d07"
+    },
+    "waveSpawnCount": {
+      "module": "sim",
+      "hash": "34b707b021211ae5"
+    },
+    "spawnTableFor": {
+      "module": "sim",
+      "hash": "8f93b5db699d3411"
+    },
+    "forwardVec": {
+      "module": "sim",
+      "hash": "747d3b4f5426d107"
+    },
+    "spawnPlayer": {
+      "module": "sim",
+      "hash": "1392ad6e0899ce2a"
+    },
+    "resetGame": {
+      "module": "sim",
+      "hash": "ed1402a10ba4cc98"
+    },
+    "startWave": {
+      "module": "sim",
+      "hash": "947a623c4a990573"
+    },
+    "spawnHive": {
+      "module": "sim",
+      "hash": "6378edc1a31b1e5b"
+    },
+    "spawnPyre": {
+      "module": "sim",
+      "hash": "4307e4f111a739be"
+    },
+    "spawnBoss": {
+      "module": "sim",
+      "hash": "a464f3fd6abc3978"
+    },
+    "spawnEnemy": {
+      "module": "sim",
+      "hash": "a11a280cd6983872"
+    },
+    "spawnEnemyArch": {
+      "module": "sim",
+      "hash": "ab02f2f34d1ff5b7"
+    },
+    "burst": {
+      "module": "sim",
+      "hash": "a50461b20425083a"
+    },
+    "wallRayT": {
+      "module": "sim",
+      "hash": "8bd2bf07ee6195f5"
+    },
+    "rayHits": {
+      "module": "sim",
+      "hash": "4c57a863f7ea9111"
+    },
+    "fire": {
+      "module": "sim",
+      "hash": "55141d77d44e451b"
+    },
+    "killEnemy": {
+      "module": "sim",
+      "hash": "5fbd0d40837c4430"
+    },
+    "reload": {
+      "module": "sim",
+      "hash": "e08f5d07b5fd719c"
+    },
+    "damagePlayer": {
+      "module": "sim",
+      "hash": "236f9c0f9aef2494"
+    },
+    "applyPickup": {
+      "module": "sim",
+      "hash": "ab865f73385cffc9"
+    },
+    "canStand": {
+      "module": "sim",
+      "hash": "aa69dfac9997090a"
+    },
+    "updatePlayer": {
+      "module": "sim",
+      "hash": "9c5394e9943795bd"
+    },
+    "spawnProjectile": {
+      "module": "sim",
+      "hash": "d13ccb30dfe15ed8"
+    },
+    "updateBoss": {
+      "module": "sim",
+      "hash": "dfdf367974dff74b"
+    },
+    "updateTurret": {
+      "module": "sim",
+      "hash": "bb2ab1e2a2bce0ca"
+    },
+    "updateDash": {
+      "module": "sim",
+      "hash": "8c30f3c9868385b0"
+    },
+    "updateShielder": {
+      "module": "sim",
+      "hash": "9630b41bf817217d"
+    },
+    "updateEnemies": {
+      "module": "sim",
+      "hash": "f2f0cc15d97f0d65"
+    },
+    "beamHit": {
+      "module": "sim",
+      "hash": "581643b2e14b88a5"
+    },
+    "updateLance": {
+      "module": "sim",
+      "hash": "aadd6a0dee54b08b"
+    },
+    "updateHive": {
+      "module": "sim",
+      "hash": "944a28aa56523af8"
+    },
+    "updatePyre": {
+      "module": "sim",
+      "hash": "2fa0f932dbf295ce"
+    },
+    "updateProjectiles": {
+      "module": "sim",
+      "hash": "c1e18ea024cd932d"
+    },
+    "updateParticles": {
+      "module": "sim",
+      "hash": "6bee380ea8884b40"
+    },
+    "updateWaves": {
+      "module": "sim",
+      "hash": "80d07266e84d0472"
+    },
+    "updateFX": {
+      "module": "sim",
+      "hash": "95b7b67fa46fe7f4"
+    },
+    "updateGame": {
+      "module": "sim",
+      "hash": "af797c3b3301e5fe"
+    },
+    "endGame": {
+      "module": "sim",
+      "hash": "bc376cafbe3098e7"
+    },
+    "showBanner": {
+      "module": "hud",
+      "hash": "0382dec3fed297f1"
+    },
+    "showToast": {
+      "module": "hud",
+      "hash": "a7eb814050a1d7a1"
+    },
+    "updateBossBar": {
+      "module": "hud",
+      "hash": "de9db55dbbda1ffd"
+    },
+    "updateHUD": {
+      "module": "hud",
+      "hash": "be58de67d8f85274"
+    },
+    "mmTerrain": {
+      "module": "minimap",
+      "hash": "cc22cc32d2bac5d8"
+    },
+    "drawMinimap": {
+      "module": "minimap",
+      "hash": "30050e041f706187"
+    },
+    "syncWeaponBtns": {
+      "module": "ui",
+      "hash": "77b076c0e12efa37"
+    },
+    "bindUI": {
+      "module": "ui",
+      "hash": "0e407558ddd78ab6"
+    },
+    "lockStateGet": {
+      "module": "input",
+      "hash": "2ce13dc9e55a39a7"
+    },
+    "requestLock": {
+      "module": "input",
+      "hash": "b1437947d038dc8e"
+    },
+    "clearInput": {
+      "module": "input",
+      "hash": "2ddc32b915e0f3ba"
+    },
+    "sanitizeDelta": {
+      "module": "input",
+      "hash": "50f8deb5671a40c9"
+    },
+    "sanitizeTelemetry": {
+      "module": "input",
+      "hash": "f7aa808377fe186e"
+    },
+    "inputRateTick": {
+      "module": "input",
+      "hash": "ddcc906be8589402"
+    },
+    "eventRate": {
+      "module": "input",
+      "hash": "7d9a5485334f74c0"
+    },
+    "lookFlush": {
+      "module": "input",
+      "hash": "6f7a6d895aa3117f"
+    },
+    "applyLook": {
+      "module": "input",
+      "hash": "88d1eba3f31ca750"
+    },
+    "hapticsFireTap": {
+      "module": "input",
+      "hash": "276ce3aeb0b9ca7f"
+    },
+    "tapFireZone": {
+      "module": "input",
+      "hash": "b5b5bf1493d94fb2"
+    },
+    "setFireZone": {
+      "module": "input",
+      "hash": "7d6108ad562ae2bd"
+    },
+    "zoneTouchStart": {
+      "module": "input",
+      "hash": "d9f1d73a2dd2f454"
+    },
+    "zoneTouchMove": {
+      "module": "input",
+      "hash": "445c907b6c06965b"
+    },
+    "zoneTouchEnd": {
+      "module": "input",
+      "hash": "ddff7ce4a2399cc3"
+    },
+    "touchCancel": {
+      "module": "input",
+      "hash": "446eed236d5c8dff"
+    },
+    "touchWatchdog": {
+      "module": "input",
+      "hash": "ee2cc814c3b4db67"
+    },
+    "bindInput": {
+      "module": "input",
+      "hash": "fd0e7ddffc7eac12"
+    },
+    "mcToggle": {
+      "module": "mc",
+      "hash": "07349d72448002d6"
+    },
+    "updateMascot": {
+      "module": "mc",
+      "hash": "15b0722cf38cf061"
+    },
+    "mcOverload": {
+      "module": "mc",
+      "hash": "75ad6d89bc27053b"
+    },
+    "mcDeckFrame": {
+      "module": "mc",
+      "hash": "3b1f24dd7a69db94"
+    },
+    "mcReAnchor": {
+      "module": "mc",
+      "hash": "5b168fb393a1f572"
+    },
+    "isSuperphone": {
+      "module": "phone",
+      "hash": "005f7c4ea859235d"
+    },
+    "meshTapBurst": {
+      "module": "phone",
+      "hash": "401a30cf0b792807"
+    },
+    "phoneLockNotBoom": {
+      "module": "phone",
+      "hash": "1690c4d73a037a1a"
+    },
+    "phoneReleaseIfIdle": {
+      "module": "phone",
+      "hash": "d334c5ef0aeda2fb"
+    },
+    "stormReport": {
+      "module": "storm",
+      "hash": "876018d1fb78eeaf"
+    },
+    "fakeMouseEvent": {
+      "module": "storm",
+      "hash": "446f37b8d4539a7b"
+    },
+    "stormMouse": {
+      "module": "storm",
+      "hash": "1387f426f79f7149"
+    },
+    "stormTouch": {
+      "module": "storm",
+      "hash": "da34ada7914e6ab8"
+    },
+    "crashRecord": {
+      "module": "crash",
+      "hash": "63cc557fa78b5365"
+    },
+    "crashCapture": {
+      "module": "crash",
+      "hash": "3ef559444b0e5cc8"
+    },
+    "crashDump": {
+      "module": "crash",
+      "hash": "f44789ed74f1be7c"
+    },
+    "downloadCrashCard": {
+      "module": "crash",
+      "hash": "ed134b29ff363712"
+    },
+    "pushCriticCard": {
+      "module": "critic",
+      "hash": "4a1f356338d8f1c2"
+    },
+    "runCritics": {
+      "module": "critic",
+      "hash": "2406405a177321aa"
+    },
+    "startDaily": {
+      "module": "state",
+      "hash": "336237b397143afb"
+    },
+    "startGame": {
+      "module": "state",
+      "hash": "efd9193156f01923"
+    },
+    "togglePause": {
+      "module": "state",
+      "hash": "ba0b7fd03376590c"
+    },
+    "toMenu": {
+      "module": "state",
+      "hash": "6a99c11b39252c11"
+    },
+    "recordReplayFrame": {
+      "module": "replay",
+      "hash": "81dc0e051190fa8d"
+    },
+    "buildReplayPayload": {
+      "module": "replay",
+      "hash": "8cbf706dd790a322"
+    },
+    "replaySummary": {
+      "module": "replay",
+      "hash": "04f85e950a923290"
+    },
+    "replayTrace": {
+      "module": "replay",
+      "hash": "95d5589f8e564569"
+    },
+    "replayCompare": {
+      "module": "replay",
+      "hash": "2db79b334a41d85b"
+    },
+    "exportReplay": {
+      "module": "replay",
+      "hash": "69a958e839d7e34c"
+    },
+    "replayValidate": {
+      "module": "replay",
+      "hash": "ba25277526386af8"
+    },
+    "replayPlay": {
+      "module": "replay",
+      "hash": "b76f9db1193e843b"
+    },
+    "applyPlaybackFrame": {
+      "module": "replay",
+      "hash": "09b4e496677e25da"
+    },
+    "stepPlayback": {
+      "module": "replay",
+      "hash": "003a9ee7575a899a"
+    },
+    "playbackState": {
+      "module": "replay",
+      "hash": "6e401fd2ac55c6f9"
+    },
+    "updatePbBar": {
+      "module": "replay",
+      "hash": "2343f5017e8dc70a"
+    },
+    "pbSetCam": {
+      "module": "replay",
+      "hash": "bbd43e2e5d17c345"
+    },
+    "pbCycleCam": {
+      "module": "replay",
+      "hash": "f4208e7b9f6552dd"
+    },
+    "pbOrbit": {
+      "module": "replay",
+      "hash": "be3a4206c5b8a99d"
+    },
+    "pbZoom": {
+      "module": "replay",
+      "hash": "c2a5b8ab646ff232"
+    },
+    "endPlayback": {
+      "module": "replay",
+      "hash": "b48ae60d3e23c391"
+    },
+    "photoFilename": {
+      "module": "photo",
+      "hash": "77a52b29254f117d"
+    },
+    "photoEncode": {
+      "module": "photo",
+      "hash": "6fd68169a92c17f0"
+    },
+    "photoSave": {
+      "module": "photo",
+      "hash": "e6ff0859e4dbb196"
+    },
+    "releaseChecklist": {
+      "module": "release",
+      "hash": "2fd306ad70ab1e73"
+    },
+    "mark": {
+      "module": "benchmark",
+      "hash": "e8d7efd22f34cf77"
+    },
+    "snapshotState": {
+      "module": "benchmark",
+      "hash": "3160d59437534a2d"
+    },
+    "restoreState": {
+      "module": "benchmark",
+      "hash": "a8dd719220076b7b"
+    },
+    "snapshotDOM": {
+      "module": "benchmark",
+      "hash": "0765159b6330af18"
+    },
+    "restoreDOM": {
+      "module": "benchmark",
+      "hash": "a73aeadd543dd7fb"
+    },
+    "runBenchmark": {
+      "module": "benchmark",
+      "hash": "585e0a17e80a3a80"
+    },
+    "formatResults": {
+      "module": "benchmark",
+      "hash": "a3dfcd4e730cdd46"
+    },
+    "paintResults": {
+      "module": "benchmark",
+      "hash": "a3a45db7a26c4c43"
+    },
+    "pushConsole": {
+      "module": "benchmark",
+      "hash": "180ac30c768a8970"
+    },
+    "copyResults": {
+      "module": "benchmark",
+      "hash": "88d9f73a09018c21"
+    },
+    "downloadBench": {
+      "module": "benchmark",
+      "hash": "8c23546ffeb2100e"
+    },
+    "loop": {
+      "module": "main",
+      "hash": "6373bc590ca41555"
+    },
+    "boot": {
+      "module": "main",
+      "hash": "9ffe2dc0512b5b1e"
+    }
+  }
+}

@@ -1,0 +1,2640 @@
+{
+  "schema": "zephyr.functions.v1",
+  "build": "SUN_011",
+  "version": "0.8.1",
+  "totals": {
+    "functions": 263,
+    "modules": 35,
+    "frozen": 0,
+    "coverage": {
+      "direct": 201,
+      "indirect": 40,
+      "none": 22
+    }
+  },
+  "functions": {
+    "buildKernel": {
+      "module": "kernel",
+      "file": "src/js/01-kernel.js",
+      "lines": 95,
+      "registry": [],
+      "coverage": "none",
+      "hash": "76d1cd1639278ee7",
+      "frozen": false
+    },
+    "jsKernel": {
+      "module": "kernel",
+      "file": "src/js/01-kernel.js",
+      "lines": 29,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "36f0e22af0846a0e",
+      "frozen": false
+    },
+    "initKernel": {
+      "module": "kernel",
+      "file": "src/js/01-kernel.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "none",
+      "hash": "12b4b8cdd12b3e33",
+      "frozen": false
+    },
+    "downloadJSON": {
+      "module": "core",
+      "file": "src/js/02-core.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "none",
+      "hash": "98a577ad73666362",
+      "frozen": false
+    },
+    "clamp": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.clamp"
+      ],
+      "coverage": "direct",
+      "hash": "0ab653087e666533",
+      "frozen": false
+    },
+    "lerp": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.lerp"
+      ],
+      "coverage": "direct",
+      "hash": "637257db12c196f6",
+      "frozen": false
+    },
+    "rand01": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.rand01"
+      ],
+      "coverage": "direct",
+      "hash": "7ef740ce32594bda",
+      "frozen": false
+    },
+    "v3sub": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.v3sub"
+      ],
+      "coverage": "direct",
+      "hash": "dd28b98ad97b669d",
+      "frozen": false
+    },
+    "v3dot": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.v3dot"
+      ],
+      "coverage": "direct",
+      "hash": "3b657e014e563828",
+      "frozen": false
+    },
+    "v3cross": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.v3cross"
+      ],
+      "coverage": "direct",
+      "hash": "b8af00ee0aa873d9",
+      "frozen": false
+    },
+    "v3norm": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.v3norm"
+      ],
+      "coverage": "direct",
+      "hash": "20780570b12471df",
+      "frozen": false
+    },
+    "m4Identity": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.m4Identity"
+      ],
+      "coverage": "direct",
+      "hash": "4f7f9bac26600086",
+      "frozen": false
+    },
+    "m4Perspective": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 2,
+      "registry": [
+        "math.m4Perspective"
+      ],
+      "coverage": "direct",
+      "hash": "97f86e99cd8f34d5",
+      "frozen": false
+    },
+    "m4LookAt": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 2,
+      "registry": [
+        "math.m4LookAt"
+      ],
+      "coverage": "direct",
+      "hash": "198a86fd7be72a84",
+      "frozen": false
+    },
+    "m4Mul": {
+      "module": "math",
+      "file": "src/js/03-math.js",
+      "lines": 1,
+      "registry": [
+        "math.m4Mul"
+      ],
+      "coverage": "direct",
+      "hash": "213e435a5c6e35b7",
+      "frozen": false
+    },
+    "t": {
+      "module": "i18n",
+      "file": "src/js/04-i18n.js",
+      "lines": 1,
+      "registry": [
+        "i18n.t"
+      ],
+      "coverage": "direct",
+      "hash": "9fac4d3fe617265f",
+      "frozen": false
+    },
+    "applyLang": {
+      "module": "i18n",
+      "file": "src/js/04-i18n.js",
+      "lines": 11,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "78775c0f3c9b2f11",
+      "frozen": false
+    },
+    "setLang": {
+      "module": "i18n",
+      "file": "src/js/04-i18n.js",
+      "lines": 6,
+      "registry": [
+        "i18n.setLang"
+      ],
+      "coverage": "direct",
+      "hash": "48e8c90f9189acdb",
+      "frozen": false
+    },
+    "resolveLang": {
+      "module": "i18n",
+      "file": "src/js/04-i18n.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "e2034ab5f8dca0c8",
+      "frozen": false
+    },
+    "strParity": {
+      "module": "i18n",
+      "file": "src/js/04-i18n.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "e798673259f70e51",
+      "frozen": false
+    },
+    "strTypos": {
+      "module": "i18n",
+      "file": "src/js/04-i18n.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "42ed269eb9961cc4",
+      "frozen": false
+    },
+    "applyA11y": {
+      "module": "a11y",
+      "file": "src/js/05-a11y.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "bb3fa5afe2369755",
+      "frozen": false
+    },
+    "shakeAmp": {
+      "module": "a11y",
+      "file": "src/js/05-a11y.js",
+      "lines": 3,
+      "registry": [
+        "a11y.shakeAmp"
+      ],
+      "coverage": "direct",
+      "hash": "d591f5a27709a47a",
+      "frozen": false
+    },
+    "shapeSpec": {
+      "module": "a11y",
+      "file": "src/js/05-a11y.js",
+      "lines": 18,
+      "registry": [
+        "a11y.shapeSpec"
+      ],
+      "coverage": "direct",
+      "hash": "2ab9e39aa9eee312",
+      "frozen": false
+    },
+    "hapticGate": {
+      "module": "haptics",
+      "file": "src/js/06-haptics.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "a756e83d895fc76c",
+      "frozen": false
+    },
+    "hapticFire": {
+      "module": "haptics",
+      "file": "src/js/06-haptics.js",
+      "lines": 11,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "2be1cfa889cbcbe2",
+      "frozen": false
+    },
+    "loadScores": {
+      "module": "scores",
+      "file": "src/js/07-scores.js",
+      "lines": 6,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "969f1a826f272473",
+      "frozen": false
+    },
+    "dedupeScores": {
+      "module": "scores",
+      "file": "src/js/07-scores.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "7b0abf46d408676b",
+      "frozen": false
+    },
+    "saveScore": {
+      "module": "scores",
+      "file": "src/js/07-scores.js",
+      "lines": 6,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "82b140e7c33c18c7",
+      "frozen": false
+    },
+    "purgeScores": {
+      "module": "scores",
+      "file": "src/js/07-scores.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "2207712b2a159391",
+      "frozen": false
+    },
+    "renderScores": {
+      "module": "scores",
+      "file": "src/js/07-scores.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "ab73da498c1433c2",
+      "frozen": false
+    },
+    "dailySeedAt": {
+      "module": "daily",
+      "file": "src/js/08-daily.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "a2b881760e3ec052",
+      "frozen": false
+    },
+    "dailySeed": {
+      "module": "daily",
+      "file": "src/js/08-daily.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "7d9fc3cd5a2cda70",
+      "frozen": false
+    },
+    "makeShareCode": {
+      "module": "daily",
+      "file": "src/js/08-daily.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "648d6a3588e7e5a7",
+      "frozen": false
+    },
+    "verifyDaily": {
+      "module": "daily",
+      "file": "src/js/08-daily.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "f053e47dc8f71364",
+      "frozen": false
+    },
+    "dailyBest": {
+      "module": "daily",
+      "file": "src/js/08-daily.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "590ebcbe3dfa44ab",
+      "frozen": false
+    },
+    "saveDaily": {
+      "module": "daily",
+      "file": "src/js/08-daily.js",
+      "lines": 15,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "3d72cf35e76f12f5",
+      "frozen": false
+    },
+    "renderDaily": {
+      "module": "daily",
+      "file": "src/js/08-daily.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "7193850730404016",
+      "frozen": false
+    },
+    "xpForLevel": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "d90125755dbd7ae4",
+      "frozen": false
+    },
+    "levelFromXp": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "7c11b34fbde26e2f",
+      "frozen": false
+    },
+    "hasUnlock": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "32a5c542cea9821c",
+      "frozen": false
+    },
+    "saveMeta": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 6,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "633c3de3048142ec",
+      "frozen": false
+    },
+    "applyUnlocks": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "5eb41ecd0b75d823",
+      "frozen": false
+    },
+    "migrateMeta": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 19,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "4369049f0db22280",
+      "frozen": false
+    },
+    "loadMeta": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 21,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "8545640b119b8da0",
+      "frozen": false
+    },
+    "metaAward": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 17,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "63d069521925635a",
+      "frozen": false
+    },
+    "unlockLevel": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 10,
+      "registry": [
+        "meta.unlockLevel"
+      ],
+      "coverage": "direct",
+      "hash": "cf8b07925c0df9ad",
+      "frozen": false
+    },
+    "renderMeta": {
+      "module": "meta",
+      "file": "src/js/09-meta.js",
+      "lines": 17,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "c366ec9754302ab3",
+      "frozen": false
+    },
+    "loadAch": {
+      "module": "ach",
+      "file": "src/js/10-ach.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "020a785fe9bb8f18",
+      "frozen": false
+    },
+    "unlockAch": {
+      "module": "ach",
+      "file": "src/js/10-ach.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "2ee96fb05a9e5f5b",
+      "frozen": false
+    },
+    "sanitizeSettings": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 31,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "3b296cdc910af61a",
+      "frozen": false
+    },
+    "loadSettings": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "9ed2bf1eec743768",
+      "frozen": false
+    },
+    "saveSettings": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 5,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "7df8cace4c2ef137",
+      "frozen": false
+    },
+    "stickDeadzone": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 9,
+      "registry": [
+        "settings.stickDeadzone"
+      ],
+      "coverage": "direct",
+      "hash": "328f990c3c64bf1b",
+      "frozen": false
+    },
+    "setVol": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 8,
+      "registry": [
+        "settings.setVol"
+      ],
+      "coverage": "direct",
+      "hash": "3a8a64aee919526b",
+      "frozen": false
+    },
+    "setSens": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 9,
+      "registry": [
+        "settings.setSens"
+      ],
+      "coverage": "direct",
+      "hash": "37fc5381a7ef3490",
+      "frozen": false
+    },
+    "setSensXY": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 12,
+      "registry": [
+        "settings.setSensXY"
+      ],
+      "coverage": "direct",
+      "hash": "c1d704d55dda1690",
+      "frozen": false
+    },
+    "setDeadzone": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 10,
+      "registry": [
+        "settings.setDeadzone"
+      ],
+      "coverage": "direct",
+      "hash": "a558bfed474e9d27",
+      "frozen": false
+    },
+    "applyLefty": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 8,
+      "registry": [
+        "settings.applyLefty"
+      ],
+      "coverage": "indirect",
+      "hash": "c4ae8154959d13d9",
+      "frozen": false
+    },
+    "setLefty": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 4,
+      "registry": [
+        "settings.setLefty"
+      ],
+      "coverage": "direct",
+      "hash": "51b59e3ed990e3e5",
+      "frozen": false
+    },
+    "setMusic": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 9,
+      "registry": [
+        "settings.setMusic"
+      ],
+      "coverage": "direct",
+      "hash": "16ae79e64541e73c",
+      "frozen": false
+    },
+    "applySettingsUI": {
+      "module": "settings",
+      "file": "src/js/11-settings.js",
+      "lines": 31,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "1a8bac74082fb0af",
+      "frozen": false
+    },
+    "basePerkStats": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "d23cc094ec63d972",
+      "frozen": false
+    },
+    "recomputePerks": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "d70cace48c51e8a9",
+      "frozen": false
+    },
+    "perkMaxed": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "4e7aa850b321b8dd",
+      "frozen": false
+    },
+    "rollPerks": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "7ddfaac977f1ef6e",
+      "frozen": false
+    },
+    "takePerk": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "e5a66492b85582df",
+      "frozen": false
+    },
+    "renderPerkList": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 5,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "9a1660607fabb880",
+      "frozen": false
+    },
+    "showPerkOverlay": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 20,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "b9fc011557d57512",
+      "frozen": false
+    },
+    "choosePerk": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "85230ad2ddbb415b",
+      "frozen": false
+    },
+    "rerollPerks": {
+      "module": "perks",
+      "file": "src/js/12-perks.js",
+      "lines": 13,
+      "registry": [],
+      "coverage": "none",
+      "hash": "7304b179d63447c2",
+      "frozen": false
+    },
+    "biomeDef": {
+      "module": "biome",
+      "file": "src/js/13-biome.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "62a251697a85aded",
+      "frozen": false
+    },
+    "biomeFor": {
+      "module": "biome",
+      "file": "src/js/13-biome.js",
+      "lines": 5,
+      "registry": [
+        "biome.biomeFor"
+      ],
+      "coverage": "direct",
+      "hash": "9859524f1c2627c2",
+      "frozen": false
+    },
+    "hidx": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "cd14410f286c70f0",
+      "frozen": false
+    },
+    "parseSeed": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "8dc089e4523e3992",
+      "frozen": false
+    },
+    "randomRunSeed": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "4cd65746c68eaf0b",
+      "frozen": false
+    },
+    "seedFromURL": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "none",
+      "hash": "37f981cf5fd24c9c",
+      "frozen": false
+    },
+    "genArena": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 20,
+      "registry": [
+        "arena.genArena"
+      ],
+      "coverage": "direct",
+      "hash": "2d52dda16446af59",
+      "frozen": false
+    },
+    "groundAt": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 1,
+      "registry": [
+        "arena.groundAt"
+      ],
+      "coverage": "direct",
+      "hash": "cfdfce733efc8f09",
+      "frozen": false
+    },
+    "blockAt": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 1,
+      "registry": [
+        "arena.blockAt"
+      ],
+      "coverage": "direct",
+      "hash": "c98114c9523dc674",
+      "frozen": false
+    },
+    "arenaColor": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 10,
+      "registry": [
+        "arena.arenaColor"
+      ],
+      "coverage": "direct",
+      "hash": "4836aec1c6799aee",
+      "frozen": false
+    },
+    "buildArenaMesh": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 37,
+      "registry": [
+        "arena.buildArenaMesh"
+      ],
+      "coverage": "direct",
+      "hash": "9a4dc53275264349",
+      "frozen": false
+    },
+    "syncArenaMesh": {
+      "module": "arena",
+      "file": "src/js/14-arena.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "5264dacefa5bec3a",
+      "frozen": false
+    },
+    "matFinite": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 1,
+      "registry": [
+        "render.matFinite"
+      ],
+      "coverage": "direct",
+      "hash": "d6af9468df5257d5",
+      "frozen": false
+    },
+    "createShader": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 2,
+      "registry": [
+        "render.createShader"
+      ],
+      "coverage": "direct",
+      "hash": "a90178b557b6beef",
+      "frozen": false
+    },
+    "createProgram": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 2,
+      "registry": [
+        "render.createProgram"
+      ],
+      "coverage": "direct",
+      "hash": "8dfaa22a96f9be5a",
+      "frozen": false
+    },
+    "initWebGL": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 48,
+      "registry": [
+        "render.initWebGL"
+      ],
+      "coverage": "indirect",
+      "hash": "371fd252534e3fec",
+      "frozen": false
+    },
+    "detectGPU": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 9,
+      "registry": [
+        "render.detectGPU"
+      ],
+      "coverage": "direct",
+      "hash": "ab2ad138bcf9e440",
+      "frozen": false
+    },
+    "onContextLost": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 7,
+      "registry": [
+        "render.onContextLost"
+      ],
+      "coverage": "direct",
+      "hash": "5668bb30a169ff99",
+      "frozen": false
+    },
+    "onContextRestored": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 1,
+      "registry": [
+        "render.onContextRestored"
+      ],
+      "coverage": "direct",
+      "hash": "1ace8ae24c5c9ff3",
+      "frozen": false
+    },
+    "restoreGraphics": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 20,
+      "registry": [
+        "render.restoreGraphics"
+      ],
+      "coverage": "direct",
+      "hash": "12bd22c7aa77be37",
+      "frozen": false
+    },
+    "computeBufferSize": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 8,
+      "registry": [
+        "render.computeBufferSize"
+      ],
+      "coverage": "direct",
+      "hash": "59ee96dd31a5d068",
+      "frozen": false
+    },
+    "resizeGL": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 6,
+      "registry": [
+        "render.resizeGL"
+      ],
+      "coverage": "direct",
+      "hash": "413874affc80fd7b",
+      "frozen": false
+    },
+    "buildEntityData": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 55,
+      "registry": [
+        "render.buildEntityData"
+      ],
+      "coverage": "direct",
+      "hash": "351b05d4bc258f62",
+      "frozen": false
+    },
+    "buildBeamData": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 20,
+      "registry": [
+        "render.buildBeamData"
+      ],
+      "coverage": "direct",
+      "hash": "b3c6e40b10118e90",
+      "frozen": false
+    },
+    "gatherLights": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 12,
+      "registry": [
+        "render.gatherLights"
+      ],
+      "coverage": "direct",
+      "hash": "58e072f7d22940fb",
+      "frozen": false
+    },
+    "uploadLights": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 10,
+      "registry": [
+        "render.uploadLights"
+      ],
+      "coverage": "direct",
+      "hash": "39b1490e942d2eae",
+      "frozen": false
+    },
+    "pushGlow": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 7,
+      "registry": [
+        "render.pushGlow"
+      ],
+      "coverage": "direct",
+      "hash": "f0193a2a0eeffa32",
+      "frozen": false
+    },
+    "buildGlowData": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 18,
+      "registry": [
+        "render.buildGlowData"
+      ],
+      "coverage": "direct",
+      "hash": "bc1c0f87116e63d5",
+      "frozen": false
+    },
+    "drawGlow": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 13,
+      "registry": [
+        "render.drawGlow"
+      ],
+      "coverage": "direct",
+      "hash": "2500a10022156614",
+      "frozen": false
+    },
+    "throttleLights": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 15,
+      "registry": [
+        "render.throttleLights"
+      ],
+      "coverage": "direct",
+      "hash": "ab9b4d920673857f",
+      "frozen": false
+    },
+    "lightsFinite": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "522e1622c899ec39",
+      "frozen": false
+    },
+    "recoverView": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 11,
+      "registry": [
+        "render.recoverView"
+      ],
+      "coverage": "direct",
+      "hash": "cc8888c3359a1807",
+      "frozen": false
+    },
+    "meshMeltdownAllowed": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 13,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "544f356567c6afcd",
+      "frozen": false
+    },
+    "nanFirewall": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 35,
+      "registry": [
+        "render.nanFirewall"
+      ],
+      "coverage": "direct",
+      "hash": "0fb93ada48a49c53",
+      "frozen": false
+    },
+    "drawScene": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 42,
+      "registry": [
+        "render.drawScene"
+      ],
+      "coverage": "direct",
+      "hash": "f9baf2d938603228",
+      "frozen": false
+    },
+    "renderOnce": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 1,
+      "registry": [
+        "render.renderOnce"
+      ],
+      "coverage": "direct",
+      "hash": "335fc23d31b7a1b4",
+      "frozen": false
+    },
+    "readCenterNonClear": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 6,
+      "registry": [
+        "render.readCenterNonClear"
+      ],
+      "coverage": "direct",
+      "hash": "8d6ca54e221abf00",
+      "frozen": false
+    },
+    "showErr": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "f29c222b2084782a",
+      "frozen": false
+    },
+    "hideErr": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 1,
+      "registry": [
+        "render.hideErr"
+      ],
+      "coverage": "direct",
+      "hash": "7c80af0b82de250a",
+      "frozen": false
+    },
+    "perfLog": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "6f944c8ff8b34c37",
+      "frozen": false
+    },
+    "applyQuality": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "none",
+      "hash": "6aaf957eec0f8fc4",
+      "frozen": false
+    },
+    "adaptQuality": {
+      "module": "render",
+      "file": "src/js/15-render.js",
+      "lines": 9,
+      "registry": [
+        "render.adaptQuality"
+      ],
+      "coverage": "direct",
+      "hash": "d1d11f427158a725",
+      "frozen": false
+    },
+    "applyGain": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "7caad7881f4545c9",
+      "frozen": false
+    },
+    "ensureAudio": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 2,
+      "registry": [
+        "audio.ensureAudio"
+      ],
+      "coverage": "indirect",
+      "hash": "74a57e9f36bb1909",
+      "frozen": false
+    },
+    "setMuted": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 1,
+      "registry": [
+        "audio.setMuted"
+      ],
+      "coverage": "direct",
+      "hash": "e0fafe0f2e97b634",
+      "frozen": false
+    },
+    "tone": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 3,
+      "registry": [
+        "audio.tone"
+      ],
+      "coverage": "direct",
+      "hash": "569b62d7ebb9d3c8",
+      "frozen": false
+    },
+    "noiseBurst": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 2,
+      "registry": [
+        "audio.noiseBurst"
+      ],
+      "coverage": "direct",
+      "hash": "c9a6bac2d5aa88f8",
+      "frozen": false
+    },
+    "sfx": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 14,
+      "registry": [
+        "audio.sfx"
+      ],
+      "coverage": "direct",
+      "hash": "0982ba1fb58d782f",
+      "frozen": false
+    },
+    "musicModeFor": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 7,
+      "registry": [
+        "audio.musicModeFor"
+      ],
+      "coverage": "direct",
+      "hash": "87aea10e5c0a501f",
+      "frozen": false
+    },
+    "haltMusic": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "937030e753c0b580",
+      "frozen": false
+    },
+    "stopMusic": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "1ddbdfb901c84776",
+      "frozen": false
+    },
+    "stepMusic": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 20,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "efc43f7d9834205d",
+      "frozen": false
+    },
+    "startMusic": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "555c85dfe283ccce",
+      "frozen": false
+    },
+    "musicState": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 4,
+      "registry": [
+        "audio.musicState"
+      ],
+      "coverage": "direct",
+      "hash": "4b15c848f1760560",
+      "frozen": false
+    },
+    "setIntensity": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 7,
+      "registry": [
+        "audio.setIntensity"
+      ],
+      "coverage": "direct",
+      "hash": "37184bc9c8915a55",
+      "frozen": false
+    },
+    "computeIntensity": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 4,
+      "registry": [
+        "audio.computeIntensity"
+      ],
+      "coverage": "direct",
+      "hash": "1f7b06e0c9dd58e9",
+      "frozen": false
+    },
+    "startMusicDirector": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 8,
+      "registry": [
+        "audio.startMusicDirector"
+      ],
+      "coverage": "direct",
+      "hash": "2f514d2678b8203b",
+      "frozen": false
+    },
+    "stopMusicDirector": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 1,
+      "registry": [
+        "audio.stopMusicDirector"
+      ],
+      "coverage": "direct",
+      "hash": "6d877469fa2c6e9c",
+      "frozen": false
+    },
+    "mdTone": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "f52aad80a69a1f20",
+      "frozen": false
+    },
+    "scheduleStep": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 11,
+      "registry": [
+        "audio.scheduleStep"
+      ],
+      "coverage": "direct",
+      "hash": "256a29faa703cf7a",
+      "frozen": false
+    },
+    "tickMusicDirector": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 9,
+      "registry": [
+        "audio.tickMusicDirector"
+      ],
+      "coverage": "direct",
+      "hash": "c727841044981b9b",
+      "frozen": false
+    },
+    "duckMusic": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 10,
+      "registry": [
+        "audio.duckMusic"
+      ],
+      "coverage": "direct",
+      "hash": "91ad108e23556f03",
+      "frozen": false
+    },
+    "sfxAt": {
+      "module": "audio",
+      "file": "src/js/16-audio.js",
+      "lines": 16,
+      "registry": [
+        "audio.sfxAt"
+      ],
+      "coverage": "direct",
+      "hash": "2c0174e98bd03748",
+      "frozen": false
+    },
+    "fireArc": {
+      "module": "weapons",
+      "file": "src/js/17-weapons.js",
+      "lines": 42,
+      "registry": [
+        "weapons.fireArc"
+      ],
+      "coverage": "direct",
+      "hash": "9c22afe06dd51c85",
+      "frozen": false
+    },
+    "pushBeam": {
+      "module": "weapons",
+      "file": "src/js/17-weapons.js",
+      "lines": 7,
+      "registry": [
+        "weapons.pushBeam"
+      ],
+      "coverage": "direct",
+      "hash": "b9b34ecc9d2e0687",
+      "frozen": false
+    },
+    "recomputeDerived": {
+      "module": "weapons",
+      "file": "src/js/17-weapons.js",
+      "lines": 11,
+      "registry": [
+        "weapons.recomputeDerived"
+      ],
+      "coverage": "direct",
+      "hash": "2057b8877852edf8",
+      "frozen": false
+    },
+    "grantMod": {
+      "module": "weapons",
+      "file": "src/js/17-weapons.js",
+      "lines": 14,
+      "registry": [
+        "weapons.grantMod"
+      ],
+      "coverage": "direct",
+      "hash": "7fb212766f740351",
+      "frozen": false
+    },
+    "setWeapon": {
+      "module": "weapons",
+      "file": "src/js/17-weapons.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "32efb0e29c53376e",
+      "frozen": false
+    },
+    "applyDamage": {
+      "module": "elite",
+      "file": "src/js/18-elite.js",
+      "lines": 16,
+      "registry": [
+        "elite.applyDamage"
+      ],
+      "coverage": "direct",
+      "hash": "dcf563c08a7b85c6",
+      "frozen": false
+    },
+    "telemetryRecord": {
+      "module": "telemetry",
+      "file": "src/js/19-telemetry.js",
+      "lines": 18,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "e287ec8a1d009b39",
+      "frozen": false
+    },
+    "telemetrySummary": {
+      "module": "telemetry",
+      "file": "src/js/19-telemetry.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "686cda69602ae411",
+      "frozen": false
+    },
+    "waveCadence": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 7,
+      "registry": [
+        "sim.waveCadence"
+      ],
+      "coverage": "direct",
+      "hash": "5c0bc8ad235c7d07",
+      "frozen": false
+    },
+    "waveSpawnCount": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 7,
+      "registry": [
+        "sim.waveSpawnCount"
+      ],
+      "coverage": "direct",
+      "hash": "34b707b021211ae5",
+      "frozen": false
+    },
+    "spawnTableFor": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 8,
+      "registry": [
+        "sim.spawnTableFor"
+      ],
+      "coverage": "direct",
+      "hash": "8f93b5db699d3411",
+      "frozen": false
+    },
+    "forwardVec": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 1,
+      "registry": [
+        "sim.forwardVec"
+      ],
+      "coverage": "direct",
+      "hash": "747d3b4f5426d107",
+      "frozen": false
+    },
+    "spawnPlayer": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 3,
+      "registry": [
+        "sim.spawnPlayer"
+      ],
+      "coverage": "direct",
+      "hash": "1392ad6e0899ce2a",
+      "frozen": false
+    },
+    "resetGame": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 15,
+      "registry": [
+        "sim.resetGame"
+      ],
+      "coverage": "direct",
+      "hash": "ed1402a10ba4cc98",
+      "frozen": false
+    },
+    "startWave": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 21,
+      "registry": [
+        "sim.startWave"
+      ],
+      "coverage": "direct",
+      "hash": "947a623c4a990573",
+      "frozen": false
+    },
+    "spawnHive": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 14,
+      "registry": [
+        "sim.spawnHive"
+      ],
+      "coverage": "indirect",
+      "hash": "6378edc1a31b1e5b",
+      "frozen": false
+    },
+    "spawnPyre": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 15,
+      "registry": [
+        "sim.spawnPyre"
+      ],
+      "coverage": "direct",
+      "hash": "4307e4f111a739be",
+      "frozen": false
+    },
+    "spawnBoss": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 24,
+      "registry": [
+        "sim.spawnBoss"
+      ],
+      "coverage": "direct",
+      "hash": "a464f3fd6abc3978",
+      "frozen": false
+    },
+    "spawnEnemy": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 29,
+      "registry": [
+        "sim.spawnEnemy"
+      ],
+      "coverage": "direct",
+      "hash": "a11a280cd6983872",
+      "frozen": false
+    },
+    "spawnEnemyArch": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 20,
+      "registry": [
+        "sim.spawnEnemyArch"
+      ],
+      "coverage": "direct",
+      "hash": "ab02f2f34d1ff5b7",
+      "frozen": false
+    },
+    "burst": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 2,
+      "registry": [
+        "sim.burst"
+      ],
+      "coverage": "direct",
+      "hash": "a50461b20425083a",
+      "frozen": false
+    },
+    "wallRayT": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 5,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "8bd2bf07ee6195f5",
+      "frozen": false
+    },
+    "rayHits": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 11,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "4c57a863f7ea9111",
+      "frozen": false
+    },
+    "fire": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 53,
+      "registry": [
+        "sim.fire"
+      ],
+      "coverage": "direct",
+      "hash": "55141d77d44e451b",
+      "frozen": false
+    },
+    "killEnemy": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 34,
+      "registry": [
+        "sim.killEnemy"
+      ],
+      "coverage": "direct",
+      "hash": "5fbd0d40837c4430",
+      "frozen": false
+    },
+    "reload": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 6,
+      "registry": [
+        "sim.reload"
+      ],
+      "coverage": "direct",
+      "hash": "e08f5d07b5fd719c",
+      "frozen": false
+    },
+    "damagePlayer": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 8,
+      "registry": [
+        "sim.damagePlayer"
+      ],
+      "coverage": "direct",
+      "hash": "236f9c0f9aef2494",
+      "frozen": false
+    },
+    "applyPickup": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 9,
+      "registry": [
+        "sim.applyPickup"
+      ],
+      "coverage": "direct",
+      "hash": "ab865f73385cffc9",
+      "frozen": false
+    },
+    "canStand": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 2,
+      "registry": [
+        "sim.canStand"
+      ],
+      "coverage": "direct",
+      "hash": "aa69dfac9997090a",
+      "frozen": false
+    },
+    "updatePlayer": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 35,
+      "registry": [
+        "sim.updatePlayer"
+      ],
+      "coverage": "direct",
+      "hash": "9c5394e9943795bd",
+      "frozen": false
+    },
+    "spawnProjectile": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 4,
+      "registry": [
+        "sim.spawnProjectile"
+      ],
+      "coverage": "direct",
+      "hash": "d13ccb30dfe15ed8",
+      "frozen": false
+    },
+    "updateBoss": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 25,
+      "registry": [
+        "sim.updateBoss"
+      ],
+      "coverage": "indirect",
+      "hash": "dfdf367974dff74b",
+      "frozen": false
+    },
+    "updateTurret": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 16,
+      "registry": [
+        "sim.updateTurret"
+      ],
+      "coverage": "direct",
+      "hash": "bb2ab1e2a2bce0ca",
+      "frozen": false
+    },
+    "updateDash": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 27,
+      "registry": [
+        "sim.updateDash"
+      ],
+      "coverage": "direct",
+      "hash": "8c30f3c9868385b0",
+      "frozen": false
+    },
+    "updateShielder": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 14,
+      "registry": [
+        "sim.updateShielder"
+      ],
+      "coverage": "indirect",
+      "hash": "9630b41bf817217d",
+      "frozen": false
+    },
+    "updateEnemies": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 45,
+      "registry": [
+        "sim.updateEnemies"
+      ],
+      "coverage": "direct",
+      "hash": "f2f0cc15d97f0d65",
+      "frozen": false
+    },
+    "beamHit": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 9,
+      "registry": [
+        "sim.beamHit"
+      ],
+      "coverage": "direct",
+      "hash": "581643b2e14b88a5",
+      "frozen": false
+    },
+    "updateLance": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 29,
+      "registry": [
+        "sim.updateLance"
+      ],
+      "coverage": "indirect",
+      "hash": "aadd6a0dee54b08b",
+      "frozen": false
+    },
+    "updateHive": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 28,
+      "registry": [
+        "sim.updateHive"
+      ],
+      "coverage": "direct",
+      "hash": "944a28aa56523af8",
+      "frozen": false
+    },
+    "updatePyre": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 62,
+      "registry": [
+        "sim.updatePyre"
+      ],
+      "coverage": "direct",
+      "hash": "2fa0f932dbf295ce",
+      "frozen": false
+    },
+    "updateProjectiles": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 18,
+      "registry": [
+        "sim.updateProjectiles"
+      ],
+      "coverage": "direct",
+      "hash": "c1e18ea024cd932d",
+      "frozen": false
+    },
+    "updateParticles": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 8,
+      "registry": [
+        "sim.updateParticles"
+      ],
+      "coverage": "direct",
+      "hash": "6bee380ea8884b40",
+      "frozen": false
+    },
+    "updateWaves": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 10,
+      "registry": [
+        "sim.updateWaves"
+      ],
+      "coverage": "direct",
+      "hash": "80d07266e84d0472",
+      "frozen": false
+    },
+    "updateFX": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 10,
+      "registry": [
+        "sim.updateFX"
+      ],
+      "coverage": "direct",
+      "hash": "95b7b67fa46fe7f4",
+      "frozen": false
+    },
+    "updateGame": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 5,
+      "registry": [
+        "sim.updateGame"
+      ],
+      "coverage": "direct",
+      "hash": "af797c3b3301e5fe",
+      "frozen": false
+    },
+    "endGame": {
+      "module": "sim",
+      "file": "src/js/20-sim.js",
+      "lines": 29,
+      "registry": [
+        "sim.endGame"
+      ],
+      "coverage": "direct",
+      "hash": "bc376cafbe3098e7",
+      "frozen": false
+    },
+    "showBanner": {
+      "module": "hud",
+      "file": "src/js/21-hud.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "0382dec3fed297f1",
+      "frozen": false
+    },
+    "showToast": {
+      "module": "hud",
+      "file": "src/js/21-hud.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "a7eb814050a1d7a1",
+      "frozen": false
+    },
+    "updateBossBar": {
+      "module": "hud",
+      "file": "src/js/21-hud.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "de9db55dbbda1ffd",
+      "frozen": false
+    },
+    "updateHUD": {
+      "module": "hud",
+      "file": "src/js/21-hud.js",
+      "lines": 16,
+      "registry": [
+        "hud.updateHUD"
+      ],
+      "coverage": "direct",
+      "hash": "be58de67d8f85274",
+      "frozen": false
+    },
+    "mmTerrain": {
+      "module": "minimap",
+      "file": "src/js/22-minimap.js",
+      "lines": 16,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "cc22cc32d2bac5d8",
+      "frozen": false
+    },
+    "drawMinimap": {
+      "module": "minimap",
+      "file": "src/js/22-minimap.js",
+      "lines": 32,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "30050e041f706187",
+      "frozen": false
+    },
+    "syncWeaponBtns": {
+      "module": "ui",
+      "file": "src/js/23-ui.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "77b076c0e12efa37",
+      "frozen": false
+    },
+    "bindUI": {
+      "module": "ui",
+      "file": "src/js/23-ui.js",
+      "lines": 118,
+      "registry": [],
+      "coverage": "none",
+      "hash": "0e407558ddd78ab6",
+      "frozen": false
+    },
+    "lockStateGet": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 7,
+      "registry": [
+        "input.lockStateGet"
+      ],
+      "coverage": "direct",
+      "hash": "2ce13dc9e55a39a7",
+      "frozen": false
+    },
+    "requestLock": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 20,
+      "registry": [
+        "input.requestLock"
+      ],
+      "coverage": "direct",
+      "hash": "b1437947d038dc8e",
+      "frozen": false
+    },
+    "clearInput": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 1,
+      "registry": [
+        "input.clearInput"
+      ],
+      "coverage": "direct",
+      "hash": "2ddc32b915e0f3ba",
+      "frozen": false
+    },
+    "sanitizeDelta": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 8,
+      "registry": [
+        "input.sanitizeDelta"
+      ],
+      "coverage": "direct",
+      "hash": "50f8deb5671a40c9",
+      "frozen": false
+    },
+    "sanitizeTelemetry": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 11,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "f7aa808377fe186e",
+      "frozen": false
+    },
+    "inputRateTick": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 14,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "ddcc906be8589402",
+      "frozen": false
+    },
+    "eventRate": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 1,
+      "registry": [
+        "input.eventRate"
+      ],
+      "coverage": "direct",
+      "hash": "7d9a5485334f74c0",
+      "frozen": false
+    },
+    "lookFlush": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 10,
+      "registry": [
+        "input.lookFlush"
+      ],
+      "coverage": "direct",
+      "hash": "6f7a6d895aa3117f",
+      "frozen": false
+    },
+    "applyLook": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "88d1eba3f31ca750",
+      "frozen": false
+    },
+    "hapticsFireTap": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "276ce3aeb0b9ca7f",
+      "frozen": false
+    },
+    "tapFireZone": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 8,
+      "registry": [
+        "input.tapFireZone"
+      ],
+      "coverage": "direct",
+      "hash": "b5b5bf1493d94fb2",
+      "frozen": false
+    },
+    "setFireZone": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 13,
+      "registry": [
+        "input.setFireZone"
+      ],
+      "coverage": "direct",
+      "hash": "7d6108ad562ae2bd",
+      "frozen": false
+    },
+    "zoneTouchStart": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 19,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "d9f1d73a2dd2f454",
+      "frozen": false
+    },
+    "zoneTouchMove": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 11,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "445c907b6c06965b",
+      "frozen": false
+    },
+    "zoneTouchEnd": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "ddff7ce4a2399cc3",
+      "frozen": false
+    },
+    "touchCancel": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 7,
+      "registry": [
+        "input.touchCancel"
+      ],
+      "coverage": "direct",
+      "hash": "446eed236d5c8dff",
+      "frozen": false
+    },
+    "touchWatchdog": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 18,
+      "registry": [
+        "input.touchWatchdog"
+      ],
+      "coverage": "direct",
+      "hash": "ee2cc814c3b4db67",
+      "frozen": false
+    },
+    "bindInput": {
+      "module": "input",
+      "file": "src/js/24-input.js",
+      "lines": 78,
+      "registry": [],
+      "coverage": "none",
+      "hash": "fd0e7ddffc7eac12",
+      "frozen": false
+    },
+    "mcToggle": {
+      "module": "mc",
+      "file": "src/js/25-mc.js",
+      "lines": 11,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "07349d72448002d6",
+      "frozen": false
+    },
+    "updateMascot": {
+      "module": "mc",
+      "file": "src/js/25-mc.js",
+      "lines": 16,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "15b0722cf38cf061",
+      "frozen": false
+    },
+    "mcOverload": {
+      "module": "mc",
+      "file": "src/js/25-mc.js",
+      "lines": 4,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "75ad6d89bc27053b",
+      "frozen": false
+    },
+    "mcDeckFrame": {
+      "module": "mc",
+      "file": "src/js/25-mc.js",
+      "lines": 16,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "3b1f24dd7a69db94",
+      "frozen": false
+    },
+    "mcReAnchor": {
+      "module": "mc",
+      "file": "src/js/25-mc.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "none",
+      "hash": "5b168fb393a1f572",
+      "frozen": false
+    },
+    "isSuperphone": {
+      "module": "phone",
+      "file": "src/js/26-phone.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "005f7c4ea859235d",
+      "frozen": false
+    },
+    "meshTapBurst": {
+      "module": "phone",
+      "file": "src/js/26-phone.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "401a30cf0b792807",
+      "frozen": false
+    },
+    "phoneLockNotBoom": {
+      "module": "phone",
+      "file": "src/js/26-phone.js",
+      "lines": 11,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "1690c4d73a037a1a",
+      "frozen": false
+    },
+    "phoneReleaseIfIdle": {
+      "module": "phone",
+      "file": "src/js/26-phone.js",
+      "lines": 15,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "d334c5ef0aeda2fb",
+      "frozen": false
+    },
+    "stormReport": {
+      "module": "storm",
+      "file": "src/js/27-storm.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "876018d1fb78eeaf",
+      "frozen": false
+    },
+    "fakeMouseEvent": {
+      "module": "storm",
+      "file": "src/js/27-storm.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "446f37b8d4539a7b",
+      "frozen": false
+    },
+    "stormMouse": {
+      "module": "storm",
+      "file": "src/js/27-storm.js",
+      "lines": 37,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "1387f426f79f7149",
+      "frozen": false
+    },
+    "stormTouch": {
+      "module": "storm",
+      "file": "src/js/27-storm.js",
+      "lines": 35,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "da34ada7914e6ab8",
+      "frozen": false
+    },
+    "crashRecord": {
+      "module": "crash",
+      "file": "src/js/28-crash.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "63cc557fa78b5365",
+      "frozen": false
+    },
+    "crashCapture": {
+      "module": "crash",
+      "file": "src/js/28-crash.js",
+      "lines": 15,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "3ef559444b0e5cc8",
+      "frozen": false
+    },
+    "crashDump": {
+      "module": "crash",
+      "file": "src/js/28-crash.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "f44789ed74f1be7c",
+      "frozen": false
+    },
+    "downloadCrashCard": {
+      "module": "crash",
+      "file": "src/js/28-crash.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "none",
+      "hash": "ed134b29ff363712",
+      "frozen": false
+    },
+    "pushCriticCard": {
+      "module": "critic",
+      "file": "src/js/29-critic.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "none",
+      "hash": "4a1f356338d8f1c2",
+      "frozen": false
+    },
+    "runCritics": {
+      "module": "critic",
+      "file": "src/js/29-critic.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "none",
+      "hash": "2406405a177321aa",
+      "frozen": false
+    },
+    "startDaily": {
+      "module": "state",
+      "file": "src/js/30-state.js",
+      "lines": 6,
+      "registry": [
+        "state.startDaily"
+      ],
+      "coverage": "direct",
+      "hash": "336237b397143afb",
+      "frozen": false
+    },
+    "startGame": {
+      "module": "state",
+      "file": "src/js/30-state.js",
+      "lines": 30,
+      "registry": [
+        "state.startGame"
+      ],
+      "coverage": "direct",
+      "hash": "efd9193156f01923",
+      "frozen": false
+    },
+    "togglePause": {
+      "module": "state",
+      "file": "src/js/30-state.js",
+      "lines": 7,
+      "registry": [
+        "state.togglePause"
+      ],
+      "coverage": "none",
+      "hash": "ba0b7fd03376590c",
+      "frozen": false
+    },
+    "toMenu": {
+      "module": "state",
+      "file": "src/js/30-state.js",
+      "lines": 19,
+      "registry": [
+        "state.toMenu"
+      ],
+      "coverage": "indirect",
+      "hash": "6a99c11b39252c11",
+      "frozen": false
+    },
+    "recordReplayFrame": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 24,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "81dc0e051190fa8d",
+      "frozen": false
+    },
+    "buildReplayPayload": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "8cbf706dd790a322",
+      "frozen": false
+    },
+    "replaySummary": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 11,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "04f85e950a923290",
+      "frozen": false
+    },
+    "replayTrace": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 22,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "95d5589f8e564569",
+      "frozen": false
+    },
+    "replayCompare": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "2db79b334a41d85b",
+      "frozen": false
+    },
+    "exportReplay": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "none",
+      "hash": "69a958e839d7e34c",
+      "frozen": false
+    },
+    "replayValidate": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 19,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "ba25277526386af8",
+      "frozen": false
+    },
+    "replayPlay": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 32,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "b76f9db1193e843b",
+      "frozen": false
+    },
+    "applyPlaybackFrame": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 19,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "09b4e496677e25da",
+      "frozen": false
+    },
+    "stepPlayback": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 16,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "003a9ee7575a899a",
+      "frozen": false
+    },
+    "playbackState": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 6,
+      "registry": [
+        "replay.playbackState"
+      ],
+      "coverage": "direct",
+      "hash": "6e401fd2ac55c6f9",
+      "frozen": false
+    },
+    "updatePbBar": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "2343f5017e8dc70a",
+      "frozen": false
+    },
+    "pbSetCam": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "bbd43e2e5d17c345",
+      "frozen": false
+    },
+    "pbCycleCam": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "f4208e7b9f6552dd",
+      "frozen": false
+    },
+    "pbOrbit": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "be3a4206c5b8a99d",
+      "frozen": false
+    },
+    "pbZoom": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "c2a5b8ab646ff232",
+      "frozen": false
+    },
+    "endPlayback": {
+      "module": "replay",
+      "file": "src/js/31-replay.js",
+      "lines": 20,
+      "registry": [
+        "replay.endPlayback"
+      ],
+      "coverage": "direct",
+      "hash": "b48ae60d3e23c391",
+      "frozen": false
+    },
+    "photoFilename": {
+      "module": "photo",
+      "file": "src/js/32-photo.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "77a52b29254f117d",
+      "frozen": false
+    },
+    "photoEncode": {
+      "module": "photo",
+      "file": "src/js/32-photo.js",
+      "lines": 14,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "6fd68169a92c17f0",
+      "frozen": false
+    },
+    "photoSave": {
+      "module": "photo",
+      "file": "src/js/32-photo.js",
+      "lines": 10,
+      "registry": [],
+      "coverage": "none",
+      "hash": "e6ff0859e4dbb196",
+      "frozen": false
+    },
+    "releaseChecklist": {
+      "module": "release",
+      "file": "src/js/33-release.js",
+      "lines": 19,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "2fd306ad70ab1e73",
+      "frozen": false
+    },
+    "mark": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 1,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "e8d7efd22f34cf77",
+      "frozen": false
+    },
+    "snapshotState": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 16,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "3160d59437534a2d",
+      "frozen": false
+    },
+    "restoreState": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 15,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "a8dd719220076b7b",
+      "frozen": false
+    },
+    "snapshotDOM": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "0765159b6330af18",
+      "frozen": false
+    },
+    "restoreDOM": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "direct",
+      "hash": "a73aeadd543dd7fb",
+      "frozen": false
+    },
+    "runBenchmark": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 1336,
+      "registry": [],
+      "coverage": "none",
+      "hash": "585e0a17e80a3a80",
+      "frozen": false
+    },
+    "formatResults": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 12,
+      "registry": [],
+      "coverage": "none",
+      "hash": "a3dfcd4e730cdd46",
+      "frozen": false
+    },
+    "paintResults": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 9,
+      "registry": [],
+      "coverage": "none",
+      "hash": "a3a45db7a26c4c43",
+      "frozen": false
+    },
+    "pushConsole": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "none",
+      "hash": "180ac30c768a8970",
+      "frozen": false
+    },
+    "copyResults": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 7,
+      "registry": [],
+      "coverage": "none",
+      "hash": "88d9f73a09018c21",
+      "frozen": false
+    },
+    "downloadBench": {
+      "module": "benchmark",
+      "file": "src/js/34-benchmark.js",
+      "lines": 8,
+      "registry": [],
+      "coverage": "none",
+      "hash": "8c23546ffeb2100e",
+      "frozen": false
+    },
+    "loop": {
+      "module": "main",
+      "file": "src/js/35-main.js",
+      "lines": 24,
+      "registry": [],
+      "coverage": "indirect",
+      "hash": "6373bc590ca41555",
+      "frozen": false
+    },
+    "boot": {
+      "module": "main",
+      "file": "src/js/35-main.js",
+      "lines": 39,
+      "registry": [],
+      "coverage": "none",
+      "hash": "9ffe2dc0512b5b1e",
+      "frozen": false
+    }
+  }
+}
