@@ -6980,13 +6980,13 @@ console.log('%c SUN004 · MONEY — base.dna ','background:#0a0e1a;color:#5dff8b
   'loaded · '+WG_DNA.equation+' · work_001 · phase '+wg.phase+'/13'+(wgHadSave?' (resumed)':' (fresh)')+' · console: WG.help() · WG.verify() · WG.theory()');
 </script>
 <!-- ════════════════════════════════════════════════════════════════════════
-     add.dna · ORBITAL POWER + RED LED PRODUCTION + SLEEP POD (work_002)
+     add.dna · ORBITAL STATION · EDITOR + MISSION CHAIN (work_003)
      ──────────────────────────────────────────────────────────────────────
-     DNA CONTRACT:  base.dna + add.dna = SUN005.html
+     DNA CONTRACT:  base.dna + add.dna = SUN006.html
        base.dna = SUN004.html (LOCKED, byte-exact — engine + WINTERGARTEN
                   work_001 + MONEY menu). ZERO EDITS. Only runtime wrapping.
-       add.dna  = THIS FILE — the space layer. The Wintergarten is now an
-                  ORBITAL station farm:
+       add.dna  = THIS FILE — the space layer, now with a STATION EDITOR
+                  and a MISSION CHAIN on top of the orbital farm:
                   · SOLAR ARRAY (2 wings x 6 panels, 12 m2, 30% cells)
                     produces the ENERGY from AM0 1361 W/m2 and DEFENDS
                     against the solar radiation influx (shadow shielding
@@ -7004,14 +7004,31 @@ console.log('%c SUN004 · MONEY — base.dna ','background:#0a0e1a;color:#5dff8b
                   · BATTERY 2.5 kWh Li-ion rides the 92-min orbit
                     (61 min sun / 31 min eclipse). Surplus kWh are SOLD to
                     the station grid. FOOD + ENERGY = total money flow.
-       splice:  SUN005.html = base.dna minus its final </body></html> tail,
-                + add.dna + the tail again (see scripts/make_sun005.py).
+                  · STATION EDITOR [N] — every one of the 18 BUILDING
+                    OBJECTS on a scaled schematic (top + side view):
+                    WHAT it is, WHERE it sits (station coordinates), and
+                    WHY it sits there — engineering rationale grounded in
+                    real station architecture (ISS arrays on outboard
+                    truss, batteries beside the arrays, crew quarters in
+                    the quiet node, LED rig over the canopy). Assembly
+                    timeline shows how the station gets BUILT TOGETHER,
+                    in order, with the reason for that order.
+                  · MISSION CHAIN [J] — 16 operations from GROUNDWORK to
+                    SEASON VETERAN. Progress is DERIVED from the state
+                    every sim minute (deterministic, replay-identical).
+                    Completed missions pay a bonus at SP.ledger(). The
+                    real-world model: NASA plant payloads run as milestone
+                    chains (Veg-01 lettuce 2015 -> PH-04 peppers 2021 ->
+                    Veg-05 Red Robin tomatoes harvested Mar 2023).
+       splice:  SUN006.html = base.dna minus its final </body></html> tail,
+                + add.dna + the tail again (see scripts/make_sun006.py).
      RULES:     NO AUTO-PLAY — every action is done by the USER hand
-                (E / 1-6 / P / L / 7). Timers, BMS and billing are systems,
-                not players. Every process gets a VERIFY run (SP.verify,
-                16 tests, appended to WG.verify -> 32 total).
-     REAL DATA: researched 2026-11 — SPRESEARCH R11-R24 with sources.
-                SP.research() prints the full table in-game.
+                (E / 1-6 / P / L / 7 / N / J). Timers, BMS and billing are
+                systems, not players. Every process gets a VERIFY run
+                (SP.verify, 26 tests, appended to WG.verify -> 42 total).
+     REAL DATA: researched 2026-11 — SPRESEARCH R11-R24 + SPRESEARCH2
+                R25-R32 (station architecture + assembly order + mission
+                ops) with sources. SP.research() prints both tables.
      ════════════════════════════════════════════════════════════════════ -->
 <style>
 /* ═══ ADD.DNA SPACE LAYER — reuses base design tokens (--bg,--cyan,--mono...) ═══ */
@@ -7067,11 +7084,11 @@ console.log('%c SUN004 · MONEY — base.dna ','background:#0a0e1a;color:#5dff8b
 "use strict";
 /* ═══════════════ SP 0 · DNA MANIFEST — add.dna ═══════════════ */
 const SP_DNA={
-  id:'add.dna', product:'MONEY · ORBITAL — SOLAR ARRAY + RED LED PRODUCTION + SLEEP POD (work_002)', work:'work_002',
-  equation:'SUN005.html = base.dna + add.dna (spliced before the closing tail)',
+  id:'add.dna', product:'MONEY · ORBITAL STATION — SOLAR ARRAY + RED LED + SLEEP POD + STATION EDITOR + MISSION CHAIN (work_003)', work:'work_003',
+  equation:'SUN006.html = base.dna + add.dna (spliced before the closing tail)',
   base_file:'base.dna (= SUN004.html, LOCKED — zero edits, runtime wrapping only)',
   split_rule:'This layer hooks the base via wrapped globals (wgEnvTick / wgDaily / wgApplyAction / wgBuildOpaque / wgDraw / replay.wg / WG.verify). Space physics only runs on states carrying the __sp marker — base verify battery V01-V16 stays byte-identical in behavior.',
-  date:'2026-11-11 · cycle 3 for SUN005', rules:['NO AUTO-PLAY','USER DOES EVERY STEP','VERIFY EVERY PROCESS','REPLAY PROVES SKILL','FOOD+ENERGY = TOTAL MONEY FLOW','RED LIGHT ONLY']
+  date:'2026-11-11 · cycle 4 for SUN006', rules:['NO AUTO-PLAY','USER DOES EVERY STEP','VERIFY EVERY PROCESS','REPLAY PROVES SKILL','FOOD+ENERGY = TOTAL MONEY FLOW','RED LIGHT ONLY','KNOW YOUR STATION: EVERY OBJECT — WHAT + WHERE + WHY']
 };
 
 /* ═══════════════ SP 1 · SPACE CONFIG — every number research-backed ═══════════════ */
@@ -7207,7 +7224,14 @@ function spDefaults(){
     spDliToday:0, spDliYesterday:0,
     /* radiation */
     spDoseMsv:0, spDoseGcrMsv:0, spDoseSpeMsv:0,
-    spSleepUntil:-1, spSleepCycles:0
+    spSleepUntil:-1, spSleepCycles:0,
+    /* work_003: mission chain + editor bookkeeping (all deterministic, replay-identical) */
+    spMissionDone:{},              /* mission id -> 1, set once, monotonic */
+    spDliStreak:0,                 /* consecutive days with DLI >= 12 mol/m2/d */
+    spNutriStreakDays:0,           /* consecutive days both beds in pH + moisture band */
+    spStormDoseEnd:[null,null,null], /* crew dose at the end of each SPE window */
+    spStormDegEnd:[null,null,null],  /* array degradation at the end of each SPE window */
+    spEditorSeen:{}                /* object keys inspected in the STATION EDITOR */
   };
 }
 function spExtend(st,force){
@@ -7337,6 +7361,16 @@ function spPowerTick(st){
   }
   /* baseline space decay of the cells */
   if(arrayBuilt)st.spDeg=Math.min(SCFG.deg_cap,st.spDeg+SCFG.deg_baseline_per_day/1440);
+  /* work_003: storm-window snapshots — dose + degradation frozen at each SPE end.
+     Deterministic: pure function of minute + state, identical in live and replay. */
+  const sPrev=spStormAt(min-1),sNow=spStormAt(min);
+  if(sPrev&&sPrev.on&&(!sNow||!sNow.on)){
+    if(st.spStormDoseEnd[sPrev.i]==null)st.spStormDoseEnd[sPrev.i]=+st.spDoseMsv.toFixed(3);
+    if(st.spStormDegEnd[sPrev.i]==null)st.spStormDegEnd[sPrev.i]=+st.spDeg.toFixed(5);
+  }
+  /* work_003: mission chain evaluated once per sim minute — the same call site
+     in live and replay guarantees byte-identical spMissionDone at every tick. */
+  try{spMissionCheck(st);}catch(e){}
 }
 
 /* ═══════════════ SP 8 · DAILY ROLL — DLI verdict + red-only ceiling + dose ═══════════════ */
@@ -7368,6 +7402,11 @@ function spDailyTick(st){
     const base=WCFG.yield_kg_total*(st.health/100)*(rigBuilt?SCFG.red_only_ceiling:1);
     st.ripeKg=+((base)*Math.min(1,Math.max(0,(st.stageDay-7)/28))).toFixed(1);
   }
+  /* work_003: streak counters for the mission chain (derived, monotonic resets) */
+  st.spDliStreak=(y>=12)?(st.spDliStreak+1):0;               /* 3 days >= 12 mol/m2/d */
+  const T=WCFG.tomato_targets;
+  const inBand=st.soil.every(b=>b.ph>=T.ph_min&&b.ph<=T.ph_max&&b.moisture_pct>=T.moist_min&&b.moisture_pct<=T.moist_max);
+  st.spNutriStreakDays=inBand?(st.spNutriStreakDays+1):0;    /* pH 6.0-6.8 + 45-75% both beds */
 }
 
 /* ═══════════════ SP 9 · ACTION APPLICATION — one shared path for live + replay ═══════════════ */
@@ -7396,6 +7435,9 @@ function spApplyAction(st,a){
     case 'sp.array':  st.spArrayMode=(+a.amount===1)?'track':'edge'; break;
     case 'sp.led':    st.spLedOn=!!(+a.amount); break;
     case 'sp.sleep':  if(st.spBuilt.POD){st.spSleepUntil=st.tick+(+a.amount||SCFG.sleep_h*60);st.spSleepCycles++;} break;
+    case 'editor.view':                                               /* STATION EDITOR inspection */
+      if(typeof a.target==='string'&&a.target){st.spEditorSeen=st.spEditorSeen||{};st.spEditorSeen[a.target]=1;}
+      break;
   }
 }
 
@@ -7418,6 +7460,7 @@ function spRunReplay(log,opts){
 }
 function spCanonicalReport(st){
   const s=st||wg;
+  const md=s.spMissionDone||{};
   return JSON.stringify({
     day:s.day,stage:s.stage,stage_day:s.stageDay,health_pct:+s.health.toFixed(1),
     kg_harvested:s.harvestedKg,harvest_events:s.harvestEvents,
@@ -7425,13 +7468,16 @@ function spCanonicalReport(st){
     dose_msv:+s.spDoseMsv.toFixed(3),dose_gcr:+s.spDoseGcrMsv.toFixed(3),dose_spe:+s.spDoseSpeMsv.toFixed(3),
     sleep_cycles:s.spSleepCycles,degradation_pct:+(s.spDeg*100).toFixed(3),
     kwh:{gen:+s.spGenKwh.toFixed(2),load:+s.spLoadKwh.toFixed(2),sold:+s.spSoldKwh.toFixed(2),bought:+s.spBoughtKwh.toFixed(2)},
-    eur:{sold:+s.spEurSold.toFixed(2),bought:+s.spEurBought.toFixed(2)}
+    eur:{sold:+s.spEurSold.toFixed(2),bought:+s.spEurBought.toFixed(2)},
+    missions:{done:Object.keys(md).length,bonus_eur:spMissionBonus(s)}
   });
 }
 /* the well-run orbital season: farm built day 1, nightly pod sleep, sleep through storms, LEDs on, wings tracking */
 function spStandardLog(){
   const log=[];
   log.push({tick:2,day:0,action:'build.phase.done',target:'PHASE 12 PLANT',amount:4});
+  /* a real station operator reads the schematic first: all 18 objects inspected */
+  for(const o of SP_OBJECTS)log.push({tick:3,day:0,action:'editor.view',target:o.key,amount:1});
   let tk=10;
   for(let i=0;i<4;i++){
     const need=SPBUILD[i].need;
@@ -7727,13 +7773,45 @@ const __spBaseDaily=wgDaily;
 wgDaily=function(st){__spBaseDaily(st);try{spDailyTick(st);}catch(e){}};
 
 /* action application: one shared path for live and replay */
+/* work_003: base build completions are ALSO replay-applied on space states, so the
+   mission chain (M01-M05) and the editor object status are replay-identical to
+   the live state. The base applier no-ops 'build.*' by design (only canonical-
+   report parity); we add the build-state restore for __sp states ONLY — base
+   states and base verify V01-V16 semantics stay byte-identical. */
+const SP_BASE_STEP_KEY=['survey','stakes','rails','ribs','purlins','filmIn','filmOut','floor','door','beds','soil','trellis','plants'];
+const SP_BASE_NEED=[1,4,2,13,3,1,1,1,1,2,8,1,4];
+function spApplyBaseBuildLog(st,a){
+  if(a.action==='build.phase.done'){
+    const m=/PHASE (\d+)/.exec(String(a.target));
+    if(m){
+      const id=+m[1];
+      if(id>=0&&id<SP_BASE_STEP_KEY.length){
+        st.built[id]=true;
+        st.phase=Math.max(st.phase,id+1);
+        const k=SP_BASE_STEP_KEY[id];
+        st.phaseStep[k]=Math.max(st.phaseStep[k]|0,SP_BASE_NEED[id]);
+      }
+    }
+    return;
+  }
+  const KEYS={SURVEY:0,GROUND:1,RAILS:2,RIBS:3,PURLINS:4,FILM_IN:5,FILM_OUT:6,FLOOR:7,DOOR:8,BEDS:9,SOIL:10,TRELLIS:11,PLANT:12};
+  const id=KEYS[String(a.action).slice(6)];
+  if(id!=null&&+a.amount>=1){
+    const k=SP_BASE_STEP_KEY[id];
+    st.phaseStep[k]=Math.max(st.phaseStep[k]|0,Math.min(SP_BASE_NEED[id],Math.round(+a.amount)));
+    if(Math.round(+a.amount)>=SP_BASE_NEED[id]){st.built[id]=true;st.phase=Math.max(st.phase,id+1);}
+  }
+}
 const __spBaseApply=wgApplyAction;
 wgApplyAction=function(st,a){
-  if(st&&st.__sp&&a&&typeof a.action==='string'&&a.action.indexOf('sp.')===0){
+  if(st&&st.__sp&&a&&typeof a.action==='string'&&(a.action.indexOf('sp.')===0||a.action==='editor.view')){
     try{spApplyAction(st,a);}catch(e){}
     return;
   }
   const p12=a&&a.action==='build.phase.done'&&/PHASE 12/.test(String(a.target));
+  if(st&&st.__sp&&a&&typeof a.action==='string'&&a.action.indexOf('build.')===0){
+    try{spApplyBaseBuildLog(st,a);}catch(e){}
+  }
   __spBaseApply(st,a);
   if(p12&&st&&st.__sp&&st.spLedDeadline==null)st.spLedDeadline=st.day+7;
 };
@@ -7888,8 +7966,8 @@ replay.wg={
   export:()=>{const text=wgLog.map(l=>JSON.stringify(l)).join('\n');
     const blob=new Blob([text],{type:'application/jsonl'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download='sun005_replay_day'+wg.day+'.jsonl';a.click();
-    return {ok:true,lines:wgLog.length,file:'sun005_replay_day'+wg.day+'.jsonl'};},
+    a.download='sun006_replay_day'+wg.day+'.jsonl';a.click();
+    return {ok:true,lines:wgLog.length,file:'sun006_replay_day'+wg.day+'.jsonl'};},
   verify:text=>{
     const lines=String(text).split(/\r?\n/).filter(l=>l.trim());
     const log=lines.map(l=>{try{return JSON.parse(l);}catch(e){return null;}}).filter(Boolean);
@@ -8103,15 +8181,17 @@ function spLedger(st){
   const sum_costs=+(sum_base+sum_space).toFixed(2);
   const food_rev=+(s.harvestedKg*s.price).toFixed(2);
   const energy_rev=+(s.spEurSold-s.spEurBought).toFixed(2);
-  const sum_revenue=+(food_rev+energy_rev).toFixed(2);
+  const mission_bonus_eur=spMissionBonus(s);              /* work_003: derived, no hidden state */
+  const sum_revenue=+(food_rev+energy_rev+mission_bonus_eur).toFixed(2);
   const balance=+(sum_revenue-sum_costs).toFixed(2);
   const mismatch=+Math.abs(sum_costs+balance-sum_revenue).toFixed(2);
   const res={sum_costs:{ground:sum_base,orbital:sum_space,total:sum_costs},
-    revenue_rule:s.harvestedKg.toFixed(1)+' kg x '+s.price.toFixed(2)+' EUR/kg (FOOD) + '+s.spEurSold.toFixed(2)+' EUR sold - '+s.spEurBought.toFixed(2)+' EUR bought (ENERGY)',
-    food_rev,energy_rev,sum_revenue,balance,mismatch,
+    revenue_rule:s.harvestedKg.toFixed(1)+' kg x '+s.price.toFixed(2)+' EUR/kg (FOOD) + '+s.spEurSold.toFixed(2)+' EUR sold - '+s.spEurBought.toFixed(2)+' EUR bought (ENERGY) + '+mission_bonus_eur.toFixed(2)+' EUR (MISSION BONUS)',
+    food_rev,energy_rev,mission_bonus_eur,sum_revenue,balance,mismatch,
+    missions_done:Object.keys((s&&s.spMissionDone)||{}).length,
     kwh:{gen:+s.spGenKwh.toFixed(1),load:+s.spLoadKwh.toFixed(1),sold:+s.spSoldKwh.toFixed(1),bought:+s.spBoughtKwh.toFixed(1)},
     cost_lines:spaceCosts};
-  console.log('SP.ledger →',JSON.stringify({sum_costs,res_rule:res.revenue_rule,sum_revenue,balance,mismatch}));
+  console.log('SP.ledger →',JSON.stringify({sum_costs,res_rule:res.revenue_rule,sum_revenue,balance,mismatch,mission_bonus_eur}));
   console.table(spaceCosts);
   return res;
 }
@@ -8124,11 +8204,29 @@ const SP={
     dli_today:+wg.spDliToday.toFixed(2),dli_yesterday:+wg.spDliYesterday.toFixed(2),
     sleep_cycles:wg.spSleepCycles,sleeping_now:wg.tick<wg.spSleepUntil,
     eur_sold:+wg.spEurSold.toFixed(2),eur_bought:+wg.spEurBought.toFixed(2)}),
-  theory:()=>{console.log(SPTHEORY);return {sections:9,note:'SP.theory — the orbital Wintergarten physics'};},
-  research:()=>{console.table(SPRESEARCH.map(r=>({id:r.id,topic:r.topic,real:r.real,sim:r.sim,verdict:r.verdict})));
-    SPRESEARCH.forEach(r=>console.log(r.id,'SOURCE:',r.src));
-    return {entries:SPRESEARCH.length,note:'REAL data researched 2026-11. Sim is deliberately conservative where it differs.',
-      sources:SPRESEARCH.map(r=>({id:r.id,src:r.src}))};},
+  theory:()=>{console.log(SPTHEORY);try{console.log(SPTHEORY2);}catch(e){}
+    return {sections:17,note:'SP.theory — orbital physics (SPTHEORY) + station architecture (SPTHEORY2)'};},
+  research:()=>{const all=SPRESEARCH.concat(typeof SPRESEARCH2!=='undefined'?SPRESEARCH2:[]);
+    console.table(all.map(r=>({id:r.id,topic:r.topic,real:r.real,sim:r.sim,verdict:r.verdict})));
+    all.forEach(r=>console.log(r.id,'SOURCE:',r.src));
+    return {entries:all.length,note:'REAL data researched 2026-11. Sim is deliberately conservative where it differs.',
+      sources:all.map(r=>({id:r.id,src:r.src}))};},
+  research2:()=>{console.table(SPRESEARCH2.map(r=>({id:r.id,topic:r.topic,real:r.real,sim:r.sim,verdict:r.verdict})));
+    SPRESEARCH2.forEach(r=>console.log(r.id,'SOURCE:',r.src));
+    return {entries:SPRESEARCH2.length,note:'work_003 research — station architecture + assembly order + mission ops',
+      sources:SPRESEARCH2.map(r=>({id:r.id,src:r.src}))};},
+  objects:()=>{console.table(SP_OBJECTS.map(o=>({key:o.key,system:o.sys,phase:(o.phase.src==='base'?'P'+o.phase.id:o.phase.key),
+      built:spObjStatus(o.key).built,what:o.what.slice(0,60)+'...',where:o.where.loc.slice(0,60)+'...'})));
+    console.log(SPTHEORY2);
+    return {objects:SP_OBJECTS.length,order:SP_ORDER.length,
+      note:'17 building objects — WHAT/WHERE/WHY. SP.order() prints the assembly logic'};},
+  order:()=>{console.table(SP_ORDER.map(s=>({step:s.n,label:s.label,object:s.objKey,why:s.why})));
+    return {steps:SP_ORDER.length,note:'assembly order — how the station gets built together, and WHY'};},
+  editor:()=>{spEditorToggle(true);return {ok:true,note:'STATION EDITOR opened — click any object for WHAT/WHERE/WHY'};},
+  missions:()=>{const done=(wg.spMissionDone||{});
+    console.table(SP_MISSIONS.map(m=>({id:m.id,title:m.title,done:!!done[m.id],reward:m.reward,goal:m.goal})));
+    return {missions:SP_MISSIONS.length,done:Object.keys(done).length,bonus_eur:spMissionBonus(wg),
+      total_possible:SP_MISSIONS_TOTAL_REWARD,note:'progress derived from state — replay-identical'};},
   storm:()=>({now:spStormAt(wg.tick),
     schedule:SCFG.spes.map((s,i)=>({day:s.day,start_h:s.h,dur_h:s.dur_h,class:s.cls,
       unsheltered_msv:spSpeUnshelteredMsv(i),degradation_if_tracking_pct:+(s.deg*100).toFixed(1),
@@ -8153,8 +8251,9 @@ window.SP=SP;window.SCFG=SCFG;window.SPRESEARCH=SPRESEARCH;window.SPBUILD=SPBUIL
 const __spBaseHelp=WG.help;
 WG.help=function(){
   const r=__spBaseHelp();
-  const cmds=['SP.info()','SP.theory()','SP.research()','SP.ledger()','SP.storm()','SP.array(\'track\'|\'edge\')',
-    'SP.led(true|false)','SP.sleep()','SP.replay.standardLog()','SP.replay.run(log)','SP.replay.verify(text)','SP.verify()'];
+  const cmds=['SP.info()','SP.theory()','SP.research()','SP.research2()','SP.ledger()','SP.storm()','SP.array(\'track\'|\'edge\')',
+    'SP.led(true|false)','SP.sleep()','SP.objects()','SP.order()','SP.editor()','SP.missions()',
+    'SP.replay.standardLog()','SP.replay.run(log)','SP.replay.verify(text)','SP.verify()'];
   r.commands=r.commands.concat(cmds);
   console.log(cmds.join('\n'));
   return r;
@@ -8244,8 +8343,8 @@ function spVerify(){
     /* S16 surface + no bad tokens */
     const myScripts=[...document.querySelectorAll('script')].map(s=>s.textContent).join('');
     const bad=['X'+'XX','FIX'+'ME','PLACE'+'HOLDER'].filter(tok=>myScripts.includes(tok));
-    T('S16 surface clean','title SUN005, SP API alive, no placeholder tokens',
-      document.title.indexOf('SUN005')>=0&&typeof window.SP==='object'&&bad.length===0,
+    T('S16 surface clean','title SUN006, SP API alive, no placeholder tokens',
+      document.title.indexOf('SUN006')>=0&&typeof window.SP==='object'&&bad.length===0,
       'title='+document.title+' bad='+JSON.stringify(bad));
   }catch(e){T('S-ERR','exception',false,String(e&&e.message||e));}
   const pass=R.filter(r=>r.pass).length,fail=R.length-pass;
@@ -8254,7 +8353,7 @@ function spVerify(){
   return {pass,fail,total:R.length,results:R};
 }
 
-/* WG.verify: base 16 + space 16 = 32 */
+/* WG.verify: base 16 + space 16 + work_003 10 = 42 */
 const __spBaseVerify=WG.verify;
 WG.verify=function(){
   const base=__spBaseVerify();
@@ -8266,9 +8365,1011 @@ WG.verify=function(){
 
 /* ═══════════════ SP 18 · BOOT — extend live state, claim the title ═══════════════ */
 spExtend(wg,false);
-try{document.title='SUN005 · MONEY — WINTERGARTEN ORBITAL';}catch(e){}
-console.log('%c SUN005 · add.dna — ORBITAL POWER + RED LED + SLEEP POD ','background:#0a0e1a;color:#b061ff;font-weight:bold;padding:4px 10px;border:1px solid #b061ff;border-radius:6px',
-  'loaded · '+SP_DNA.equation+' · spPhase '+wg.spPhase+'/4'+(wg.spPhase>=4?' (commissioned)':'')+' · work_002 · console: SP.info() · SP.verify() · SP.theory() · SP.research()');
+try{document.title='SUN006 · MONEY — WINTERGARTEN ORBITAL';}catch(e){}
+console.log('%c SUN006 · add.dna — ORBITAL POWER + RED LED + SLEEP POD + STATION EDITOR + MISSION CHAIN ','background:#0a0e1a;color:#b061ff;font-weight:bold;padding:4px 10px;border:1px solid #b061ff;border-radius:6px',
+  'loaded · '+SP_DNA.equation+' · spPhase '+wg.spPhase+'/4'+(wg.spPhase>=4?' (commissioned)':'')+' · work_003 · console: SP.info() · SP.verify() · SP.theory() · SP.research() · SP.objects() · SP.missions() · [N] EDITOR · [J] MISSIONS');
+</script>
+<style>
+/* ═══ ADD.DNA WORK_003 — STATION EDITOR + MISSION CHAIN (base design tokens reused) ═══ */
+#spEditorOv{z-index:33}
+#spEditorOv .panel{width:min(1060px,96vw);max-height:92vh;overflow:auto}
+#spEditorOv h2{margin:0 0 4px}
+#spEditorOv .eyebrow{margin-bottom:2px}
+.edwrap{display:grid;grid-template-columns:minmax(340px,1.25fr) minmax(280px,1fr);gap:14px;margin-top:8px}
+@media (max-width:860px){.edwrap{grid-template-columns:1fr}}
+.edcap{font-size:9.5px;letter-spacing:.16em;color:var(--muted);margin:6px 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.edcap b{color:var(--cyan)}
+#spEdTop,#spEdSide{width:100%;height:auto;display:block;background:rgba(4,8,16,.55);border:1px solid var(--line);border-radius:10px}
+#spEdTop{max-height:min(33vh,360px)}
+#spEdSide{max-height:min(16vh,175px)}
+.edobj{cursor:pointer}
+.edobj .shape{transition:filter .15s}
+.edobj:hover .shape{filter:brightness(1.6) drop-shadow(0 0 4px rgba(120,220,255,.6))}
+.edobj.sel .shape{filter:drop-shadow(0 0 5px rgba(120,220,255,.95)) brightness(1.35)}
+.edobj.dim{opacity:.18;pointer-events:none}
+.edobj text{font-family:var(--mono);font-size:8.5px;fill:var(--muted);letter-spacing:.06em;pointer-events:none}
+.edobj.sel text{fill:var(--ink)}
+.edobj .edname{display:none;font-family:var(--mono);font-size:10px;fill:#8fd8ff;letter-spacing:.08em;paint-order:stroke;stroke:#060a14;stroke-width:3px}
+.edobj:hover .edname{display:block}
+.edobj.st-built{color:#5dff8b}
+.edobj.st-now{color:#ffb020}
+.edobj.st-pending{color:#7d8aa3}
+.edlbl{font-family:var(--mono);font-size:8.5px;fill:#8fd8ff;letter-spacing:.08em}
+.ednum{font-family:var(--mono);font-size:9px;fill:var(--ink);text-anchor:middle;pointer-events:none}
+.edctx{stroke:rgba(140,160,190,.4);stroke-width:1;fill:none}
+.edctx.fill{fill:rgba(16,24,44,.5);stroke:none}
+#spEdDetail{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:rgba(6,10,20,.6);max-height:46vh;overflow:auto}
+#spEdDetail h3{margin:0;font-size:15px;letter-spacing:.06em}
+#spEdDetail .chips{margin:6px 0 10px;display:flex;flex-wrap:wrap;gap:6px}
+#spEdDetail .chip{font-size:9px;letter-spacing:.14em;padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
+#spEdDetail .chip.sys{border-color:var(--cyan);color:var(--cyan)}
+#spEdDetail .chip.built{border-color:var(--good);color:var(--good)}
+#spEdDetail .chip.now{border-color:var(--amber);color:var(--amber)}
+#spEdDetail .chip.pending{border-style:dashed}
+#spEdDetail .sec{font-size:10px;letter-spacing:.22em;color:var(--muted);margin:10px 0 3px}
+#spEdDetail p{margin:2px 0;font-size:12px;line-height:1.5;color:var(--ink)}
+#spEdDetail dl{margin:2px 0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:11px}
+#spEdDetail dt{color:var(--muted);letter-spacing:.08em}
+#spEdDetail dd{margin:0;color:var(--ink)}
+#spEdDetail .res{font-size:10px;color:var(--amber);margin-top:8px;letter-spacing:.04em}
+#spEdDetail .you{font-size:10px;color:var(--cyan);margin-top:6px;letter-spacing:.08em}
+.edfilters{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 6px}
+.edfilters button{font-family:var(--mono);font-size:10px;letter-spacing:.16em;padding:5px 10px;border-radius:8px;
+  border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.edfilters button.on{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(34,224,255,.2)}
+.edtimeline{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}
+.edtl{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 6px;border-radius:6px;border:1px solid var(--line);
+  color:var(--muted);cursor:pointer;background:rgba(8,12,24,.6);position:relative}
+.edtl b{margin-right:3px}
+.edtl.done{border-color:rgba(93,255,139,.55);color:var(--good)}
+.edtl.now{border-color:var(--amber);color:var(--amber);box-shadow:0 0 12px rgba(255,176,32,.25);animation:wgblink 1.3s ease-in-out infinite}
+.edtl.sel{outline:1px solid var(--cyan)}
+.edtlnote{font-size:10.5px;color:var(--ink);line-height:1.45;margin:5px 0 0;padding:7px 10px;border:1px dashed var(--line);border-radius:8px;min-height:30px}
+.edtlnote b{color:var(--cyan)}
+/* ─── missions ─── */
+#spMissionOv{z-index:33}
+#spMissionOv .panel{width:min(1080px,96vw);max-height:90vh;overflow:auto}
+#spMissionList{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}
+@media (max-width:900px){#spMissionList{grid-template-columns:1fr}}
+.mrow{display:flex;gap:8px;align-items:flex-start;padding:6px 9px;border:1px solid var(--line);border-radius:10px;margin:0;background:rgba(6,10,20,.5);cursor:pointer}
+.mrow.done{border-color:rgba(93,255,139,.45);background:rgba(8,24,14,.45)}
+.mrow .mnum{font-family:var(--mono);font-size:10.5px;color:var(--muted);min-width:28px;padding-top:2px}
+.mrow.done .mnum{color:var(--good)}
+.mrow .mbody{flex:1;min-width:0}
+.mrow .mhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mrow .mt{font-size:12px;letter-spacing:.05em}
+.mrow.done .mt{color:var(--good)}
+.mrow .mexp{display:none;font-size:10.5px;color:var(--muted);line-height:1.4;margin-top:4px}
+.mrow.open .mexp{display:block}
+.mrow .mwhy{font-size:9.5px;color:rgba(255,196,110,.85);line-height:1.35;margin-top:3px}
+.mrow .mrew{font-family:var(--mono);font-size:10.5px;color:var(--cyan);white-space:nowrap}
+.mbar{height:5px;border:1px solid var(--line);border-radius:4px;background:rgba(4,8,16,.7);overflow:hidden;margin:4px 0 2px}
+.mbar>i{display:block;height:100%;background:linear-gradient(90deg,#22e0ff,#9df3ff)}
+.mrow.done .mbar>i{background:linear-gradient(90deg,#27c56d,#9dffc9)}
+.mprog{font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.06em}
+#spMissionHud{position:absolute;top:96px;left:964px;width:210px}
+#spMissionHud .cap{font-size:10px;letter-spacing:.22em;color:var(--muted);margin-bottom:4px}
+#spMissionHud .mname{font-size:11px;letter-spacing:.08em;color:var(--ink);margin:2px 0}
+#spMissionHud .mname b{color:var(--cyan)}
+#spMissionHud .mprog{margin-top:2px}
+#spMissionHud .mbonus{font-size:10px;color:var(--good);margin-top:4px;letter-spacing:.06em}
+.act.sp.on{border-color:var(--cyan);color:var(--cyan)}
+</style>
+<script>
+"use strict";
+/* ═══════════════ SP 17 · RESEARCH II (work_003) — station architecture + mission ops ═══════════════ */
+const SPRESEARCH2=[
+  {id:'R25', topic:'station assembly order', real:'ISS assembled power-first: Zarya (Nov 1998) -> Z1 truss (Oct 2000) -> P6 truss + first U.S. arrays (Dec 2000, making ISS the most powerful spacecraft ever) -> Destiny laboratory (Feb 2001). The arrays preceded the lab they feed.',
+   sim:'ground structure P0-P12 completes first, then ARRAY -> BATTERY -> LED -> POD: no load commissions before its power source exists',
+   verdict:'SIM FOLLOWS THE REAL ASSEMBLY LOGIC',
+   src:'NASA "assembly stages" — nasa.gov/wp-content/uploads/2022/06/167130main_assembly.pdf ; NASA Integrated Truss Structure — nasa.gov/international-space-station/integrated-truss-structure'},
+  {id:'R26', topic:'array sun-tracking gimbals', real:'each ISS solar array wing is connected to a Beta Gimbal Assembly; two mutually perpendicular rotation axes (beta gimbal + alpha joint) keep the arrays sun-pointed while the station holds any attitude',
+   sim:'mast-mounted wings switch TRACK (sun-pointed: full watts + storm shadow) <-> EDGE (thin side to the proton flux: cells safe, ~2% power)',
+   verdict:'SIM HAS THE REAL TWO-MODE POINTING DISCIPLINE',
+   src:'NASA STS-116 Press Kit — nasa.gov/wp-content/uploads/2023/05/162182main-sts-116-press-kit.pdf ; NASA Integrated Truss Structure — nasa.gov/international-space-station/integrated-truss-structure'},
+  {id:'R27', topic:'battery placement', real:'ISS batteries live in Integrated Equipment Assemblies on the truss right at the arrays; 12 Ni-H2 per channel were replaced by 6 Li-ion drop-in ORUs (~428 lb each) during EVAs 2017-2021 — storage sits beside the source on short, channelized runs',
+   sim:'2 x 1.25 kWh Li-ion rack at x=11.6, z=24 — centered between the two array masts (z=21/27): shortest bus runs, symmetric charge legs',
+   verdict:'SIM PLACED LIKE THE REAL POWER TRAIN',
+   src:'NASA "ISS Lithium-Ion Battery Start-Up and Cycling" — nasa.gov/wp-content/uploads/2024/01/international-space-station-lithium-ion-battery-start-up-and-cycling.pdf ; AmericaSpace 2019 EVA battery marathon — americaspace.com/2019/10/07/spacewalkers-begin-three-week-eva-marathon-to-replace-space-station-batteries'},
+  {id:'R28', topic:'crew quarters placement', real:'USOS crew quarters are rack-sized personal sleep stations in Node 2 (Harmony), chosen partly for its lower acoustic environment: enhanced noise mitigation, integrated radiation-reduction material, controllable airflow; 4 CQs share one node',
+   sim:'sleep pod at the south aisle dead-end (16, 29.2): the quietest point, farthest from the door interface; the 20 g/cm2 water wall IS the radiation-reduction material',
+   verdict:'SIM FOLLOWS THE REAL CQ DESIGN LOGIC',
+   src:'Broyan et al. 2008, "ISS USOS Crew Quarters" — NTRS 20080013462 ; Broyan et al., AIAA-2010-6018 — spacearchitect.org/pubs/AIAA-2010-6018.pdf ; Harmony (ISS module) — en.wikipedia.org/wiki/Harmony_(ISS_module)'},
+  {id:'R29', topic:'LED rig over the canopy', real:'NASA Veggie grows crops under red/blue/green LED banks at a fixed offset over the canopy; red set-points 120 / 240 / 360 umol/m2/s (+ green 30); the unit draws just 90 W. Veg-05 grew Red Robin dwarf tomatoes — first tomato harvest in space, March 2023',
+   sim:'4 x 540 W deep-red bars at fixed height over the 24 m2 canopy: 2150 W x 3.1 umol/J / 24 m2 = 278 umol/m2/s — between Veggie medium (240) and high (360) red',
+   verdict:'SIM PPFD INSIDE THE REAL VEGGIE RED BAND',
+   src:'Vegetable Production System — en.wikipedia.org/wiki/Vegetable_Production_System ; Massa et al. 2023, "Verification Testing and VEG-05 Tomato Crop Production" — NTRS 20230015539'},
+  {id:'R30', topic:'eclipse power operations', real:'ISS circles Earth every ~90 min with ~35 min of each orbit in shadow — 16 sunrises a day; in sunlight the arrays feed the loads AND charge the batteries (CSA: ~60% of sunlight-phase generation goes to charging); in eclipse the station runs on batteries',
+   sim:'92-min orbit: 61 min sun / 31 min eclipse; battery charges in sun, carries LED + station tie in shadow; the 10% BMS floor sheds LED first and buys grid power last',
+   verdict:'SIM IS THE REAL SUN/ECLIPSE POWER CYCLE',
+   src:'Electrical system of the ISS — en.wikipedia.org/wiki/Electrical_system_of_the_International_Space_Station ; Canadian Space Agency "How the ISS solar arrays power the station" ; Gietl et al. 2000, "The Electric Power System of the ISS" — NTRS 20000063506 ; NASA Space Station Facts — nasa.gov/international-space-station/space-station-facts-and-figures'},
+  {id:'R31', topic:'plant payloads run as mission chains', real:'NASA plant experiments are milestone-chained operations: Veg-01 first lettuce harvest 2015; PH-04 chile peppers grown ~4 months, harvested and eaten as tacos Oct 2021; Veg-05 Red Robin tomatoes seeded late 2022, first tomato harvest in space March 2023 — each payload tracked first-light, first-flower, first-fruit, first-harvest events',
+   sim:'the 16-mission chain mirrors that ladder: commission -> first photons -> first harvest -> storm discipline -> season veteran',
+   verdict:'SIM GAMEPLAY MODELED ON REAL PAYLOAD OPS',
+   src:'Massa et al. 2023 VEG-05 — NTRS 20230015539 ; NASA Veg-05 taskbook — taskbook.nasaprs.com/tbp/tbpdf.cfm?id=70DD0B9E9371F22B0E351F6F1EAB1BD3 ; Vegetable Production System — en.wikipedia.org/wiki/Vegetable_Production_System'},
+  {id:'R32', topic:'arrays outboard of the module', real:'ISS arrays mount on the outboard integrated truss, perpendicular to and separated from the pressurized modules — rotating power hardware stays off the pressure hull; gimbal joints decouple wing motion from habitat attitude',
+   sim:'wings ride 2 masts 4.5 m west of the greenhouse hull (x=8.5 vs hull x=13), tilting to the sun vector (+x east); the hull carries no drives or booms',
+   verdict:'SIM KEEPS POWER HARDWARE OFF THE HULL, LIKE THE REAL STATION',
+   src:'NASA Integrated Truss Structure — nasa.gov/international-space-station/integrated-truss-structure ; NASA STS-116 Press Kit (beta gimbal per wing) — nasa.gov/wp-content/uploads/2023/05/162182main-sts-116-press-kit.pdf'}
+];
+
+/* ═══════════════ SP 18 · OBJECT REGISTRY — every building object: WHAT / WHERE / WHY ═══════════════ */
+/* One object per build phase of WBUILD (13) + SPBUILD (4) = 17 building objects.
+   Positions are taken from the LIVE geometry constants (WG_SITE / SP_SITE) so the
+   schematic can never drift from the 3D scene. */
+const SP_OBJECTS=[
+ {key:'SURVEY', name:'STRING LINE + SITE MARKING', sys:'STRUCTURE',
+  phase:{src:'base',id:0,step:'survey'},
+  what:'A string line and marking chalk that squares the 6 x 12 m footprint: 4 corner points, diagonals checked equal (13.42 m both ways), rib stations chalked every 1.0 m.',
+  where:{pos:[16,3,24], loc:'the full footprint — corners at (13,18) (19,18) (13,30) (19,30), deck level y=3, station coordinates'},
+  why:'A skewed box accumulates error into every later phase: ribs would not seat plumb, film would wrinkle, the door frame would bind. Squaring the diagonals FIRST is the cheapest error correction in the whole build — it costs 1 h and saves every hour after it.',
+  order:'FIRST. Every downstream object bolts to this line. There is nothing to survey after the gravel covers the marks.',
+  specs:[['footprint','6 x 12 m (72 m2)'],['diagonal check','13.42 m both ways, +-2 cm'],['rib stations','every 1.0 m, 13 marks'],['work','1 h']],
+  deps:[], enables:['GROUND','RAILS'], research:'R25'},
+
+ {key:'GROUND', name:'4 STAKES + GRAVEL BED', sys:'STRUCTURE',
+  phase:{src:'base',id:1,step:'stakes'},
+  what:'4 corner stakes driven at the surveyed corners plus a 2 m3 compacted gravel pad under the whole footprint — the drainage and rodent-proof base of the station.',
+  where:{pos:[16,3.1,24], loc:'gravel pad x 12-20, z 17-31 (one meter beyond the hull on every side), stakes at the 4 corners'},
+  why:'The pad extends PAST the hull so rain and condensate drain away from the sealed floor edge instead of pooling under it; a gravel layer is a capillary break — moisture cannot wick up into the soil mass, and burrowing pests meet stone, not film. The stakes carry the string line to the real corners while the pad is leveled.',
+  order:'SECOND. Rails need a leveled, compacted bed to sit on; stakes must exist before the pad work can disturb the surface.',
+  specs:[['gravel','2 m3, leveled +-2 cm, plate-tamped'],['stakes','4 x 0.7 m wood'],['pad extent','8 x 14 m (beyond hull on all sides)'],['work','4 h']],
+  deps:['SURVEY'], enables:['RAILS'], research:'R25'},
+
+ {key:'RAILS', name:'2 BASE RAILS + 14 GROUND ANCHORS', sys:'STRUCTURE',
+  phase:{src:'base',id:2,step:'rails'},
+  what:'Two 12 m galvanized base rails fixed to the gravel line along both long sides, with 14 ground anchors driven 60 cm deep at 1.7 m spacing.',
+  where:{pos:[13,3.1,24], loc:'rail A at x=13, rail B at x=19, both running the full 12 m from z=18 to z=30 at deck level'},
+  why:'The rails are the LOAD PATH of the whole station: all 13 rib feet clamp into them, so every wind and snow load funnels rail -> anchor -> deck. 1.7 m anchor spacing keeps the arch from racking — the spacing is set by the rail tube stiffness, not by convenience.',
+  order:'THIRD. Ribs (next) can only seat their feet into a rail — there is nothing to clamp to otherwise.',
+  specs:[['rails','2 x 12 m galvanized, 0.12 m profile'],['anchors','14 x 60 cm, 1.7 m spacing'],['load carried','snow 0.25 kN/m2 + wind, via ribs'],['work','3 h']],
+  deps:['GROUND'], enables:['RIBS'], research:'R25'},
+
+ {key:'RIBS', name:'13 STABILITY RIBS', sys:'STRUCTURE',
+  phase:{src:'base',id:3,step:'ribs'},
+  what:'13 half-circle ribs of galvanized tube (2 x 3.0 m, 25 x 1.5 mm) sleeved into full circles, feet seated in both base rails, standing every 1.0 m along the length.',
+  where:{pos:[16,4.2,24], loc:'arches spanning x 13-19 (6 m span, R=3 m), at z = 18, 19, 20 ... 30 — the whole roof line'},
+  why:'The arch is a compression shell: load pushes the curve into itself instead of bending a beam — that is why a 6 m span needs NO interior column and the grow floor stays one open room. 1.0 m spacing is the snow-load design point (0.25 kN/m2, deflection under 0.05 m).',
+  order:'FOURTH. Ribs stand on rails — and they must exist before purlins can tie them together. Alone they would rack; they are deliberately incomplete.',
+  specs:[['ribs','13 x half-circle, R=3.0 m, apex y=6.0'],['tube','25 x 1.5 mm galvanized'],['spacing','1.0 m (snow-load design)'],['work','5 h — 13 lifts']],
+  deps:['RAILS'], enables:['PURLINS'], research:'R25'},
+
+ {key:'PURLINS', name:'3 PURLINS (RIDGE + 2 SIDES)', sys:'STRUCTURE',
+  phase:{src:'base',id:4,step:'purlins'},
+  what:'Three 12 m purlin tubes bolted along the length: one at the ridge, one on each side at +-0.7 rad from apex, clamped at every rib crossing (39 clamps).',
+  where:{pos:[16,5.5,24], loc:'ridge line at x=16 apex; side purlins at x=14.07 and x=17.93 (the flattest part of each arch flank)'},
+  why:'Thirteen free ribs are a rack of loose hoops; three longitudinal ties make them ONE frame. The side purlins sit at +-0.7 rad because that is where the arch is flattest and weakest under asymmetric load — a tie is worth the most exactly where the curve stops helping. With the ribs this is the 16-bone stability skeleton.',
+  order:'FIFTH. The frame must be self-supporting BEFORE film: the film is a stressed skin that stiffens a frame, it cannot rescue a structure.',
+  specs:[['purlins','3 x 12 m tube + 39 cross clamps'],['positions','ridge (apex) + +-0.7 rad flanks'],['bones total','13 ribs + 3 purlins = 16'],['work','3 h']],
+  deps:['RIBS'], enables:['FILMIN'], research:'R25'},
+
+ {key:'FILMIN', name:'INNER FILM SHELL', sys:'STRUCTURE',
+  phase:{src:'base',id:5,step:'filmIn'},
+  what:'The inner shell of the double hull: 113 m2 of 200 um UV-PE film unrolled over the ribs from one gable, tensioned and locked with wiggle wire in C-profile both sides.',
+  where:{pos:[16,4.5,24], loc:'the complete inner surface — R=2.90 m arc over the 6 x 12 m footprint, gables sealed'},
+  why:'This is the inner face of the insulation: the double hull works by trapping a 0.10 m layer of STILL air between two films (U-value 6.7 vs 10.0 for a single shell — real inflated doubles measure ~4.0). It goes on first so the air gap is bounded by two known, continuous surfaces that can be sealed at the gables.',
+  order:'SIXTH. After the frame can carry it, before the outer shell — the gap is defined between the two films, so the inner one must exist first.',
+  specs:[['film','113 m2 UV-PE, 200 um'],['radius','R=2.90 m (inner)'],['fastening','wiggle wire in C-profile'],['work','6 h']],
+  deps:['PURLINS'], enables:['FILMOUT'], research:'R25'},
+
+ {key:'FILMOUT', name:'OUTER FILM SHELL + 0.10 m AIR GAP', sys:'STRUCTURE',
+  phase:{src:'base',id:6,step:'filmOut'},
+  what:'The outer shell, 0.10 m off the inner skin over the whole envelope, with a 40 W inflation blower pressurizing the gap between them.',
+  where:{pos:[16,4.6,24], loc:'the complete outer surface — R=3.00 m arc, 113 m2, blower at the north gable'},
+  why:'Still air is one of the best insulators that exists — the 0.10 m dead gap cuts heat loss by a third. The blower is not optional comfort: pressurizing the gap tensions BOTH films into a stressed skin, which is where a large part of the structure\'s stiffness comes from. Slack film flaps; inflated film holds snow.',
+  order:'SEVENTH. The gap needs the inner shell as its floor. And the sealed-bottom weld (next) needs the inner shell edge to weld TO.',
+  specs:[['film','113 m2 UV-PE, 200 um'],['gap','0.10 m dead air, blower 40 W'],['U-value','6.7 W/m2K (vs 10.0 single)'],['work','6 h']],
+  deps:['FILMIN'], enables:['FLOOR'], research:'R25'},
+
+ {key:'FLOOR', name:'SEALED BOTTOM — FLOOR FILM', sys:'STRUCTURE',
+  phase:{src:'base',id:7,step:'floor'},
+  what:'72 m2 of the same plastic hull laid as the floor and WELDED to the inner shell all around the perimeter — the envelope is a closed bag.',
+  where:{pos:[16,3.03,24], loc:'the entire 6 x 12 m footprint at y=3.03, seam-welded to the inner shell at every edge'},
+  why:'The forgotten half of every greenhouse: a tunnel open to the ground loses water vapor, invites pests, and dumps stored heat into the dirt. Sealing the floor turns 9.6 m3 of soil into usable thermal mass (17.3 MJ/K) — the day\'s surplus banks into it and the night spends it. The floor must be welded BEFORE 96 wheelbarrow loads of soil make the seam unreachable.',
+  order:'EIGHTH. Last chance in the build order to touch the bottom of the envelope. Beds and soil come after and permanently cover the weld.',
+  specs:[['film','72 m2, same spec as hull'],['seam','welded to inner shell, full perimeter'],['barrier','vapor + pest + heat'],['work','4 h']],
+  deps:['FILMOUT'], enables:['DOOR'], research:'R25'},
+
+ {key:'DOOR', name:'SLIDING DOOR 0.9 x 2.0 m', sys:'STRUCTURE',
+  phase:{src:'base',id:8,step:'door'},
+  what:'A timber-framed sliding door in the north gable with roller track and weather-brush seal — the only opening in the envelope.',
+  where:{pos:[16,4,18], loc:'north gable, centered at x=16, z=18 — the flat end face, facing the station corridor'},
+  why:'The gable is the flat face — a door cut into the arch would break the compression shell. Sliding (not hinged) because a swing arc would eat the aisle; the weather-brush seals dust and pests at the corridor interface without an airtight gasket (people pass dozens of times a day). North end because the sun vector is +x EAST: the door avoids the high-gain face, and it opens straight onto the corridor route.',
+  order:'NINTH. The door cuts the hull — you cut the envelope only once it is sealed and holding, never before.',
+  specs:[['door','0.9 x 2.0 m sliding'],['seal','weather-brush'],['position','north gable (flat face)'],['work','3 h']],
+  deps:['FLOOR'], enables:['BEDS'], research:'R25'},
+
+ {key:'BEDS', name:'2 GROW BEDS 1.2 x 10 m', sys:'GROW',
+  phase:{src:'base',id:9,step:'beds'},
+  what:'Two bed frames, 1.2 m wide, 10 m long, 0.4 m deep, assembled on the sealed floor with a central work aisle between them.',
+  where:{pos:[14.5,3.3,24], loc:'bed A centered x=14.5, bed B x=17.5, both running z=19-29; aisle 1.8 m wide between them at x=16'},
+  why:'1.2 m is the reach-from-aisle width: a worker reaches the far edge without ever stepping on soil (compaction kills root air). Two beds + aisle consume the 6 m module width exactly. 0.4 m depth is the root zone for trellised tomato.',
+  order:'TENTH. Frames sit ON the sealed floor and must exist before soil has anywhere to go.',
+  specs:[['beds','2 x (1.2 x 10 x 0.4 m)'],['soil volume','9.6 m3 total'],['aisle','1.8 m central'],['work','4 h']],
+  deps:['DOOR'], enables:['SOIL'], research:'R25'},
+
+ {key:'SOIL', name:'9.6 m3 LIVING SOIL FILL', sys:'GROW',
+  phase:{src:'base',id:10,step:'soil'},
+  what:'Premium soil/compost blend filled to 0.4 m depth in both beds — about 96 wheelbarrow loads, mixed and leveled.',
+  where:{pos:[16,3.2,24], loc:'inside both bed frames, x 13.9-15.1 and 16.9-18.1, the full 10 m length'},
+  why:'The soil is doing two jobs at once. It is the growing medium (N 150-250, P 45-80, K 200-350 mg/kg — cherry tomato is a potassium hog), AND it is the thermal mass: 9.6 m3 banks 17.3 MJ/K, the entire night-heating strategy of the station. That is why the fill happens before any crop: mass first, plants into a warm, stable bed.',
+  order:'ELEVENTH. After the frames hold it, before the trellis anchors strings above a filled bed.',
+  specs:[['volume','9.6 m3 (~96 wheelbarrow loads)'],['depth','0.4 m'],['thermal mass','17.3 MJ/K'],['work','10 h']],
+  deps:['BEDS'], enables:['TRELLIS'], research:'R25'},
+
+ {key:'TRELLIS', name:'TRELLIS WIRES + STRINGS + DRIP LINE', sys:'GROW',
+  phase:{src:'base',id:11,step:'trellis'},
+  what:'Two 10 m support wires stretched over the beds, 80 string spools hanging to the soil, and a drip tape per bed fed from a tank.',
+  where:{pos:[14.5,4.2,24], loc:'wires at y=4.2 over each bed centerline (x=14.5 and 17.5), strings every 0.5 m, drip tape on the soil surface'},
+  why:'Tomato is a vine, not a shrub — unsupported it fruits on the ground and rots. The trellis carries up to 10 kg of fruit per plant OFF the stem. Drip (not spray) meters water to the root zone and keeps leaves dry — wet foliage is how fungal epidemics start in a sealed envelope.',
+  order:'TWELFTH. Strings hang where plants will go — the vine infrastructure must exist before vines.',
+  specs:[['wires','2 x 10 m at y=4.2'],['strings','80 spools, 0.5 m spacing'],['irrigation','20 m drip tape + tank'],['work','4 h']],
+  deps:['SOIL'], enables:['PLANTS'], research:'R25'},
+
+ {key:'PLANTS', name:'80 CHERRY TOMATO SEEDLINGS', sys:'GROW',
+  phase:{src:'base',id:12,step:'plants'},
+  what:'80 cherry tomato seedlings (seeded 7 days earlier) planted 40 per bed in double rows at 0.5 m spacing — the living payload of the ground build.',
+  where:{pos:[14.5,3.4,24], loc:'4 rows: x = 14.1, 14.9 (bed A) and 17.1, 17.9 (bed B); z = 19.25 to 28.75, every 0.5 m'},
+  why:'0.5 m in-row is the commercial density for trellised cherry tomato — close enough for canopy efficiency, open enough for airflow (a sealed envelope must move air through foliage or fungus wins). Plants enter LAST because they deserve a finished station: sealed hull, thermal mass, trellis, water. NASA grows the same way — the payload arrives after the facility is commissioned.',
+  order:'THIRTEENTH, last of the ground build. A living crop in an unfinished envelope is a crop you are about to kill.',
+  specs:[['plants','80 (40 per bed, 2 rows per bed)'],['spacing','0.5 m in-row'],['density','3.3 plants/m2 of bed'],['work','3 h']],
+  deps:['TRELLIS'], enables:['ARRAY'], research:'R31'},
+
+ {key:'ARRAY', name:'SOLAR ARRAY — 2 WINGS x 6 PANELS', sys:'POWER',
+  phase:{src:'sp',key:'ARRAY'},
+  what:'Two wings of six 1.0 m2 space-grade panels (30% multijunction cells) on masts and booms with a rotary drive — 12 m2 of AM0-harvesting area, 4.9 kW peak fresh.',
+  where:{pos:[8.5,4.7,24], loc:'WEST PAD: masts at (8.5, z=21) and (8.5, z=27), 4.5 m west of the hull; wings tilt toward the +x EAST sun vector; drive tracks or edges on'},
+  why:'THREE reasons for the west pad, all of them the ISS recipe (R32): (1) POWER HARDWARE STAYS OFF THE PRESSURE HULL — a jammed drive or snapped wing must never be able to breach the envelope; (2) the wings must not shade the hull, which banks solar heat through its film — outboard they shadow only the deck; (3) sun-pointed wings put the whole station behind them in a proton storm (dose x0.55) — the array is the shield as well as the plant. The rotary drive is the sim\'s alpha joint + beta gimbal: two real perpendicular axes point ISS wings at the sun while the station holds attitude.',
+  order:'FOURTEENTH, FIRST of the orbital phases — POWER BEFORE PAYLOADS, the literal ISS sequence: P6 arrays (Dec 2000) preceded the Destiny lab (Feb 2001) they feed.',
+  specs:[['wings','2 x 6 panels, 12 m2 total'],['cells','30% multijunction (iROSA class)'],['peak','1361 W/m2 x 12 m2 x 0.30 = 4.9 kW'],['modes','TRACK (full watts + storm shadow) / EDGE (cells safe, ~2%)'],['work','8 h']],
+  deps:['PLANTS'], enables:['BATTERY'], research:'R26 R32'},
+
+ {key:'BATTERY', name:'Li-ion BATTERY RACK 2 x 1.25 kWh', sys:'POWER',
+  phase:{src:'sp',key:'BATTERY'},
+  what:'Two 1.25 kWh Li-ion modules in a rack with a BMS holding a 10% deep-discharge floor — the eclipse bridge of the power train.',
+  where:{pos:[11.6,3.7,24], loc:'rack at (11.6, z=24) against the west wall, exactly centered between the two array masts (z=21 and z=27)'},
+  why:'BESIDE THE SOURCE, CENTERED BETWEEN THE MASTS — the ISS recipe (R27): batteries live in the truss Integrated Equipment Assemblies right at the arrays, because every meter of bus cable is I-squared-R loss on a system that charges and discharges 16 times a day. Centered at z=24, both charge legs are equal length. The BMS floor exists because Li-ion below ~10% SOC ages fast — the sim sheds the LED load first and buys grid power last rather than dipping under the floor.',
+  order:'FIFTEENTH. After the array (it needs a charge source), before the LED rig — you never commission a load you cannot feed through the 31-minute eclipse.',
+  specs:[['capacity','2.5 kWh Li-ion'],['round trip','91% (0.955 per leg)'],['floor','10% SOC, BMS-enforced'],['eclipse load','~1.27 kWh per shadow'],['work','2 h']],
+  deps:['ARRAY'], enables:['LED'], research:'R27 R30'},
+
+ {key:'LED', name:'RED LED RIG — 4 x 540 W, 660 nm', sys:'GROW',
+  phase:{src:'sp',key:'LED'},
+  what:'Four 540 W deep-red LED bars (660 nm, 3.1 umol/J) hung at fixed height over the canopy — 2.15 kW of pure production photons, the ONLY grow light in the station.',
+  where:{pos:[16,5.15,24], loc:'bars at x = 13.9, 15.1 (bed A) and 16.9, 18.1 (bed B), y = 4.95-5.35, running the full bed length z = 18.8-29.2, hung from the film shell'},
+  why:'FIXED HEIGHT OVER THE CANOPY, AT THE BED EDGES: photon flux falls off with the square of distance, so a fixed offset is what makes PPFD uniform along all 10 m — NASA Veggie grows crops under LED banks at a fixed offset for exactly this reason (R29). Two bars per bed at the edges aim light INWARD across the full 1.2 m width. The numbers land inside the real band: 2150 W x 3.1 umol/J / 24 m2 = 278 umol/m2/s — between Veggie\'s medium (240) and high (360) red settings. Red-only is a deliberate constraint with an honest tax (0.92 photosynthesis ceiling, no blue for stomata).',
+  order:'SIXTEENTH. The production load commissions only after the eclipse is survivable — photons you cannot feed through the night are a promise you will break at 61 minutes into the orbit.',
+  specs:[['bars','4 x 540 W deep red, 660 nm'],['efficacy','3.1 umol/J'],['PPFD','278 umol/m2/s over 24 m2 canopy'],['DLI','14 mol/m2/d in a 14 h photoperiod'],['work','3 h']],
+  deps:['BATTERY'], enables:['POD'], research:'R29'},
+
+ {key:'POD', name:'SLEEP POD — SARCOPHAGUS + WATER WALL', sys:'SHELTER',
+  phase:{src:'sp',key:'POD'},
+  what:'A composite sarcophagus (2.1 m) wrapped in a 200 L water jacket — 20 g/cm2 of shielding — with a lid drive and torpor vitals scanner. Storm shelter AND the station clock: [E] inside runs a 12 h cycle.',
+  where:{pos:[16,3.6,29.2], loc:'SOUTH END of the central aisle (16, 29.2) — the aisle dead-end, farthest point from the door, centered with 0.3 m clearance per side'},
+  why:'THE CREW QUARTERS RULE (R28): ISS sleep stations live in Node 2 partly for its LOWER ACOUSTIC ENVIRONMENT, they carry INTEGRATED RADIATION-REDUCTION MATERIAL, and they are placed away from noise sources. The sim pod obeys all three: the aisle dead-end is the quietest spot in the station (farthest from the door interface — every pressure change, dust drift and foot traffic enters there), the water wall IS the radiation-reduction material (20 g/cm2 cuts SPE dose x0.10, GCR x0.65 — water is cheap mass that is already needed aboard), and a dead-end placement blocks no work route. It is also the time-skip device: 12 h of real sim minutes computed deterministically while you sleep, sheltered.',
+  order:'SEVENTEENTH, LAST. Crew systems complete the station — power, storage, production, THEN people. The ISS order too: habitability systems came after the power core.',
+  specs:[['shell','composite sarcophagus, 2.1 m long'],['shield','200 L water = 20 g/cm2'],['dose factors','SPE x0.10, GCR x0.65'],['cycle','12 h, minute-by-minute computed'],['work','4 h']],
+  deps:['LED'], enables:[], research:'R28 R23'}
+];
+const SP_OBJ_BY_KEY={};SP_OBJECTS.forEach(o=>SP_OBJ_BY_KEY[o.key]=o);
+
+/* live status of one object (or all): {built, step, need, now, state} */
+function spObjStatus(key){
+  const o=SP_OBJ_BY_KEY[key];if(!o)return null;
+  const BASE_NEED={0:1,1:4,2:2,3:13,4:3,5:1,6:1,7:1,8:1,9:2,10:8,11:1,12:4};   /* mirrors base wgPhaseDef */
+  if(o.phase.src==='base'){
+    const built=!!(wg.built&&wg.built[o.phase.id]);
+    const step=(wg.phaseStep&&wg.phaseStep[o.phase.step])|0;
+    const need=BASE_NEED[o.phase.id];
+    return {built,step,need,now:(wg.phase===o.phase.id&&!built),state:built?'BUILT':(wg.phase===o.phase.id?'BUILDING':'PENDING')};
+  }
+  const idx=SPBUILD.findIndex(p=>p.key===o.phase.key);
+  const built=!!(wg.spBuilt&&wg.spBuilt[o.phase.key]);
+  const step=(wg.spPhaseStep&&wg.spPhaseStep[o.phase.key])|0;
+  const need=SPBUILD[idx].need;
+  return {built,step,need,now:(wg.__sp&&wg.spPhase===idx&&!built),state:built?'BUILT':(wg.__sp&&wg.phase>=WBUILD.length&&wg.spPhase===idx?'BUILDING':'PENDING')};
+}
+
+/* ═══════════════ SP 19 · ASSEMBLY ORDER — how the station gets built together + WHY ═══════════════ */
+const SP_ORDER=[
+  {n:1, objKey:'SURVEY', label:'P0 SURVEY', why:'Square the box before you own it — both diagonals 13.42 m. Every later bolt inherits this line.'},
+  {n:2, objKey:'GROUND', label:'P1 GROUND', why:'Drainage and pest base first: gravel under everything, stakes carry the string to the real corners.'},
+  {n:3, objKey:'RAILS',  label:'P2 RAILS',  why:'The load path: 13 rib feet will clamp here. Anchors at 1.7 m stop the arch from racking.'},
+  {n:4, objKey:'RIBS',   label:'P3 RIBS',   why:'13 free arches stand on the rails — compression shells, no columns, one open room.'},
+  {n:5, objKey:'PURLINS',label:'P4 PURLINS',why:'3 ties make 13 ribs ONE self-supporting frame. The film needs a frame, not a rescue.'},
+  {n:6, objKey:'FILMIN', label:'P5 FILM IN',why:'Inner skin first — the 0.10 m air gap needs a known inner surface to be defined against.'},
+  {n:7, objKey:'FILMOUT',label:'P6 FILM OUT',why:'Outer skin + blower: still air is the insulation, pressure turns both films into a stressed skin.'},
+  {n:8, objKey:'FLOOR',  label:'P7 FLOOR',  why:'Weld the bottom to the inner shell — the LAST moment the seal is reachable. Soil comes next and covers it forever.'},
+  {n:9, objKey:'DOOR',   label:'P8 DOOR',   why:'Cut the hull only once it holds. Gable face, sliding, brush-sealed at the corridor.'},
+  {n:10,objKey:'BEDS',   label:'P9 BEDS',   why:'Reach-width frames on the sealed floor — 105 days of work happen in that 1.8 m aisle.'},
+  {n:11,objKey:'SOIL',   label:'P10 SOIL',  why:'9.6 m3 of medium AND thermal mass. Mass banks the day\'s heat before any plant asks for a stable night.'},
+  {n:12,objKey:'TRELLIS',label:'P11 TRELLIS',why:'Wires, strings, drip — vine infrastructure before vines, dry leaves, metered water.'},
+  {n:13,objKey:'PLANTS', label:'P12 PLANTS',why:'80 seedlings enter a FINISHED envelope. A crop in an unfinished station is a crop you are killing.'},
+  {n:14,objKey:'ARRAY',  label:'SP1 ARRAY', why:'POWER FIRST — the literal ISS rule: P6 arrays (Dec 2000) preceded the Destiny lab (Feb 2001).'},
+  {n:15,objKey:'BATTERY',label:'SP2 BATTERY',why:'Storage beside the source, the truss IEA pattern. The eclipse bridge before any load needs it.'},
+  {n:16,objKey:'LED',    label:'SP3 LED',   why:'The production load: red photons only after the 31-minute shadow is survivable on battery.'},
+  {n:17,objKey:'POD',    label:'SP4 POD',   why:'Crew systems complete the station — power, storage, production, THEN people (the ISS order).'}
+];
+
+/* ═══════════════ SP 20 · THEORY II — why everything is where it is ═══════════════ */
+const SPTHEORY2=`# SPTHEORY2 — the station architecture: WHY everything is where it is
+## 1. THE LOAD PATH RULES THE GROUND BUILD
+Stakes -> gravel -> rails -> ribs -> purlins: each layer exists only to carry the next. The rails collect 13 rib feet; the purlins turn 13 ribs into one frame; the films tension over a structure that is already standing. Nothing floats.
+## 2. THE SEAL IS A BAG, CLOSED BOTTOM-UP
+Two film shells with a 0.10 m still-air gap (U 6.7 vs 10.0), then a floor of the SAME plastic welded to the inner shell. The sealed bottom is the forgotten half: it keeps vapor, pests and heat where they belong and makes 9.6 m3 of soil into a 17.3 MJ/K battery. The door is cut LAST into the flat gable — you breach a sealed envelope only after it holds.
+## 3. POWER HARDWARE STAYS OFF THE HULL
+The wings ride masts 4.5 m west of the greenhouse, exactly the way ISS arrays ride the outboard truss instead of the modules: a rotating, loaded, failure-prone machine must never be able to breach the pressure envelope, and its shadow must not steal the hull's solar heat. The wings double as the storm shield: sun-pointed, they put the whole station in their proton shadow (dose x0.55).
+## 4. STORAGE SITS BESIDE THE SOURCE
+The battery rack centers between the two masts — ISS batteries live in the truss Integrated Equipment Assemblies right at the arrays. Every meter of bus is I-squared-R loss, and this bus cycles 16 times a day.
+## 5. PHOTONS AT A FIXED OFFSET
+Four red bars hang at fixed height over 24 m2 of canopy: inverse-square falloff is why fixed distance is non-negotiable for uniform PPFD. 278 umol/m2/s sits between NASA Veggie's medium and high red settings. Red-only is honest: 0.92 photosynthesis ceiling, because stomata want a little blue.
+## 6. THE QUARTERS RULE THE QUIET END
+ISS crew quarters were placed in Node 2 for its lower acoustic environment and carry integrated radiation-reduction material. The pod obeys: aisle dead-end, farthest from the door, water wall for shielding. 20 g/cm2: SPE x0.10, GCR x0.65 — and the 12 h torpor cycle is the station's clock.
+## 7. THE ORDER IS THE LESSON
+Power before payloads (arrays preceded the Destiny lab). Storage before loads. Facility before crop. Crew systems last. The build order is not a tutorial — it is the engineering.
+## 8. KNOW IT IN THE EDITOR
+[N] opens the STATION EDITOR: every object, its coordinates, its WHY, its dependencies. Missions pay you to learn your own station — an operator who can name every part and reason is the difference between a season and a loss.`;
+</script>
+<script>
+"use strict";
+/* ═══════════════ SP 21 · STATION EDITOR [N] — every object, where it is, WHY ═══════════════ */
+/* Schematic is generated FROM the live geometry constants (WG_SITE / SP_SITE),
+   so it can never drift from the 3D scene. Every one of the 17 building objects
+   is clickable: WHAT it is, WHERE it sits, WHY it sits there, and why it is
+   built at that point in the sequence. Inspecting objects is logged
+   (editor.view) — the STATION ARCHITECT mission pays you to know your station. */
+let spEditorBuilt=false,spEditorSel=null,spEditorSys='ALL';
+const SP_ED={X0:3.5,X1:28.5,Z0:11.5,Z1:36.5,PAD:28,VB:520,SVB:168,Y0:1.5,Y1:7.5};
+function spEdPx(){return (SP_ED.VB-2*SP_ED.PAD)/(SP_ED.X1-SP_ED.X0);}
+function spEdSx(v){return SP_ED.PAD+(v-SP_ED.X0)*spEdPx();}
+function spEdSy(v){return SP_ED.PAD+(v-SP_ED.Z0)*((SP_ED.VB-2*SP_ED.PAD)/(SP_ED.Z1-SP_ED.Z0));}
+function spEdSys(v){return SP_ED.SVB-SP_ED.PAD-(v-SP_ED.Y0)*((SP_ED.SVB-2*SP_ED.PAD)/(SP_ED.Y1-SP_ED.Y0));}
+function spEdEl(tag,attrs,parent){
+  const n=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const k in attrs)n.setAttribute(k,attrs[k]);
+  if(parent)parent.appendChild(n);return n;
+}
+/* per-object shapes: top view + side view, drawn in station meters */
+function spEdShapes(key){
+  const P=(a)=>{ /* top rect helper */
+    return {x:spEdSx(a[0]),y:spEdSy(a[1]),w:(a[2]-a[0])*spEdPx(),h:(a[3]-a[1])*spEdPx()};};
+  const S={};
+  const cx=WG_SITE.cx,cz=WG_SITE.cz,fy=WG_SITE.floorY;
+  switch(key){
+    case 'SURVEY':
+      S.top=g=>{spEdEl('line',{x1:spEdSx(13),y1:spEdSy(18),x2:spEdSx(19),y2:spEdSy(30),class:'shape',stroke:'currentColor','stroke-dasharray':'3 3','stroke-width':1},g);
+        spEdEl('line',{x1:spEdSx(19),y1:spEdSy(18),x2:spEdSx(13),y2:spEdSy(30),class:'shape',stroke:'currentColor','stroke-dasharray':'3 3','stroke-width':1},g);};
+      S.side=g=>{spEdEl('line',{x1:spEdSx(13),y1:spEdSys(3),x2:spEdSx(19),y2:spEdSys(3),class:'shape',stroke:'currentColor','stroke-width':1,'stroke-dasharray':'3 3'},g);};
+      S.anchor=[16,16.1];break;
+    case 'GROUND':
+      S.top=g=>{const r=P([12,17,20,31]);spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,class:'shape',fill:'rgba(90,100,120,.16)',stroke:'currentColor','stroke-width':1},g);
+        for(const c of[[13,18],[19,18],[13,30],[19,30]])spEdEl('rect',{x:spEdSx(c[0])-3,y:spEdSy(c[1])-3,width:6,height:6,class:'shape',fill:'currentColor'},g);};
+      S.side=g=>{spEdEl('rect',{x:spEdSx(12),y:spEdSys(3.15),width:8*spEdPx(),height:4,class:'shape',fill:'rgba(90,100,120,.3)',stroke:'currentColor','stroke-width':1},g);};
+      S.anchor=[21.5,17.4];break;
+    case 'RAILS':
+      S.top=g=>{for(const x of[13,19])spEdEl('line',{x1:spEdSx(x),y1:spEdSy(18),x2:spEdSx(x),y2:spEdSy(30),class:'shape',stroke:'currentColor','stroke-width':3},g);
+        for(let i=0;i<14;i++){const z=18+(12/13)*i;spEdEl('line',{x1:spEdSx(i%2?19.18:12.82),y1:spEdSy(z),x2:spEdSx(i%2?19.45:12.55),y2:spEdSy(z),class:'shape',stroke:'currentColor','stroke-width':1.4},g);}};
+      S.side=g=>{for(const x of[13,19])spEdEl('circle',{cx:spEdSx(x),cy:spEdSys(3.1),r:3.4,class:'shape',fill:'currentColor'},g);};
+      S.anchor=[21.5,19.5];break;
+    case 'RIBS':
+      S.top=g=>{for(let i=0;i<13;i++){const z=18+i;spEdEl('line',{x1:spEdSx(13.15),y1:spEdSy(z),x2:spEdSx(18.85),y2:spEdSy(z),class:'shape',stroke:'currentColor','stroke-width':1},g);}};
+      S.side=g=>{spEdEl('path',{d:'M '+spEdSx(13)+' '+spEdSys(3)+' A '+3*spEdPx()+' '+3*spEdPx()+' 0 0 1 '+spEdSx(19)+' '+spEdSys(3),class:'shape',fill:'none',stroke:'currentColor','stroke-width':1.4},g);};
+      S.anchor=[21.5,21.5];break;
+    case 'PURLINS':
+      S.top=g=>{for(const x of[14.07,16,17.93])spEdEl('line',{x1:spEdSx(x),y1:spEdSy(18),x2:spEdSx(x),y2:spEdSy(30),class:'shape',stroke:'currentColor','stroke-width':1.6,'stroke-dasharray':'6 2'},g);};
+      S.side=g=>{for(const x of[14.07,17.93])spEdEl('circle',{cx:spEdSx(x),cy:spEdSys(fy+3*Math.sin(Math.PI/2-0.7)),r:3,class:'shape',fill:'currentColor'},g);
+        spEdEl('circle',{cx:spEdSx(16),cy:spEdSys(6),r:3,class:'shape',fill:'currentColor'},g);};
+      S.anchor=[21.5,23.5];break;
+    case 'FILMIN':
+      S.top=g=>{const r=P([13,18,19,30]);spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,class:'shape',fill:'none',stroke:'currentColor','stroke-width':1.4},g);};
+      S.side=g=>{spEdEl('path',{d:'M '+spEdSx(13.1)+' '+spEdSys(3)+' A '+(2.9*spEdPx())+' '+(2.9*spEdPx())+' 0 0 1 '+spEdSx(18.9)+' '+spEdSys(3),class:'shape',fill:'none',stroke:'currentColor','stroke-width':1},g);};
+      S.anchor=[21.5,25.5];break;
+    case 'FILMOUT':
+      S.top=g=>{const r=P([12.82,17.82,19.18,30.18]);spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,class:'shape',fill:'none',stroke:'currentColor','stroke-width':1.4,'stroke-dasharray':'2 2'},g);};
+      S.side=g=>{spEdEl('path',{d:'M '+spEdSx(12.95)+' '+spEdSys(3)+' A '+(3.05*spEdPx())+' '+(3.05*spEdPx())+' 0 0 1 '+spEdSx(19.05)+' '+spEdSys(3),class:'shape',fill:'none',stroke:'currentColor','stroke-width':1,'stroke-dasharray':'2 2'},g);};
+      S.anchor=[21.5,27.5];break;
+    case 'FLOOR':
+      S.top=g=>{const r=P([13,18,19,30]);spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,class:'shape',fill:'rgba(120,200,255,.10)',stroke:'currentColor','stroke-width':1,'stroke-dasharray':'1 3'},g);};
+      S.side=g=>{spEdEl('line',{x1:spEdSx(13),y1:spEdSys(3.06),x2:spEdSx(19),y2:spEdSys(3.06),class:'shape',stroke:'currentColor','stroke-width':3,'stroke-dasharray':'1 2'},g);};
+      S.anchor=[21.5,29.5];break;
+    case 'DOOR':
+      S.top=g=>{spEdEl('rect',{x:spEdSx(15.5),y:spEdSy(17.9),width:1*spEdPx(),height:0.28*spEdPx(),class:'shape',fill:'currentColor'},g);
+        spEdEl('line',{x1:spEdSx(16.6),y1:spEdSy(18.05),x2:spEdSx(18.4),y2:spEdSy(18.05),class:'shape',stroke:'currentColor','stroke-width':1,'stroke-dasharray':'2 2'},g);};
+      S.side=g=>{spEdEl('rect',{x:spEdSx(15.55),y:spEdSys(5.1),width:0.9*spEdPx(),height:2.1*((SP_ED.SVB-2*SP_ED.PAD)/(SP_ED.Y1-SP_ED.Y0)),class:'shape',fill:'rgba(120,200,255,.14)',stroke:'currentColor','stroke-width':1.2},g);};
+      S.anchor=[16,17.15];break;
+    case 'BEDS':
+      S.top=g=>{for(const bx of[[13.9,15.1],[16.9,18.1]]){const r=P([bx[0],19,bx[1],29]);spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,class:'shape',fill:'none',stroke:'currentColor','stroke-width':1.6},g);}};
+      S.side=g=>{for(const bx of[[13.9,15.1],[16.9,18.1]])spEdEl('rect',{x:spEdSx(bx[0]),y:spEdSys(3.5),width:(bx[1]-bx[0])*spEdPx(),height:0.5*((SP_ED.SVB-2*SP_ED.PAD)/(SP_ED.Y1-SP_ED.Y0)),class:'shape',fill:'none',stroke:'currentColor','stroke-width':1.4},g);};
+      S.anchor=[12.5,19.3];break;
+    case 'SOIL':
+      S.top=g=>{for(const bx of[[13.9,15.1],[16.9,18.1]]){const r=P([bx[0]+0.06,19.06,bx[1]-0.06,28.94]);spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,class:'shape',fill:'rgba(122,84,48,.55)',stroke:'currentColor','stroke-width':0.8},g);}};
+      S.side=g=>{for(const bx of[[13.9,15.1],[16.9,18.1]])spEdEl('rect',{x:spEdSx(bx[0]+0.06),y:spEdSys(3.42),width:(bx[1]-bx[0]-0.12)*spEdPx(),height:0.3*((SP_ED.SVB-2*SP_ED.PAD)/(SP_ED.Y1-SP_ED.Y0)),class:'shape',fill:'rgba(122,84,48,.7)',stroke:'currentColor','stroke-width':0.8},g);};
+      S.anchor=[19.5,19.3];break;
+    case 'TRELLIS':
+      S.top=g=>{for(const x of[14.5,17.5])spEdEl('line',{x1:spEdSx(x),y1:spEdSy(19),x2:spEdSx(x),y2:spEdSy(29),class:'shape',stroke:'currentColor','stroke-width':1.2,'stroke-dasharray':'5 3'},g);};
+      S.side=g=>{for(const x of[14.5,17.5]){spEdEl('line',{x1:spEdSx(x),y1:spEdSys(4.2),x2:spEdSx(x),y2:spEdSys(3.6),class:'shape',stroke:'currentColor','stroke-width':1,'stroke-dasharray':'2 2'},g);
+        spEdEl('line',{x1:spEdSx(x-0.5),y1:spEdSys(4.2),x2:spEdSx(x+0.5),y2:spEdSys(4.2),class:'shape',stroke:'currentColor','stroke-width':1.4},g);}};
+      S.anchor=[12.5,28.5];break;
+    case 'PLANTS':
+      S.top=g=>{for(const x of[14.1,14.9,17.1,17.9])for(let i=0;i<20;i++)spEdEl('circle',{cx:spEdSx(x),cy:spEdSy(19.25+i*0.5),r:1.5,class:'shape',fill:'currentColor'},g);};
+      S.side=g=>{for(const x of[14.5,17.5])spEdEl('circle',{cx:spEdSx(x),cy:spEdSys(3.75),r:3.2,class:'shape',fill:'currentColor'},g);};
+      S.anchor=[19.5,28.5];break;
+    case 'ARRAY':
+      S.top=g=>{for(const mz of[SP_SITE.mastAZ,SP_SITE.mastBZ]){const r=P([7.6,mz-1.15,9.9,mz+1.15]);
+          spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,class:'shape',fill:'rgba(70,110,220,.20)',stroke:'currentColor','stroke-width':1.4},g);
+          spEdEl('circle',{cx:spEdSx(SP_SITE.mastX),cy:spEdSy(mz),r:3.4,class:'shape',fill:'currentColor'},g);}
+        spEdEl('line',{x1:spEdSx(9.9),y1:spEdSy(24),x2:spEdSx(12.6),y2:spEdSy(24),class:'shape',stroke:'currentColor','stroke-width':1,'stroke-dasharray':'2 2'},g);};
+      S.side=g=>{spEdEl('line',{x1:spEdSx(8.5),y1:spEdSys(3),x2:spEdSx(8.5),y2:spEdSys(5.3),class:'shape',stroke:'currentColor','stroke-width':2.4},g);
+        spEdEl('line',{x1:spEdSx(7.55),y1:spEdSys(5.75),x2:spEdSx(9.45),y2:spEdSys(3.66),class:'shape',stroke:'currentColor','stroke-width':3.4},g);};
+      S.anchor=[8.5,18.9];break;
+    case 'BATTERY':
+      S.top=g=>{const r=P([11.2,23.25,12,24.75]);spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,class:'shape',fill:'rgba(160,170,60,.18)',stroke:'currentColor','stroke-width':1.4},g);};
+      S.side=g=>{spEdEl('rect',{x:spEdSx(11.2),y:spEdSys(4.05),width:0.8*spEdPx(),height:1.05*((SP_ED.SVB-2*SP_ED.PAD)/(SP_ED.Y1-SP_ED.Y0)),class:'shape',fill:'rgba(160,170,60,.2)',stroke:'currentColor','stroke-width':1.4},g);};
+      S.anchor=[10.7,22.8];break;
+    case 'LED':
+      S.top=g=>{for(const x of SP_SITE.ledX)spEdEl('line',{x1:spEdSx(x),y1:spEdSy(SP_SITE.ledZ0),x2:spEdSx(x),y2:spEdSy(SP_SITE.ledZ1),class:'shape',stroke:'currentColor','stroke-width':2,'stroke-dasharray':'7 4'},g);};
+      S.side=g=>{for(let i=0;i<4;i++)spEdEl('circle',{cx:spEdSx(SP_SITE.ledX[i]),cy:spEdSys(SP_SITE.ledY[i]),r:3.6,class:'shape',fill:'currentColor'},g);};
+      S.anchor=[13.2,30.9];break;
+    case 'POD':
+      S.top=g=>{const r=P([15.42,28.0,16.58,30.4]);spEdEl('rect',{x:r.x,y:r.y,width:r.w,height:r.h,rx:5,class:'shape',fill:'rgba(60,190,190,.16)',stroke:'currentColor','stroke-width':1.6},g);
+        spEdEl('line',{x1:spEdSx(15.42),y1:spEdSy(29.2),x2:spEdSx(16.58),y2:spEdSy(29.2),class:'shape',stroke:'currentColor','stroke-width':1},g);};
+      S.side=g=>{const ym=(SP_ED.SVB-2*SP_ED.PAD)/(SP_ED.Y1-SP_ED.Y0);
+        spEdEl('rect',{x:spEdSx(15.7),y:spEdSys(3.22),width:0.6*spEdPx(),height:0.2*ym,class:'shape',fill:'rgba(60,190,190,.3)',stroke:'currentColor','stroke-width':1},g);
+        spEdEl('path',{d:'M '+spEdSx(15.58)+' '+spEdSys(3.42)+' L '+spEdSx(15.78)+' '+spEdSys(3.85)+' L '+spEdSx(16.22)+' '+spEdSys(3.85)+' L '+spEdSx(16.42)+' '+spEdSys(3.42),class:'shape',fill:'rgba(60,190,190,.2)',stroke:'currentColor','stroke-width':1.2},g);};
+      S.anchor=[17.3,30.9];break;
+  }
+  return S;
+}
+function spEditorBuild(){
+  if(spEditorBuilt)return;
+  const ov=document.createElement('div');ov.id='spEditorOv';ov.className='overlay hidden';
+  ov.innerHTML=`<div class="panel"><div class="eyebrow" style="color:var(--cyan)">STATION EDITOR · 17 BUILDING OBJECTS · WHAT / WHERE / WHY</div>
+    <h2 class="title" style="font-size:clamp(20px,4vw,30px)"><span class="c">STATION SCHEMATIC</span></h2>
+    <div class="edwrap">
+      <div class="edleft">
+        <div class="edcap">TOP VIEW · DECK PLAN — <b>+x EAST = SUN</b> · door end = N · 2 m grid</div>
+        <svg id="spEdTop" viewBox="0 0 520 520"></svg>
+        <div class="edcap">SIDE VIEW · TRUE HEIGHTS — floor y=3 · apex y=6</div>
+        <svg id="spEdSide" viewBox="0 0 520 168"></svg>
+      </div>
+      <div class="edright"><div id="spEdDetail"></div><div class="edcap" style="margin-top:10px">ASSEMBLY ORDER · 17 STEPS — HOW IT GETS BUILT TOGETHER + WHY</div><div class="edtimeline" id="spEdTimeline"></div></div>
+    </div>
+    <div class="edfilters" id="spEdFilters"></div>
+    <div class="edtlnote" id="spEdTlNote"></div>
+    <div class="btnrow" style="margin-top:12px">
+      <button class="btn fire" id="spEdClose">CLOSE — BACK TO WORK [N]</button>
+      <button class="btn ghost" id="spEdMissions">MISSIONS [J]</button>
+      <button class="btn ghost" id="spEdArchBtn">ARCHITECTURE THEORY</button>
+      <button class="btn ghost" id="spEdResBtn">RESEARCH</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const top=$('spEdTop'),side=$('spEdSide');
+  /* ── context layers ── */
+  const ctxT=spEdEl('g',{},top),ctxS=spEdEl('g',{},side);
+  for(let gx=4;gx<=28;gx+=2)spEdEl('line',{x1:spEdSx(gx),y1:spEdSy(12),x2:spEdSx(gx),y2:spEdSy(36),class:'edctx',opacity:.35},ctxT);
+  for(let gz=12;gz<=36;gz+=2)spEdEl('line',{x1:spEdSx(4),y1:spEdSy(gz),x2:spEdSx(28),y2:spEdSy(gz),class:'edctx',opacity:.35},ctxT);
+  /* west array pad + deck + corridor context */
+  spEdEl('rect',{x:spEdSx(5),y:spEdSy(16),width:5*spEdPx(),height:16*spEdPx(),class:'edctx fill',opacity:.5},ctxT);
+  spEdEl('rect',{x:spEdSx(17),y:spEdSy(21),width:6*spEdPx(),height:6*spEdPx(),class:'edctx fill',opacity:.7},ctxT);
+  spEdEl('text',{x:spEdSx(20),y:spEdSy(20.2),class:'edlbl',fill:'rgba(140,160,190,.9)'},ctxT).textContent='STATION CORRIDOR';
+  spEdEl('text',{x:spEdSx(5.2),y:spEdSy(31.6),class:'edlbl',fill:'rgba(140,160,190,.9)'},ctxT).textContent='WEST ARRAY PAD';
+  spEdEl('text',{x:spEdSx(4.2),y:spEdSy(12.6),class:'edlbl',fill:'rgba(140,160,190,.9)'},ctxT).textContent='N (DOOR END)';
+  /* solar vector arrow */
+  spEdEl('line',{x1:spEdSx(27.4),y1:spEdSy(33.2),x2:spEdSx(23.4),y2:spEdSy(33.2),stroke:'#ffb020','stroke-width':2,'marker-end':'url(#spEdArrow)'},ctxT);
+  spEdEl('text',{x:spEdSx(23.6),y:spEdSy(34.4),class:'edlbl',fill:'#ffb020'},ctxT).textContent='SOLAR VECTOR 1361 W/m2 (AM0)';
+  const defs=spEdEl('defs',{},top);
+  const mk=spEdEl('marker',{id:'spEdArrow',markerWidth:8,markerHeight:8,refX:6,refY:3,orient:'auto'},defs);
+  spEdEl('path',{d:'M0,0 L6,3 L0,6 Z',fill:'#ffb020'},mk);
+  /* side context: deck + hull silhouette */
+  spEdEl('line',{x1:spEdSx(4),y1:spEdSys(3),x2:spEdSx(28),y2:spEdSys(3),class:'edctx'},ctxS);
+  spEdEl('path',{d:'M '+spEdSx(13)+' '+spEdSys(3)+' A '+3*spEdPx()+' '+3*spEdPx()+' 0 0 1 '+spEdSx(19)+' '+spEdSys(3),class:'edctx',opacity:.5},ctxS);
+  spEdEl('line',{x1:spEdSx(27.6),y1:spEdSys(6.6),x2:spEdSx(24),y2:spEdSys(6.6),stroke:'#ffb020','stroke-width':2},ctxS);
+  spEdEl('text',{x:spEdSx(23.9),y:spEdSys(6.1),class:'edlbl',fill:'#ffb020'},ctxS).textContent='SUN (+x EAST)';
+  /* ── object groups (top + side share data-key) ── */
+  for(const o of SP_OBJECTS){
+    const sh=spEdShapes(o.key);
+    const order=SP_ORDER.find(s=>s.objKey===o.key);
+    for(const svg of[top,side]){
+      const gN=spEdEl('g',{class:'edobj','data-key':o.key,'data-sys':o.sys},svg);
+      sh[svg===top?'top':'side'](gN);
+      if(svg===top&&sh.anchor){
+        spEdEl('circle',{cx:spEdSx(sh.anchor[0]),cy:spEdSy(sh.anchor[1]),r:7.5,fill:'#0a0e1a',stroke:'currentColor','stroke-width':1},gN);
+        const t=spEdEl('text',{x:spEdSx(sh.anchor[0]),y:spEdSy(sh.anchor[1])+2.6,'text-anchor':'middle',class:'ednum'},gN);
+        t.textContent=order?order.n:'';
+      }
+    }
+    const gTop=top.querySelector('g[data-key="'+o.key+'"]');
+    const t=spEdEl('text',{x:spEdSx(sh.anchor?sh.anchor[0]:16)+10,y:spEdSy(sh.anchor?sh.anchor[1]:24)-8,class:'edname'},gTop);
+    t.textContent=o.name;  }
+  /* player marker (live) */
+  const pm=spEdEl('g',{id:'spEdYou'},top);
+  spEdEl('circle',{cx:0,cy:0,r:5,fill:'none',stroke:'#5dff8b','stroke-width':1.6},pm);
+  spEdEl('circle',{cx:0,cy:0,r:1.8,fill:'#5dff8b'},pm);
+  spEdEl('text',{x:8,y:-6,class:'edlbl',fill:'#5dff8b'},pm).textContent='YOU';
+  /* filters */
+  const fl=$('spEdFilters');
+  for(const s of['ALL','STRUCTURE','GROW','POWER','SHELTER']){
+    const b=document.createElement('button');b.textContent=s;b.dataset.sys=s;
+    b.addEventListener('click',()=>{spEditorSys=s;spEditorRefresh();});
+    fl.appendChild(b);
+  }
+  /* timeline */
+  const tl=$('spEdTimeline');
+  for(const s of SP_ORDER){
+    const c=document.createElement('div');c.className='edtl';c.dataset.key=s.objKey;
+    c.innerHTML='<b>'+s.n+'</b> '+s.label;
+    c.title=s.why;
+    c.addEventListener('click',()=>spEditorSelect(s.objKey));
+    tl.appendChild(c);
+  }
+  $('spEdClose').addEventListener('click',()=>spEditorToggle(false));
+  $('spEdMissions').addEventListener('click',()=>{spEditorToggle(false);spMissionsToggle(true);});
+  $('spEdArchBtn').addEventListener('click',()=>{console.log(SPTHEORY2);showToast('STATION ARCHITECTURE THEORY — printed to console');});
+  $('spEdResBtn').addEventListener('click',()=>{try{SP.research2();}catch(e){}});
+  ov.addEventListener('click',e=>{if(e.target===ov)spEditorToggle(false);});
+  for(const gN of ov.querySelectorAll('g.edobj'))gN.addEventListener('click',()=>spEditorSelect(gN.getAttribute('data-key')));
+  spEditorBuilt=true;
+}
+function spEditorLogView(key){
+  if(!wgFarm||!wg.__sp)return;
+  if(wg.spEditorSeen&&wg.spEditorSeen[key])return;
+  try{spApplyAction(wg,{action:'editor.view',target:key,amount:1});}catch(e){}
+  wgPending.push({tick:wg.tick+1,day:wg.day,action:'editor.view',target:key,amount:1});
+  wgLogAdd('editor.view',key,1);
+  try{wgSave();}catch(e){}
+}
+function spEditorSelect(key){
+  const o=SP_OBJ_BY_KEY[key];if(!o)return;
+  spEditorSel=key;
+  spEditorLogView(key);
+  spEditorRefresh();
+}
+function spEditorRefresh(){
+  if(!spEditorBuilt)return;
+  const ov=$('spEditorOv');if(!ov||ov.classList.contains('hidden'))return;
+  /* object status classes */
+  for(const o of SP_OBJECTS){
+    const st=spObjStatus(o.key);
+    ov.querySelectorAll('g.edobj[data-key="'+o.key+'"]').forEach(gN=>{
+      gN.classList.remove('st-built','st-now','st-pending','sel','dim');
+      gN.classList.add(st.built?'st-built':(st.now?'st-now':'st-pending'));
+      if(spEditorSys!=='ALL'&&o.sys!==spEditorSys)gN.classList.add('dim');
+      if(spEditorSel===o.key)gN.classList.add('sel');
+    });
+  }
+  const fl=$('spEdFilters');
+  if(fl)for(const b of fl.querySelectorAll('button'))b.classList.toggle('on',b.dataset.sys===spEditorSys);
+  /* timeline */
+  const tl=$('spEdTimeline');
+  if(tl)for(const c of tl.querySelectorAll('.edtl')){
+    const st=spObjStatus(c.dataset.key);
+    c.classList.remove('done','now','sel');
+    if(st.built)c.classList.add('done');
+    else if(st.now)c.classList.add('now');
+    if(spEditorSel===c.dataset.key)c.classList.add('sel');
+  }
+  const note=$('spEdTlNote');
+  if(note){
+    const s=SP_ORDER.find(x=>x.objKey===spEditorSel);
+    if(s){const st=spObjStatus(s.objKey);note.innerHTML='<b>'+s.n+'/17 '+s.label+'</b> — '+s.why+' <span style="color:var(--muted)">('+st.state+')</span>';}
+  }
+  /* player marker */
+  const pm=$('spEdYou');
+  if(pm){pm.setAttribute('transform','translate('+spEdSx(player.x).toFixed(1)+','+spEdSy(player.z).toFixed(1)+')');}
+  spEditorDetail();
+}
+function spEditorDetail(){
+  const el=$('spEdDetail');if(!el)return;
+  const o=SP_OBJ_BY_KEY[spEditorSel];
+  if(!o){
+    const builtN=SP_OBJECTS.filter(x=>spObjStatus(x.key).built).length;
+    const seenN=(wg.spEditorSeen&&Object.keys(wg.spEditorSeen).length)||0;
+    const stNow=SP_ORDER.find(s=>{const st=spObjStatus(s.objKey);return st.now;});
+    el.innerHTML='<h3>STATION OVERVIEW</h3>'
+      +'<div class="chips"><span class="chip sys">17 OBJECTS</span><span class="chip sys">4 SYSTEMS</span>'
+      +'<span class="chip '+(builtN===17?'built':'now')+'">'+builtN+'/17 BUILT</span></div>'
+      +'<div class="sec">WHAT THIS EDITOR IS</div>'
+      +'<p>Every building object of the station on one schematic — click any numbered object in the TOP VIEW or SIDE VIEW. Each carries its WHAT (definition), WHERE (station coordinates) and WHY (the engineering reason it sits exactly there, grounded in real station architecture: ISS arrays ride the outboard truss, batteries sit beside them, crew quarters take the quiet end).</p>'
+      +'<div class="sec">HOW IT GETS BUILT TOGETHER</div>'
+      +'<p>The 17 chips below the schematic are the assembly sequence — hover one for the reason that step happens WHEN it does. The order is the engineering: structure before shell, seal before soil, power before payloads, crew systems last.</p>'
+      +(stNow?'<div class="sec">CURRENT BUILD STEP</div><p><b style="color:var(--amber)">'+stNow.n+'/17 '+stNow.label+'</b> — '+stNow.why+'</p>':'')
+      +'<div class="sec">SURVEY</div>'
+      +'<p>'+seenN+'/17 objects inspected — inspect all 17 to complete the STATION ARCHITECT mission (+'+SP_MISSIONS.find(m=>m.id==='M14').reward+' EUR at the ledger).</p>'
+      +'<div class="res">RESEARCH: SP.research2() · ARCHITECTURE: SP.theory() · ASSEMBLY: SP.order()</div>';
+    return;
+  }
+  const st=spObjStatus(o.key);
+  const seen=(wg.spEditorSeen&&Object.keys(wg.spEditorSeen).length)||0;
+  const d=Math.round(Math.hypot(player.x-o.where.pos[0],player.z-o.where.pos[2]));
+  el.innerHTML='<h3>'+o.name+'</h3>'
+    +'<div class="chips"><span class="chip sys">'+o.sys+'</span>'
+    +'<span class="chip '+(st.built?'built':(st.now?'now':'pending'))+'">'+st.state+(st.built?'':(st.now?' '+st.step+'/'+st.need:''))+'</span></div>'
+    +'<div class="sec">WHAT</div><p>'+o.what+'</p>'
+    +'<div class="sec">WHERE — STATION COORDINATES</div><p>'+o.where.loc+' · anchor ('+o.where.pos.join(', ')+')</p>'
+    +'<div class="sec">WHY IT IS THERE</div><p>'+o.why+'</p>'
+    +'<div class="sec">WHY NOW — ASSEMBLY ORDER</div><p>'+o.order+'</p>'
+    +'<div class="sec">SPECS — REAL DATA</div><dl>'+o.specs.map(s=>'<dt>'+s[0]+'</dt><dd>'+s[1]+'</dd>').join('')+'</dl>'
+    +'<div class="sec">DEPENDS ON / ENABLES</div><div class="chips">'
+      +(o.deps.length?o.deps.map(k=>'<span class="chip">'+k+'</span>').join(''):'<span class="chip">nothing — first object</span>')
+      +'<span style="color:var(--muted);font-size:10px">&rarr;</span>'
+      +(o.enables.length?o.enables.map(k=>'<span class="chip">'+k+'</span>').join(''):'<span class="chip">station complete</span>')+'</div>'
+    +'<div class="res">RESEARCH: '+o.research+' — SP.research() prints sources</div>'
+    +'<div class="you">YOU ARE '+d+' m FROM THIS OBJECT · SURVEY: '+seen+'/17 OBJECTS INSPECTED</div>';
+}
+function spEditorToggle(force){
+  spEditorBuild();
+  const ov=$('spEditorOv');
+  const show=force!=null?force:ov.classList.contains('hidden');
+  if(show){ov.classList.remove('hidden');if(document.pointerLockElement)document.exitPointerLock();spEditorRefresh();}
+  else{ov.classList.add('hidden');requestLock();}
+}
+document.addEventListener('keydown',e=>{
+  try{
+    if(!wgFarm||paused)return;
+    if(e.code==='KeyN'&&!e.repeat){e.preventDefault();spEditorToggle();}
+  }catch(err){}
+});
+/* EDITOR + MISSIONS buttons in the build overlay, EDITOR chip in the action bar */
+(function spEditorInjectButtons(){
+  function inject(){
+    const row=document.querySelector('#wgBuildOv .btnrow');
+    if(row&&!$('spBuildEdBtn')){
+      const b1=document.createElement('button');b1.className='btn ghost';b1.id='spBuildEdBtn';b1.textContent='STATION EDITOR [N]';
+      b1.addEventListener('click',()=>{try{$('wgBuildOv').classList.add('hidden');}catch(e){}spEditorToggle(true);});
+      const b2=document.createElement('button');b2.className='btn ghost';b2.id='spBuildMisBtn';b2.textContent='MISSIONS [J]';
+      b2.addEventListener('click',()=>{try{$('wgBuildOv').classList.add('hidden');}catch(e){}spMissionsToggle(true);});
+      row.insertBefore(b2,row.firstChild);row.insertBefore(b1,row.firstChild);
+    }
+    const acts=$('wgActions');
+    if(acts&&!$('spChipN')){
+      const mk=(id,txt)=>{const s=document.createElement('span');s.className='act sp';s.id=id;s.textContent=txt;acts.appendChild(s);};
+      mk('spChipN','N EDITOR');
+      mk('spChipJ','J MISSIONS');
+    }
+    return !!row;
+  }
+  if(!inject())document.addEventListener('DOMContentLoaded',inject,false);
+  setTimeout(inject,2500);setTimeout(inject,8000);
+})();
+window.SPOBJECTS=SP_OBJECTS;window.SPORDER=SP_ORDER;
+</script>
+<script>
+"use strict";
+/* ═══════════════ SP 22 · MISSION CHAIN — 16 operations, derived + deterministic ═══════════════ */
+/* Model: NASA plant payloads run as milestone chains (Veg-01 lettuce 2015 ->
+   PH-04 peppers 2021 -> Veg-05 tomatoes harvested Mar 2023). Every mission is
+   DERIVED from state, evaluated once per sim minute inside spPowerTick —
+   the same call site in live and replay, so spMissionDone is byte-identical.
+   Rewards pay at SP.ledger() as a mission bonus (no hidden state). */
+const SP_MISSIONS=[
+ {id:'M01', title:'GROUNDWORK', reward:20,
+  goal:'Complete ground phases 0-2: survey line, stakes + gravel bed, base rails + 14 anchors.',
+  why:'NASA assembly order: structure before payloads (Zarya -> truss -> lab).',
+  check:st=>!!(st.built[0]&&st.built[1]&&st.built[2]),
+  prog:st=>[(!!st.built[0])+ (!!st.built[1])+ (!!st.built[2]),3]},
+ {id:'M02', title:'SKELETON RISEN', reward:25,
+  goal:'Raise the frame: 13 ribs + 3 purlins — all 16 stability bones standing.',
+  why:'13 ribs + 3 purlins = the snow-load skeleton (0.25 kN/m2, <0.05 m deflection).',
+  check:st=>!!(st.built[3]&&st.built[4]),
+  prog:st=>[(!!st.built[3])+(!!st.built[4]),2]},
+ {id:'M03', title:'SEALED HULL', reward:40,
+  goal:'Seal the envelope: inner film, outer film + 0.10 m air gap, welded floor.',
+  why:'Double film + sealed floor: U 6.7 vs 10.0, 17.3 MJ/K soil mass retained.',
+  check:st=>!!(st.built[5]&&st.built[6]&&st.built[7]),
+  prog:st=>[(!!st.built[5])+(!!st.built[6])+(!!st.built[7]),3]},
+ {id:'M04', title:'LIVING SOIL', reward:35,
+  goal:'Build the grow floor: door, 2 beds, 9.6 m3 soil fill, trellis + drip.',
+  why:'9.6 m3 living soil = medium AND thermal mass; N-P-K bands 150-250/45-80/200-350.',
+  check:st=>!!(st.built[8]&&st.built[9]&&st.built[10]&&st.built[11]),
+  prog:st=>[(!!st.built[8])+(!!st.built[9])+(!!st.built[10])+(!!st.built[11]),4]},
+ {id:'M05', title:'GREEN START', reward:30,
+  goal:'Plant the first crop: 80 cherry tomato seedlings into the finished envelope.',
+  why:'Crops enter a commissioned facility — the NASA payload rule (Veg-05).',
+  check:st=>!!st.built[12],
+  prog:st=>[!!st.built[12]?1:0,1]},
+ {id:'M06', title:'FIRST LIGHT', reward:55,
+  goal:'Commission the power train: deploy the array AND mount the battery rack.',
+  why:'ISS arrays (Dec 2000) preceded Destiny lab (Feb 2001); storage beside source.',
+  check:st=>!!(st.spBuilt.ARRAY&&st.spBuilt.BATTERY),
+  prog:st=>[(!!st.spBuilt.ARRAY)+(!!st.spBuilt.BATTERY),2]},
+ {id:'M07', title:'RED PHOTONS', reward:45,
+  goal:'Run the red LED rig to 3 consecutive days at DLI 12+ mol/m2/d.',
+  why:'Veggie red band 120-360 umol/m2/s — this rig delivers 278.',
+  check:st=>!!(st.spBuilt.LED&&st.spDliStreak>=3),
+  prog:st=>[Math.min(st.spDliStreak||0,3),3,'DLI streak '+ (st.spDliStreak||0) +' d']},
+ {id:'M08', title:'FIRST HARVEST', reward:60,
+  goal:'Harvest your first kilogram of red-light tomatoes.',
+  why:'THE payload milestone: Veg-01 lettuce 2015, first space tomato Mar 2023.',
+  check:st=>st.harvestedKg>=1,
+  prog:st=>[Math.min(st.harvestedKg,1),1,st.harvestedKg.toFixed(1)+' kg']},
+ {id:'M09', title:'STORM DRILL', reward:70,
+  goal:'Weather the day-18 M-class proton storm with total crew dose under 18 mSv.',
+  why:'Storm delivers ~15.9 mSv unsheltered; shadow x0.55 or pod x0.10 keeps you under.',
+  check:st=>st.spStormDoseEnd[0]!=null&&st.spStormDoseEnd[0]<18,
+  prog:st=>st.spStormDoseEnd[0]==null?[0,2,'storm 1 not yet ended']:(st.spStormDoseEnd[0]<18?[2,2,'dose '+st.spStormDoseEnd[0].toFixed(1)+' mSv < 18']:[1,2,'dose '+st.spStormDoseEnd[0].toFixed(1)+' mSv — missed'])},
+ {id:'M10', title:'ENERGY MERCHANT', reward:60,
+  goal:'Sell 10 kWh of surplus orbit energy to the station grid.',
+  why:'Every sunlit minute makes more than the load — surplus sells at 0.40 EUR/kWh.',
+  check:st=>st.spSoldKwh>=10,
+  prog:st=>[Math.min(st.spSoldKwh,10),10,st.spSoldKwh.toFixed(1)+' kWh']},
+ {id:'M11', title:'SOIL SCIENTIST', reward:65,
+  goal:'Hold pH 6.0-6.8 AND 45-75% moisture in BOTH beds for 30 consecutive days.',
+  why:'pH 6.0-6.8 unlocks N-P-K; 45-75% moisture feeds roots without drowning.',
+  check:st=>st.spNutriStreakDays>=30,
+  prog:st=>[Math.min(st.spNutriStreakDays,30),30,'streak '+st.spNutriStreakDays+' d']},
+ {id:'M12', title:'CENTURION', reward:90,
+  goal:'Harvest 100 kg of tomatoes in one season.',
+  why:'100 kg from 24 m2 under red-only light (0.92 ceiling) — farming at scale.',
+  check:st=>st.harvestedKg>=100,
+  prog:st=>[Math.min(st.harvestedKg,100),100,st.harvestedKg.toFixed(1)+' kg']},
+ {id:'M13', title:'CELL SAVER', reward:85,
+  goal:'Finish the day-47 X-class storm with total array degradation under 5%.',
+  why:'Tracking through an X-class storm costs 4% of the wings; edge-on costs 0%.',
+  check:st=>st.spStormDegEnd[1]!=null&&st.spStormDegEnd[1]<0.05,
+  prog:st=>st.spStormDegEnd[1]==null?[0,2,'storm 2 not yet ended']:(st.spStormDegEnd[1]<0.05?[2,2,'deg '+(st.spStormDegEnd[1]*100).toFixed(2)+'% < 5%']:[1,2,'deg '+(st.spStormDegEnd[1]*100).toFixed(2)+'% — missed'])},
+ {id:'M14', title:'STATION ARCHITECT', reward:35,
+  goal:'Inspect all 17 building objects in the STATION EDITOR [N] — know WHAT, WHERE and WHY.',
+  why:'An operator who can name every part and its reason runs the station.',
+  check:st=>Object.keys(st.spEditorSeen||{}).length>=17,
+  prog:st=>[Math.min(Object.keys(st.spEditorSeen||{}).length,17),17]},
+ {id:'M15', title:'DOSE DISCIPLINE', reward:100,
+  goal:'Pass all three proton storms with total crew dose under 90 mSv at the end of storm 3.',
+  why:'GCR x0.65 every night, SPE x0.10 through each storm — dose is only avoided.',
+  check:st=>st.spStormDoseEnd[2]!=null&&st.spStormDoseEnd[2]<90,
+  prog:st=>st.spStormDoseEnd[2]==null?[0,2,'storm 3 not yet ended']:(st.spStormDoseEnd[2]<90?[2,2,'dose '+st.spStormDoseEnd[2].toFixed(1)+' mSv < 90']:[1,2,'dose '+st.spStormDoseEnd[2].toFixed(1)+' mSv — missed'])},
+ {id:'M16', title:'SEASON VETERAN', reward:150,
+  goal:'Finish day 104+ with health 60+, dose under 100 mSv, 200+ kg harvested and energy sold > bought.',
+  why:'Crop, crew, power and money all green at once — the station understood.',
+  check:st=>st.day>=104&&st.health>=60&&st.spDoseMsv<100&&st.harvestedKg>=200&&st.spEurSold>st.spEurBought,
+  prog:st=>[(st.day>=104)+(st.health>=60)+(st.spDoseMsv<100)+(st.harvestedKg>=200)+(st.spEurSold>st.spEurBought),5,'5 conditions']}
+];
+const SP_MISSIONS_TOTAL_REWARD=SP_MISSIONS.reduce((s,m)=>s+m.reward,0);   /* 965 EUR */
+function spMissionCheck(st){
+  if(!st||!st.__sp)return;
+  st.spMissionDone=st.spMissionDone||{};
+  for(const m of SP_MISSIONS){
+    if(st.spMissionDone[m.id])continue;
+    let ok=false;
+    try{ok=!!m.check(st);}catch(e){ok=false;}
+    if(ok)st.spMissionDone[m.id]=1;
+  }
+}
+function spMissionBonus(st){
+  const s=st||wg,d=(s&&s.spMissionDone)||{};
+  let sum=0;
+  for(const m of SP_MISSIONS)if(d[m.id])sum+=m.reward;
+  return sum;
+}
+function spMissionProgress(st,m){
+  try{const p=m.prog(st||wg);return {cur:p[0],max:p[1],txt:p[2]||null};}catch(e){return {cur:0,max:1,txt:null};}
+}
+
+/* ═══════════════ SP 23 · MISSION HUD + OVERLAY [J] ═══════════════ */
+let __spMissionSnap=null;
+function spMissionHud(){
+  if(!wgFarm||!wg.__sp)return;
+  const done=(wg.spMissionDone||{});
+  const doneN=Object.keys(done).length;
+  const cur=SP_MISSIONS.find(m=>!done[m.id]);
+  const nm=$('spMissionName'),pb=$('spMissionBar'),pt=$('spMissionTxt'),bn=$('spMissionBonus');
+  if(cur){
+    const p=spMissionProgress(wg,cur);
+    if(nm)nm.innerHTML=doneN+'/16 · <b>'+cur.title+'</b>';
+    if(pb)pb.firstElementChild.style.width=Math.max(2,(p.cur/p.max*100))+'%';
+    if(pt)pt.textContent=(p.txt? p.txt+' · ':'')+cur.goal;
+  }else{
+    if(nm)nm.innerHTML='16/16 · <b>ALL MISSIONS COMPLETE</b>';
+    if(pb)pb.firstElementChild.style.width='100%';
+    if(pt)pt.textContent='SEASON MASTERED — check SP.ledger() for the full bonus';
+  }
+  if(bn)bn.textContent='BONUS +'+spMissionBonus(wg)+' EUR';
+  const set=(id,v)=>{const n=$(id);if(n)n.textContent=v;};
+  set('spChipN','N EDITOR '+Math.min(Object.keys(wg.spEditorSeen||{}).length,17)+'/17');
+  set('spChipJ','J MISSIONS '+doneN+'/16');
+  /* live toasts — replay never runs this (UI layer only) */
+  const nowDone=Object.keys(done).sort().join(',');
+  if(__spMissionSnap===null)__spMissionSnap=nowDone;
+  else if(nowDone!==__spMissionSnap){
+    const prev=new Set(__spMissionSnap.split(',').filter(Boolean));
+    let completed=false;
+    for(const m of SP_MISSIONS){
+      if(done[m.id]&&!prev.has(m.id)){
+        showToast('MISSION COMPLETE — '+m.title+' · +'+m.reward+' EUR AT LEDGER');
+        try{wgLogAdd('mission.done',m.id,m.reward);}catch(e){}
+        completed=true;
+      }
+    }
+    __spMissionSnap=nowDone;
+    /* if the mission board is open, refresh it live */
+    if(completed){
+      const mo=$('spMissionOv');
+      if(mo&&!mo.classList.contains('hidden'))spMissionsToggle(true);
+    }
+  }
+}
+function spMissionsBuild(){
+  if($('spMissionOv'))return;
+  const ov=document.createElement('div');ov.id='spMissionOv';ov.className='overlay hidden';
+  ov.innerHTML=`<div class="panel"><div class="eyebrow" style="color:var(--amber)">MISSION CHAIN · 16 OPERATIONS · MODELED ON REAL PAYLOAD OPS</div>
+    <h2 class="title" style="font-size:clamp(20px,4vw,30px)"><span class="c">MISSION CHAIN</span></h2>
+    <div id="spMissionList"></div>
+    <div class="btnrow" style="margin-top:12px">
+      <button class="btn fire" id="spMisClose">CLOSE — BACK TO WORK [J]</button>
+      <button class="btn ghost" id="spMisEditor">STATION EDITOR [N]</button>
+      <button class="btn ghost" id="spMisLedger">LEDGER</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  $('spMisClose').addEventListener('click',()=>spMissionsToggle(false));
+  $('spMisEditor').addEventListener('click',()=>{spMissionsToggle(false);spEditorToggle(true);});
+  $('spMisLedger').addEventListener('click',()=>{try{SP.ledger();}catch(e){}});
+  ov.addEventListener('click',e=>{if(e.target===ov)spMissionsToggle(false);});
+}
+function spMissionsToggle(force){
+  spMissionsBuild();
+  const ov=$('spMissionOv');if(!ov)return;
+  const show=force!=null?force:ov.classList.contains('hidden');
+  if(show){
+    const done=(wg.spMissionDone||{});
+    const curIdx=SP_MISSIONS.findIndex(m=>!done[m.id]);
+    const list=$('spMissionList');
+    list.innerHTML=SP_MISSIONS.map((m,ix)=>{
+      const isDone=!!done[m.id];
+      const p=spMissionProgress(wg,m);
+      const open=(!isDone&&ix===curIdx)?' open':'';
+      return '<div class="mrow '+(isDone?'done':'')+open+'" data-mid="'+m.id+'">'
+        +'<div class="mnum">'+(isDone?'&#10003;':m.id)+'</div>'
+        +'<div class="mbody">'
+        +'<div class="mhead"><span class="mt">'+m.title+'</span><span class="mrew">+'+m.reward+' EUR</span></div>'
+        +'<div class="mbar"><i style="width:'+(isDone?100:Math.max(2,p.cur/p.max*100))+'%"></i></div>'
+        +'<div class="mexp">'+(isDone?'COMPLETE — ':((p.txt?p.txt+' · ':'')+p.cur+' / '+p.max+' — '))+m.goal
+        +'<div class="mwhy">REAL DATA: '+m.why+'</div></div>'
+        +'</div></div>';
+    }).join('')
+    +'<div class="mprog" style="grid-column:1/-1;margin-top:6px">MISSION BONUS SO FAR: +'+spMissionBonus(wg)+' / '+SP_MISSIONS_TOTAL_REWARD+' EUR — paid at SP.ledger() · progress is replay-derived, no hidden state · click a mission to expand</div>';
+    list.querySelectorAll('.mrow').forEach(r=>r.addEventListener('click',()=>r.classList.toggle('open')));
+    ov.classList.remove('hidden');
+    if(document.pointerLockElement)document.exitPointerLock();
+  }else{ov.classList.add('hidden');requestLock();}
+}
+document.addEventListener('keydown',e=>{
+  try{
+    if(!wgFarm||paused)return;
+    if(e.code==='KeyJ'&&!e.repeat){e.preventDefault();spMissionsToggle();}
+  }catch(err){}
+});
+/* HUD chain: base panels -> space panels -> mission chip */
+const __spHudPreMissions=wgHudUpdate;
+wgHudUpdate=function(){__spHudPreMissions();try{spMissionHud();}catch(e){}};
+/* mission HUD panel (positioned next to the power panel) */
+(function spMissionInject(){
+  function inject(){
+    const hud=$('wgHud');if(!hud)return false;
+    if(!$('spMissionHud')){
+      const p=document.createElement('div');p.className='wg-panel';p.id='spMissionHud';
+      p.innerHTML=`<div class="cap">MISSION CHAIN — 16 OPS</div>
+        <div class="mname" id="spMissionName">0/16</div>
+        <div class="mbar" id="spMissionBar"><i style="width:2%"></i></div>
+        <div class="mprog" id="spMissionTxt"></div>
+        <div class="mbonus" id="spMissionBonus">BONUS +0 EUR</div>`;
+      hud.appendChild(p);
+    }
+    return true;
+  }
+  if(!inject())document.addEventListener('DOMContentLoaded',inject,false);
+  setTimeout(inject,2500);setTimeout(inject,8000);
+})();
+
+/* ═══════════════ SP 24 · VERIFY II — S17-S26 (work_003 processes) ═══════════════ */
+const __spVerifyCore=spVerify;
+spVerify=function(){
+  const core=__spVerifyCore();
+  const R=core.results;
+  const T=(id,expect,pass,detail)=>{R.push({id,expect,pass:!!pass,detail:detail||''});};
+  try{
+    /* S17 object registry: 17 objects, complete definitions, in-bounds */
+    const keys=SP_OBJECTS.map(o=>o.key);
+    const uniq=new Set(keys).size===SP_OBJECTS.length;
+    const complete=SP_OBJECTS.every(o=>o.what&&o.where&&o.where.pos&&o.where.loc&&o.why&&o.order&&o.specs&&o.specs.length>=3&&o.deps&&o.enables&&o.research);
+    const inBounds=SP_OBJECTS.every(o=>o.where.pos[0]>=3.5&&o.where.pos[0]<=28.5&&o.where.pos[2]>=11.5&&o.where.pos[2]<=36.5);
+    T('S17 object registry','17 objects, unique keys, WHAT/WHERE/WHY/specs/deps complete, coords in station bounds',
+      SP_OBJECTS.length===17&&uniq&&complete&&inBounds,
+      'n='+SP_OBJECTS.length+' uniq='+uniq+' complete='+complete+' bounds='+inBounds);
+    /* S18 live status: every object reports a valid state, counts match live build */
+    const sts=SP_OBJECTS.map(o=>spObjStatus(o.key));
+    const valid=sts.every(s=>s&&s.need>=1&&['BUILT','BUILDING','PENDING'].indexOf(s.state)>=0);
+    const builtBase=sts.filter((s,i)=>SP_OBJECTS[i].phase.src==='base'&&s.built).length;
+    const liveBase=WBUILD.filter((p,i)=>wg.built[i]).length;
+    const builtSp=sts.filter((s,i)=>SP_OBJECTS[i].phase.src==='sp'&&s.built).length;
+    const liveSp=SPBUILD.filter(p=>wg.spBuilt[p.key]).length;
+    T('S18 object status','every object BUILT/BUILDING/PENDING; built counts match live state',
+      valid&&builtBase===liveBase&&builtSp===liveSp,
+      'valid='+valid+' base '+builtBase+'/'+liveBase+' sp '+builtSp+'/'+liveSp);
+    /* S19 editor DOM: overlay builds, 17+17 clickable groups, 17 chips, 5 filters */
+    spEditorBuild();
+    const edOv=$('spEditorOv');
+    const gTop=edOv?edOv.querySelectorAll('#spEdTop g.edobj').length:0;
+    const gSide=edOv?edOv.querySelectorAll('#spEdSide g.edobj').length:0;
+    const chips=edOv?edOv.querySelectorAll('.edtl').length:0;
+    const filters=edOv?edOv.querySelectorAll('.edfilters button').length:0;
+    T('S19 station editor','overlay + 17 top + 17 side clickable objects + 17 timeline chips + 5 filters',
+      !!edOv&&gTop===17&&gSide===17&&chips===17&&filters===5,
+      'ov='+!!edOv+' top='+gTop+' side='+gSide+' chips='+chips+' filters='+filters);
+    /* S20 missions registry: 16 unique, rewards sum, full definitions */
+    const mIds=SP_MISSIONS.map(m=>m.id);
+    const mUniq=new Set(mIds).size===SP_MISSIONS.length;
+    const mFull=SP_MISSIONS.every(m=>m.title&&m.goal&&m.why&&typeof m.check==='function'&&typeof m.prog==='function'&&m.reward>0);
+    T('S20 mission registry','16 missions, unique ids, check+prog+why+reward, total 965 EUR',
+      SP_MISSIONS.length===16&&mUniq&&mFull&&SP_MISSIONS_TOTAL_REWARD===965,
+      'n='+SP_MISSIONS.length+' uniq='+mUniq+' full='+mFull+' rewards='+SP_MISSIONS_TOTAL_REWARD);
+    /* S21 mission determinism: standard log 2x -> identical mission set + bonus */
+    const stA=spRunReplay(spStandardLog(),{});
+    const stB=spRunReplay(spStandardLog(),{});
+    const mA=JSON.stringify(stA.spMissionDone),mB=JSON.stringify(stB.spMissionDone);
+    const bonusA=spMissionBonus(stA),bonusB=spMissionBonus(stB);
+    const stNo=spRunReplay(spStandardLog().filter(l=>l.action!=='sp.sleep'),{});
+    T('S21 mission determinism','same log 2x -> identical missions + bonus; sleepless run pays less',
+      mA===mB&&bonusA===bonusB&&spMissionBonus(stNo)<bonusA,
+      'done='+Object.keys(stA.spMissionDone).length+' bonus='+bonusA+' (no-sleep '+spMissionBonus(stNo)+')');
+    /* S22 storm snapshots: dose + deg frozen at each storm end, deterministic */
+    const s22=spRunReplay(spStandardLog(),{});
+    const snapOk=s22.spStormDoseEnd.every(d=>d!=null&&d>0)&&s22.spStormDegEnd.every(d=>d!=null);
+    const noSl=spRunReplay(spStandardLog().filter(l=>l.action!=='sp.sleep'),{});
+    const doseLogic=noSl.spStormDoseEnd[0]>s22.spStormDoseEnd[0];
+    T('S22 storm snapshots','all 3 storms record dose + degradation at end; unsheltered run records higher dose',
+      snapOk&&doseLogic,
+      'dose ends ['+s22.spStormDoseEnd.map(d=>d&&d.toFixed(1)).join(', ')+'] deg ends ['+s22.spStormDegEnd.map(d=>d&&(d*100).toFixed(2)+'%').join(', ')+']');
+    /* S23 ledger pays the mission bonus, identity still closes */
+    const led=spLedger(s22);
+    const expBonus=spMissionBonus(s22);
+    const idOk=Math.abs(led.sum_costs.total+led.balance-led.sum_revenue)<1e-9;
+    T('S23 ledger mission bonus','revenue = food + energy + mission bonus, mismatch 0, bonus > 0',
+      led.mission_bonus_eur===expBonus&&expBonus>0&&led.mismatch===0&&idOk,
+      'bonus='+led.mission_bonus_eur+' balance='+led.balance+' mismatch='+led.mismatch);
+    /* S24 editor.view + base-build replay: full build chain + 17 inspections */
+    const archLog=[];
+    for(let i=0;i<WBUILD.length;i++)archLog.push({tick:2,day:0,action:'build.phase.done',target:'PHASE '+i+' '+WBUILD[i].key,amount:1});
+    for(const o of SP_OBJECTS)archLog.push({tick:3,day:0,action:'editor.view',target:o.key,amount:1});
+    const stArch=spRunReplay(archLog,{days:2});
+    const seenN=Object.keys(stArch.spEditorSeen||{}).length;
+    const chain=['M01','M02','M03','M04','M05'].every(id=>!!stArch.spMissionDone[id]);
+    T('S24 editor.view replay','13 build completions + 17 editor.view lines -> M01-M05 + STATION ARCHITECT done, phase 13 restored',
+      seenN===17&&!!stArch.spMissionDone.M14&&chain&&stArch.phase===13&&stArch.built[12],
+      'seen='+seenN+' M14='+(!!stArch.spMissionDone.M14)+' chain='+chain+' phase='+stArch.phase);
+    /* S25 streak counters: DLI streak grows and resets; nutri streak follows bands */
+    const s25=spExtend(wgFreshState(),true);
+    s25.spBuilt.LED=true;s25.spLedOn=true;s25.tick=600;s25.spDliToday=14;
+    spDailyTick(s25);
+    const st1=s25.spDliStreak;
+    s25.spDliToday=0;
+    spDailyTick(s25);
+    const st2=s25.spDliStreak;
+    const s25b=spExtend(wgFreshState(),true);
+    s25b.soil.forEach(b=>{b.ph=6.4;b.moisture_pct=60;});
+    spDailyTick(s25b);
+    const n1=s25b.spNutriStreakDays;
+    s25b.soil[0].ph=5.2;
+    spDailyTick(s25b);
+    const n2=s25b.spNutriStreakDays;
+    T('S25 streak logic','DLI streak 1 then reset to 0; nutri streak 1 then reset when pH leaves band',
+      st1===1&&st2===0&&n1===1&&n2===0,
+      'dli '+st1+'->'+st2+' nutri '+n1+'->'+n2);
+    /* S26 surface II: window APIs, missions overlay, title SUN006, no bad tokens */
+    const myScripts=[...document.querySelectorAll('script')].map(s=>s.textContent).join('');
+    const bad=['X'+'XX','FIX'+'ME','PLACE'+'HOLDER'].filter(tok=>myScripts.includes(tok));
+    spMissionsBuild();spMissionsToggle(true);spMissionsToggle(false);
+    const misRows=document.querySelectorAll('#spMissionList .mrow').length;
+    T('S26 surface II','title SUN006, window.SPOBJECTS/SP_MISSIONS, missions overlay renders 16 rows, no bad tokens',
+      document.title.indexOf('SUN006')>=0&&window.SPOBJECTS&&window.SP_MISSIONS===SP_MISSIONS
+      &&misRows===16&&typeof spEditorToggle==='function'&&bad.length===0,
+      'title='+document.title+' rows='+misRows+' bad='+JSON.stringify(bad));
+  }catch(e){T('S-ERR2','exception',false,String(e&&e.message||e));}
+  const pass=R.filter(r=>r.pass).length,fail=R.length-pass;
+  console.log('%c SP.VERIFY II — work_003 tests appended: '+pass+'/'+R.length+' PASS ',
+    'background:#0a0e1a;color:'+(fail?'#ff3b30':'#5dff8b')+';font-weight:bold;padding:4px 10px;border:1px solid '+(fail?'#ff3b30':'#5dff8b')+';border-radius:6px');
+  console.table(R.slice(16));
+  return {pass,fail,total:R.length,results:R};
+};
+window.SP_MISSIONS=SP_MISSIONS;window.spMissionBonus=spMissionBonus;
 </script>
 </body>
 </html>
