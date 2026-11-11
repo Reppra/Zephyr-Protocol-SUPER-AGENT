@@ -6979,5 +6979,1296 @@ requestAnimationFrame(wgFrame);
 console.log('%c SUN004 · MONEY — base.dna ','background:#0a0e1a;color:#5dff8b;font-weight:bold;padding:4px 10px;border:1px solid #5dff8b;border-radius:6px',
   'loaded · '+WG_DNA.equation+' · work_001 · phase '+wg.phase+'/13'+(wgHadSave?' (resumed)':' (fresh)')+' · console: WG.help() · WG.verify() · WG.theory()');
 </script>
+<!-- ════════════════════════════════════════════════════════════════════════
+     add.dna · ORBITAL POWER + RED LED PRODUCTION + SLEEP POD (work_002)
+     ──────────────────────────────────────────────────────────────────────
+     DNA CONTRACT:  base.dna + add.dna = SUN005.html
+       base.dna = SUN004.html (LOCKED, byte-exact — engine + WINTERGARTEN
+                  work_001 + MONEY menu). ZERO EDITS. Only runtime wrapping.
+       add.dna  = THIS FILE — the space layer. The Wintergarten is now an
+                  ORBITAL station farm:
+                  · SOLAR ARRAY (2 wings x 6 panels, 12 m2, 30% cells)
+                    produces the ENERGY from AM0 1361 W/m2 and DEFENDS
+                    against the solar radiation influx (shadow shielding
+                    when sun-pointed; edge-on saves the cells in a storm).
+                  · Production ONLY with RED LED LIGHT: 4 x 540 W bars,
+                    660 nm deep red, 3.1 umol/J -> 14 mol/m2/d on 24 m2
+                    canopy. No sun-through-film photons: red light only.
+                  · SOLAR PARTICLE EVENTS (day 18 / 47 / 83): proton storms
+                    with a 2 h warning. Crew dose is REAL physics: shelter
+                    in the pod, or take the mSv.
+                  · SLEEP POD — sarcophagus with a 20 g/cm2 water wall.
+                    [E] at the pod = 12 h sleep cycle: time runs forward
+                    deterministically while you are sheltered. The playful
+                    time-skip button, and the storm shelter in one shell.
+                  · BATTERY 2.5 kWh Li-ion rides the 92-min orbit
+                    (61 min sun / 31 min eclipse). Surplus kWh are SOLD to
+                    the station grid. FOOD + ENERGY = total money flow.
+       splice:  SUN005.html = base.dna minus its final </body></html> tail,
+                + add.dna + the tail again (see scripts/make_sun005.py).
+     RULES:     NO AUTO-PLAY — every action is done by the USER hand
+                (E / 1-6 / P / L / 7). Timers, BMS and billing are systems,
+                not players. Every process gets a VERIFY run (SP.verify,
+                16 tests, appended to WG.verify -> 32 total).
+     REAL DATA: researched 2026-11 — SPRESEARCH R11-R24 with sources.
+                SP.research() prints the full table in-game.
+     ════════════════════════════════════════════════════════════════════ -->
+<style>
+/* ═══ ADD.DNA SPACE LAYER — reuses base design tokens (--bg,--cyan,--mono...) ═══ */
+#spPower{position:absolute;top:96px;left:744px;width:210px}
+#spPower .cap{font-size:10px;letter-spacing:.22em;color:var(--muted);margin-bottom:4px}
+#spPower .row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin:2px 0}
+#spPower .row b{color:var(--ink);font-weight:700}
+#spPower .row b.good{color:var(--good)}#spPower .row b.warn{color:var(--amber)}#spPower .row b.bad{color:var(--red)}
+#spPower .row b.red{color:#ff5a4d}
+#spPower .orb{font-size:11px;letter-spacing:.1em;color:var(--cyan);margin:2px 0 4px}
+#spPower .orb.ec{color:var(--muted)}
+.sp-bar{height:8px;border:1px solid var(--line);border-radius:5px;background:rgba(4,8,16,.7);overflow:hidden;margin:2px 0 6px}
+.sp-bar>i{display:block;height:100%;transition:width .25s}
+.sp-bar.batt>i{background:linear-gradient(90deg,#27c56d,#9dffc9)}
+.sp-bar.batt.low>i{background:linear-gradient(90deg,#ffb020,#ffd88a)}
+.sp-bar.batt.floor>i{background:linear-gradient(90deg,#ff3b30,#ff8a7a)}
+.sp-bar.dose>i{background:linear-gradient(90deg,#22e0ff,#9df3ff)}
+.sp-bar.dose.hot>i{background:linear-gradient(90deg,#ff6a2b,#ff3b30)}
+/* storm banner — SPE warning / active */
+#spStorm{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:15;display:none;
+  font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-align:center;
+  padding:8px 18px;border-radius:10px;border:1px solid var(--amber);color:#ffd9a0;
+  background:rgba(40,24,4,.82);box-shadow:0 0 24px rgba(255,176,32,.25)}
+#spStorm.on{display:block;animation:wgblink 1.2s ease-in-out infinite}
+#spStorm.hit{border-color:var(--red);color:#ffb3ad;background:rgba(40,6,4,.86);box-shadow:0 0 28px rgba(255,59,48,.4)}
+#spStorm b{color:#fff}
+/* sleep pod overlay — sarcophagus cycle */
+#spSleep{position:fixed;inset:0;z-index:40;background:#020409;display:none;
+  font-family:var(--mono);color:var(--ink);text-align:center}
+#spSleep.on{display:block}
+#spSleep .fade{position:absolute;inset:0;background:#020409;opacity:0;transition:opacity .7s ease}
+#spSleep .fade.in{opacity:1}
+#spSleep .wrap{position:relative;display:inline-block;margin-top:26vh;max-width:720px;padding:0 20px}
+#spSleep h2{margin:0;font-size:clamp(20px,4vw,34px);letter-spacing:.3em;color:var(--muted)}
+#spSleep h2 b{color:var(--cyan);text-shadow:0 0 18px rgba(34,224,255,.6)}
+#spSleep .vit{margin-top:18px;font-size:12px;letter-spacing:.1em;color:var(--muted);line-height:2}
+#spSleep .vit b{color:var(--good)}
+#spSleep .skull{font-size:44px;letter-spacing:.4em;color:#3de08a;text-shadow:0 0 26px rgba(61,224,138,.55);margin-bottom:14px}
+#spSleep .wake{margin-top:20px;font-size:12px;color:var(--amber);letter-spacing:.12em;line-height:1.9}
+#spSleep .wake b{color:var(--ink)}
+/* space actions chips appended to #wgActions */
+#wgActions .act.sp{border-color:rgba(93,255,139,.4);color:var(--good)}
+#wgActions .act.sp.hot{border-color:var(--green);color:var(--green);box-shadow:0 0 12px rgba(93,255,139,.25)}
+#wgActions .act.sp.warn{border-color:var(--amber);color:var(--amber)}
+/* space phases in build overlay */
+.wgph.space{border-color:rgba(176,97,255,.4);background:rgba(30,18,52,.45)}
+.wgph.space .n{color:var(--magenta)}
+.wgph.space.done{border-color:rgba(93,255,139,.5)}
+.wgph.space.done .n{color:var(--good)}
+.wgph.space.now{border-color:var(--magenta);box-shadow:0 0 16px rgba(176,97,255,.25)}
+</style>
+<script>
+"use strict";
+/* ═══════════════ SP 0 · DNA MANIFEST — add.dna ═══════════════ */
+const SP_DNA={
+  id:'add.dna', product:'MONEY · ORBITAL — SOLAR ARRAY + RED LED PRODUCTION + SLEEP POD (work_002)', work:'work_002',
+  equation:'SUN005.html = base.dna + add.dna (spliced before the closing tail)',
+  base_file:'base.dna (= SUN004.html, LOCKED — zero edits, runtime wrapping only)',
+  split_rule:'This layer hooks the base via wrapped globals (wgEnvTick / wgDaily / wgApplyAction / wgBuildOpaque / wgDraw / replay.wg / WG.verify). Space physics only runs on states carrying the __sp marker — base verify battery V01-V16 stays byte-identical in behavior.',
+  date:'2026-11-11 · cycle 3 for SUN005', rules:['NO AUTO-PLAY','USER DOES EVERY STEP','VERIFY EVERY PROCESS','REPLAY PROVES SKILL','FOOD+ENERGY = TOTAL MONEY FLOW','RED LIGHT ONLY']
+};
+
+/* ═══════════════ SP 1 · SPACE CONFIG — every number research-backed ═══════════════ */
+const SCFG={
+  /* orbit — ISS-class: 92 min period, ~1/3 in Earth shadow */
+  orbit_min:92, sun_min:61,
+  /* photovoltaics — sized the real way: load / orbit capacity factor + charge margin */
+  am0_w_m2:1361,                 /* TSIS-1 solar constant 1361.6 +-0.3 */
+  array_panels:12, panel_m2:1.0, /* 2 wings x 6 panels */
+  array_m2:12,
+  cell_eff:0.30,                 /* iROSA-class multijunction ~30% */
+  deg_baseline_per_day:0.000035, /* ~1.25%/yr space decay */
+  deg_cap:0.60,
+  edge_on_cos:0.02,              /* edge-on to the sun: ~2% residual */
+  /* battery — Li-ion rack */
+  battery_kwh:2.5, rt_leg:0.955, /* 0.955 x 0.955 = 91% round trip */
+  soc_floor:0.10,                /* BMS deep-discharge floor */
+  /* red LED production rig */
+  led_w:2150,                    /* 4 bars x ~540 W */
+  led_umol_j:3.1,                /* deep red 660 nm efficacy */
+  canopy_m2:24,                  /* 2 beds x 1.2 x 10 m */
+  photo_start_h:5, photo_h:14,   /* matches base day; >18 h injures tomato */
+  dli_target:14,                 /* mol/m2/d delivered at full power */
+  dli_min:{SEED:4,SEEDLING:6,VEGETATIVE:12,FLOWERING:13.5,FRUIT:13.5},  /* sufficiency lines under the 14 target */
+  dli_pen_per_mol:2.0, dli_pen_cap:6,
+  red_only_ceiling:0.92,         /* no blue -> stomata under-perform (NASA adds blue) */
+  /* station tie */
+  station_base_w:300,            /* module tie load once the array is commissioned */
+  /* radiation */
+  gcr_msv_day:0.55,              /* ISS interior ~0.5-0.7 mSv/day */
+  pod_gcr:0.65,                  /* 20 g/cm2 water wall vs GCR */
+  pod_spe:0.10,                  /* same wall vs SPE protons */
+  array_shadow_spe:0.55,         /* station behind sun-pointed wings */
+  dose_limit_msv:100,            /* season soft limit; NASA 250 mSv/event */
+  warn_lead_h:2,                 /* flare light 8 min; protons arrive hours later */
+  spes:[
+    {day:18,h:11,dur_h:10,peak_uSv_h:2500,deg:0.02,cls:'M'},   /* ~15.9 mSv unsheltered */
+    {day:47,h:14,dur_h:14,peak_uSv_h:8000,deg:0.04,cls:'X'},   /* ~71.3 mSv unsheltered */
+    {day:83,h:9.5,dur_h:16,peak_uSv_h:20000,deg:0.07,cls:'XR'}  /* ~203.9 mSv unsheltered */
+  ],
+  /* prices — playable EUR scale, real costs documented in SPRESEARCH */
+  prices:{panel_eur_m2:45,battery_eur_kwh:120,led_bar_eur:80,pod_eur:260,
+    feed_in_eur_kwh:0.40,station_buy_eur_kwh:1.20},
+  sleep_h:12
+};
+function spPeakW(){return SCFG.am0_w_m2*SCFG.array_m2*SCFG.cell_eff;}  /* 3266.4 W fresh */
+
+/* ═══════════════ SP 2 · RESEARCH — REAL DATA (researched 2026-11, sources) ═══════════════ */
+const SPRESEARCH=[
+  {id:'R11', topic:'solar constant (AM0)', real:'1361.6 +- 0.3 W/m2 total solar irradiance at 1 AU, no atmosphere (TSIS-1, 2019 minimum)',
+   sim:'AM0 1361 W/m2 exact, all orbit power derived from it', verdict:'EXACT MATCH TO MEASURED AM0',
+   src:'NASA TSIS-1 Solar Irradiance Science — google.com/url?sa=t&source=web (TSIS-1 1361.6); Kopp & Lean 2011; en.wikipedia.org/wiki/Solar_constant'},
+  {id:'R12', topic:'space array scale', real:'ISS: 8 iROSA roll-out arrays add ~28 kW each; station total 160 -> 215 kW (2026 upgrade complete)',
+   sim:'2 wings x 6 m2 at 30% cells = 4.90 kW peak — 0.0023% of the ISS farm', verdict:'SIM HOBBY-SCALE SLICE OF REAL HARDWARE',
+   src:'NASA "Roll Out Solar Arrays Boost Space Station Power" — nasa.gov/missions/station/iss-research/power-up-roll-out-solar-arrays-boost-space-station-power-supply'},
+  {id:'R13', topic:'radiation degradation of cells', real:'III-V space cells decay from displacement damage (trapped protons/electrons); cover glass shields low-energy protons; GEO designs budget ~15%/15 yr; SPEs add step drops',
+   sim:'0.35% per 105-day season baseline + 2% / 4% / 7% per storm if wings stay sun-pointed, 0% if edge-on', verdict:'SIM IN FAMILY OF DDD MODELS (STEEPENED FOR GAMEPLAY)',
+   src:'Raya-Armenta et al. 2021, III-V space solar cells review — sciencedirect.com/science/article/pii/S0927024821004219 ; NRL SCREAM — cpaess.ucar.edu (Messenger)'},
+  {id:'R14', topic:'orbit light/dark cycle', real:'ISS orbit 90-93 min; station crosses Earth shadow roughly 1/3 of each orbit',
+   sim:'92-min orbit: 61 min sun / 31 min eclipse (66.3% sunlit)', verdict:'SIM MATCHES ISS-CLASS CYCLE',
+   src:'NASA JSC "Space Station Orbit Tutorial" — eol.jsc.nasa.gov/Tools/orbitTutorial.htm'},
+  {id:'R15', topic:'solar particle event dose', real:'Aug 1972 storm: ~1000-4000 mSv unshielded crew dose estimate (BRYNTRN); NASA short-term limit 250 mSv per event',
+   sim:'storms deliver 15.9 / 71.3 / 203.9 mSv unsheltered — all below the 250 mSv event limit', verdict:'SIM CONSERVATIVE vs REAL EXTREME EVENTS',
+   src:'Parsons & Townsend 2000 — pubmed.ncbi.nlm.nih.gov/10825747 ; en.wikipedia.org/wiki/August_1972_solar_storms ; NASA OCHMO-TB-020'},
+  {id:'R16', topic:'galactic cosmic ray background', real:'ISS interior dose ~0.5-0.7 mSv/day from GCR at 51.6 deg / ~400 km',
+   sim:'0.55 mSv/day unsheltered baseline', verdict:'SIM INSIDE REAL ISS BAND',
+   src:'Cucinotta et al. 2014 — pmc.ncbi.nlm.nih.gov/articles/PMC3997516 ; NASA Semones, Agency radiation requirements'},
+  {id:'R17', topic:'storm shelter shielding', real:'>4 g/cm2 regolith cuts most SPE doses below 30-day limits (lunar study); water walls of 20-30 g/cm2 are the standard shelter design',
+   sim:'pod water wall 20 g/cm2: SPE x0.10, GCR x0.65 (GCR is hard to shield)', verdict:'SIM IN FAMILY OF TRANSPORT STUDIES',
+   src:'Matthia et al. 2024, AGU Space Weather — agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024SW004095'},
+  {id:'R18', topic:'red LED photon efficacy', real:'red LEDs convert ~81% of electrical energy to photons; deep-red fixtures reach 3.1-3.8 umol/J (best-in-class ~4.0)',
+   sim:'3.1 umol/J at 660 nm deep red', verdict:'SIM AT REAL COMMERCIAL EFFICACY',
+   src:'Kusuma & Pattison 2020, "From physics to fixtures to food" — nature.com/articles/s41438-020-0283-7'},
+  {id:'R19', topic:'tomato daily light integral', real:'commercial greenhouse tomato wants 20-30 mol/m2/d (fruiting); 1% DLI loss ~= 1% yield loss; winter tunnels at 5-12 underperform',
+   sim:'14 mol/m2/d target — delivered by 2150 W of red over 24 m2 in a 14 h photoperiod', verdict:'SIM CONSERVATIVE vs COMMERCIAL BAND',
+   src:'Thrive Agritech DLI guide — thriveagritech.com ; Virginia Tech SPES-720 — pubs.ext.vt.edu/SPES/spes-720'},
+  {id:'R20', topic:'tomato photoperiod', real:'lighting longer than 18 h causes leaf injury (interveinal chlorosis) in tomato; 14-18 h is the commercial band',
+   sim:'14 h photoperiod 05:00-19:00, hard-locked to the base day clock', verdict:'SIM SAFE INSIDE REAL BAND',
+   src:'Lanoue et al. 2019 — pmc.ncbi.nlm.nih.gov/articles/PMC6754077'},
+  {id:'R21', topic:'red-only spectrum', real:'pure red grows plants, but blue light is required for normal stomatal opening and chlorophyll a/b balance; NASA added blue to red-only LED crops; no far-red keeps phytochrome Pfr high (compact)',
+   sim:'RED-ONLY ceiling: photosynthesis x0.92 under 100% 660 nm — the honest tax of skipping blue', verdict:'SIM HONEST ABOUT RED-ONLY LIMITS',
+   src:'Trivellini et al. 2023 — pmc.ncbi.nlm.nih.gov/articles/PMC10223693 ; BioChambers FAQ7 — biochambers.com/pdfs/faq7.pdf'},
+  {id:'R22', topic:'battery in orbit', real:'Li-ion 100-330 Wh/kg class; LEO strings cycle every ~90 min at significant depth-of-discharge for 15+ years; BMS floors protect against deep discharge',
+   sim:'2.5 kWh rack, 91% round trip, 10% SOC floor with LED load-shed', verdict:'SIM SCALED, SAME PHYSICS',
+   src:'Saft satellite batteries — saft.com ; Clean Energy Institute Li-ion — cei.washington.edu'},
+  {id:'R23', topic:'crew sleep + torpor', real:'ISS lights dim 8.5 h for sleep (21:30-06:00 schedule); actual sleep 6-6.5 h; SpaceWorks torpor habitat: therapeutic hypothermia 32-34 C cuts metabolism for 90+ day stasis',
+   sim:'SLEEP POD: 12 h sarcophagus cycle with torpor vitals readout — the playful, REAL way to fast-forward time', verdict:'SIM PLAYFUL-SCALE OF REAL SLEEP SCIENCE',
+   src:'Space Center Houston "Sleeping with the lights on" — spacecenter.org/sleeping-with-the-lights-on ; NASA OCHMO-TB-041 ; NASA NTRS 20180007195 (SpaceWorks torpor)'},
+  {id:'R24', topic:'plants vs radiation', real:'mSv-level space radiation doses are irrelevant to plants (sterilization needs kGy); crew is the vulnerable system',
+   sim:'storms hit crew dose and panel output, never the plants directly', verdict:'SIM PHYSICALLY CORRECT',
+   src:'Raya-Armenta 2021 (cell damage thresholds); NASA OCHMO-TB-020 (human limits)'}
+];
+
+/* ═══════════════ SP 3 · SPACE THEORY — why the orbital farm works ═══════════════ */
+const SPTHEORY=`# SPTHEORY — the orbital Wintergarten
+## 1. THE PANELS ARE THE PLANT
+The star delivers 1361 W/m2, airless and constant (AM0). 12 m2 of 30% cells = 4900 W when sun-pointed — sized the real way: 2450 W load / 0.663 orbit sun fraction + charge margin. The orbit dips into Earth shadow every 92 min: 61 min sun, 31 min eclipse. Generation is orbital; hunger is not.
+## 2. RED LIGHT ONLY
+Production runs on 660 nm deep red, 3.1 umol/J. 2150 W over 24 m2 of canopy for 14 h = 14 mol/m2/d of pure red photons. No blue means stomata under-perform: a 0.92 photosynthesis ceiling — the honest tax. No far-red means compact plants (phytochrome stays Pfr-high). 14 h, never more: past 18 h tomato leaves injure.
+## 3. THE BATTERY BRIDGES THE SHADOW
+2.5 kWh Li-ion rides every eclipse: in sun it charges (91% round trip), in shadow it feeds the LEDs. One eclipse eats 1.27 kWh; one sun window puts back up to 2.5. When the BMS floor (10%) trips, the LED bars go dark first and life support switches to the station tie at 1.20 EUR/kWh — bought power is honest, and never sold at that price.
+## 4. THE ARRAY IS ALSO A SHIELD
+Sun-pointed wings put the whole station in their shadow: storm dose x0.55. Edge-on wings present almost nothing to the proton flux: cells take zero degradation — but no power and no shadow either. In a storm you choose: watts now, or watts for the rest of the season.
+## 5. THE STORMS ARE REAL
+Day 18: M-class, ~16 mSv unsheltered. Day 47: X-class, ~71 mSv. Day 83: XR-class, ~204 mSv — near the 250 mSv NASA single-event limit. The 2 h warning is your head start: protons are slow, light is not.
+## 6. THE SARCOPHAGUS IS THE ANSWER
+The sleep pod is 20 g/cm2 of water wall. Sleep 12 h: GCR x0.65, SPE x0.10. Storm at night = you weather it asleep. Season under 100 mSv = a healthy crew. Dose is not reset by anything — it is only ever avoided.
+## 7. FOOD + ENERGY = TOTAL MONEY FLOW
+Tomatoes out of red light, surplus kWh out of the orbit. Sell at 0.40 EUR/kWh when the battery is full; buy at 1.20 when your system fails. Capex 1895 EUR (475 ground kit + 1420 orbital kit). Master light, master dose, master the flow.
+## 8. THE POD IS THE CLOCK
+12 h pass in one sleep cycle — deterministically, exactly as a replay would step them. No shortcuts: the sim minutes are really computed. The replay log proves your season, sleep included.
+## 9. PLANTS DO NOT CARE ABOUT mSv
+Storms hit crew dose and panel output, never the plants directly — sterilization needs kGy, not mSv. The crew is the fragile system; the pod is its armor.`;
+
+/* ═══════════════ SP 4 · STATE EXTENSION — sp fields ride the base state ═══════════════ */
+function spDefaults(){
+  return {
+    __sp:1,                       /* marker: space physics active on this state */
+    spPhase:0,                    /* 0 ARRAY · 1 BATTERY · 2 LED · 3 POD · 4 all built */
+    spPhaseStep:{ARRAY:0,BATTERY:0,LED:0,POD:0},
+    spBuilt:{ARRAY:false,BATTERY:false,LED:false,POD:false},
+    spLedDeadline:null,           /* set +7 d when base phase 12 (PLANT) completes */
+    spArrayMode:'track',          /* 'track' | 'edge' */
+    spLedOn:false,                /* flips true when the rig is commissioned */
+    spSoc:0,                      /* battery kWh stored */
+    spDeg:0,                      /* degradation 0..1 */
+    /* live power readout */
+    spSunlit:false, spGenW:0, spLoadW:0, spLedActive:false,
+    /* accumulators (replay + ledger) */
+    spGenKwh:0, spLoadKwh:0, spSoldKwh:0, spBoughtKwh:0, spLossKwh:0, spShedKwh:0,
+    spEurSold:0, spEurBought:0, spLedDarkMin:0,
+    /* agronomy */
+    spDliToday:0, spDliYesterday:0,
+    /* radiation */
+    spDoseMsv:0, spDoseGcrMsv:0, spDoseSpeMsv:0,
+    spSleepUntil:-1, spSleepCycles:0
+  };
+}
+function spExtend(st,force){
+  if(!st)return st;
+  const d=spDefaults();
+  if(force||!st.__sp){Object.assign(st,d);return st;}
+  for(const k in d)if(st[k]===undefined)st[k]=d[k];  /* merge upgrades from older saves */
+  return st;
+}
+
+/* ═══════════════ SP 5 · SPACE BUILD PLAN — 4 more phases by USER hand ═══════════════ */
+const SPBUILD=[
+  {key:'ARRAY',  title:'DEPLOY SOLAR ARRAY — 2 WINGS x 6 PANELS', need:12, work_h:8,
+   products:'12 x 1.0 m2 space-grade panel, 2 masts, 2 booms, rotary drive',
+   todo:'unfold and bolt each 1.0 m2 panel on the west masts, connect the wing bus, test drive tracking'},
+  {key:'BATTERY',title:'MOUNT BATTERY RACK — 2 x 1.25 kWh Li-ion', need:2, work_h:2,
+   products:'2 x 1.25 kWh Li-ion module + BMS (10% floor) + bus tie',
+   todo:'seat each module in the rack, wire the BMS, set the deep-discharge floor'},
+  {key:'LED',    title:'HANG RED LED BARS — 4 x 540 W, 660 nm', need:4, work_h:3,
+   products:'4 x 540 W deep-red LED bar (3.1 umol/J) + 24 m2 canopy coverage',
+   todo:'hang one bar over each bed row, aim at canopy, commission ON — RED LIGHT ONLY'},
+  {key:'POD',    title:'ASSEMBLE SLEEP POD — SARCOPHAGUS + WATER WALL', need:3, work_h:4,
+   products:'composite shell, 200 L water jacket (~20 g/cm2), lid drive, torpor vitals',
+   todo:'assemble the shell, fill the water wall, mount the lid and scanner — your storm shelter and your clock'}
+];
+const SPBUILD_H_TOTAL=SPBUILD.reduce((s,p)=>s+p.work_h,0);   /* 15 h */
+
+/* ═══════════════ SP 6 · ORBIT + STORM PURE FUNCTIONS (deterministic) ═══════════════ */
+function spSunlit(min){return (min%SCFG.orbit_min)<SCFG.sun_min;}
+function spLedWindow(hour){return hour>=SCFG.photo_start_h&&hour<(SCFG.photo_start_h+SCFG.photo_h);}
+function spStormAt(min){
+  for(let i=0;i<SCFG.spes.length;i++){
+    const s=SCFG.spes[i];
+    const start=s.day*1440+s.h*60;
+    const warn=start-SCFG.warn_lead_h*60;
+    const end=start+s.dur_h*60;
+    if(min>=warn&&min<start)return {i,warn:true,hours_left:+((start-min)/60).toFixed(2)};
+    if(min>=start&&min<end){
+      const p=(min-start)/(s.dur_h*60);
+      return {i,on:true,profile:Math.sin(Math.PI*p),cls:s.cls};
+    }
+  }
+  return null;
+}
+function spSpeUnshelteredMsv(i){const s=SCFG.spes[i];return +(s.peak_uSv_h*s.dur_h*2/Math.PI/1000).toFixed(1);}
+function spDegPerMin(i){const s=SCFG.spes[i];return s.deg/(s.dur_h*60*(2/Math.PI));}
+</script>
+<script>
+"use strict";
+/* ═══════════════ SP 7 · POWER TICK — one sim minute of orbital physics ═══════════════
+   Runs AFTER the base env tick, only on states carrying __sp. The base thermal
+   ledger (V05/V06/V07 semantics) is never touched on non-__sp states. */
+function spPowerTick(st){
+  if(!st||!st.__sp)return;
+  const min=st.tick;
+  const hour=(min%1440)/60;
+  const sunlit=spSunlit(min);
+  const ledBuilt=!!st.spBuilt.LED;
+  const arrayBuilt=!!st.spBuilt.ARRAY;
+  /* --- generation (array) --- */
+  let genW=0;
+  if(arrayBuilt&&sunlit){
+    const cos=st.spArrayMode==='track'?1:SCFG.edge_on_cos;
+    genW=spPeakW()*(1-st.spDeg)*cos;
+  }
+  /* --- loads --- */
+  const baseW=arrayBuilt?SCFG.station_base_w:0;
+  let ledActive=ledBuilt&&st.spLedOn&&spLedWindow(hour);
+  const ledW=ledActive?SCFG.led_w:0;
+  let loadW=ledW+baseW;
+  /* --- battery: charge / discharge / shed / buy (kWh per minute = W x 60 s / 3.6e6) --- */
+  const e_gen=genW/60000, e_load=loadW/60000, e_led=ledW/60000;
+  const cap=SCFG.battery_kwh, rt=SCFG.rt_leg;
+  let shed=false;
+  if(e_gen>=e_load){
+    const ex=e_gen-e_load;
+    const room=Math.max(0,cap-st.spSoc);
+    const ch=Math.min(ex,room);
+    st.spSoc+=ch*rt;
+    st.spLossKwh+=ch*(1-rt);
+    st.spSoldKwh+=ex-ch;
+    st.spEurSold+=(ex-ch)*SCFG.prices.feed_in_eur_kwh;
+  }else{
+    const deficit=e_load-e_gen;
+    const avail=Math.max(0,st.spSoc-cap*SCFG.soc_floor)*rt;
+    if(deficit<=avail){
+      st.spSoc-=deficit/rt;
+      st.spLossKwh+=deficit/rt-deficit;
+    }else{
+      st.spSoc=Math.min(st.spSoc,cap*SCFG.soc_floor);
+      let served=Math.min(avail,deficit);
+      let unmet=deficit-served;
+      st.spLossKwh+=served/rt-served;             /* battery-served energy pays its RT loss too */
+      if(ledActive){                 /* BMS: LED sheds first, life support buys */
+        shed=true;
+        unmet=Math.max(0,unmet-e_led);
+      }
+      if(unmet>0){
+        st.spBoughtKwh+=unmet;
+        st.spEurBought+=unmet*SCFG.prices.station_buy_eur_kwh;
+      }
+    }
+  }
+  if(shed){ledActive=false;st.spShedKwh+=e_led;st.spLedDarkMin++;}
+  /* --- agronomy + thermal from the ACTUAL led state --- */
+  if(ledActive){
+    st.spDliToday+=SCFG.led_w*SCFG.led_umol_j*60/(SCFG.canopy_m2*1e6);   /* mol/m2 this minute */
+    st.tIn+=SCFG.led_w*60/WCFG.thermal_mass_j_per_k;                     /* photons thermalize: ~100% becomes heat */
+  }
+  st.spGenKwh+=e_gen; st.spLoadKwh+=e_load;
+  st.spSunlit=sunlit; st.spGenW=genW; st.spLoadW=(ledActive?ledW:0)+baseW; st.spLedActive=ledActive;
+  /* --- radiation dose --- */
+  const sleeping=min<st.spSleepUntil;
+  const gcr=SCFG.gcr_msv_day/1440*(sleeping?SCFG.pod_gcr:1);
+  st.spDoseMsv+=gcr; st.spDoseGcrMsv+=gcr;
+  const storm=spStormAt(min);
+  if(storm&&storm.on){
+    const rate=SCFG.spes[storm.i].peak_uSv_h*storm.profile;    /* uSv/h now */
+    let f=1;
+    if(sleeping)f*=SCFG.pod_spe;
+    else if(st.spArrayMode==='track'&&arrayBuilt)f*=SCFG.array_shadow_spe;
+    const d=rate/60/1000*f;                                     /* mSv this minute */
+    st.spDoseMsv+=d; st.spDoseSpeMsv+=d;
+    if(st.spArrayMode==='track'){
+      st.spDeg=Math.min(SCFG.deg_cap,st.spDeg+spDegPerMin(storm.i)*storm.profile);
+    }
+  }
+  /* baseline space decay of the cells */
+  if(arrayBuilt)st.spDeg=Math.min(SCFG.deg_cap,st.spDeg+SCFG.deg_baseline_per_day/1440);
+}
+
+/* ═══════════════ SP 8 · DAILY ROLL — DLI verdict + red-only ceiling + dose ═══════════════ */
+function spDailyTick(st){
+  if(!st||!st.__sp)return;
+  const y=st.spDliToday;
+  st.spDliToday=0; st.spDliYesterday=y;
+  const thr=SCFG.dli_min[st.stage]!=null?SCFG.dli_min[st.stage]:12;
+  const rigBuilt=!!st.spBuilt.LED;
+  const required=rigBuilt||(st.spLedDeadline!=null&&st.day>st.spLedDeadline);
+  if(required&&y<thr){
+    const pen=Math.min(SCFG.dli_pen_cap,(thr-y)*SCFG.dli_pen_per_mol);
+    st.perfect=false;
+    st.health=Math.max(0,st.health-pen);
+  }
+  /* red-only photosynthesis ceiling applies once the rig is the light source */
+  if(rigBuilt){
+    st.yieldTotal=+(st.yieldTotal*SCFG.red_only_ceiling).toFixed(1);
+    if(st.stage==='FRUIT'&&st.ripeKg>0)st.ripeKg=+(st.ripeKg*SCFG.red_only_ceiling).toFixed(1);
+  }
+  /* crew over the season dose limit: tired, sloppy work */
+  if(st.spDoseMsv>SCFG.dose_limit_msv){
+    st.perfect=false;
+    st.health=Math.max(0,st.health-1);
+  }
+  st.yieldTotal=+(WCFG.yield_kg_total*(st.health/100)).toFixed(1);
+  if(rigBuilt)st.yieldTotal=+(st.yieldTotal*SCFG.red_only_ceiling).toFixed(1);
+  if(st.stage==='FRUIT'){
+    const base=WCFG.yield_kg_total*(st.health/100)*(rigBuilt?SCFG.red_only_ceiling:1);
+    st.ripeKg=+((base)*Math.min(1,Math.max(0,(st.stageDay-7)/28))).toFixed(1);
+  }
+}
+
+/* ═══════════════ SP 9 · ACTION APPLICATION — one shared path for live + replay ═══════════════ */
+function spApplyBuild(st,a){
+  /* order-independent + idempotent: the logged step number is authoritative.
+     (The base applies same-tick pending actions in REVERSE order, so phases
+     may complete out of sequence — this stays correct either way.) */
+  const map={ARRAY:0,BATTERY:1,LED:2,POD:3};
+  const idx=map[a.target];
+  if(idx==null)return;
+  const need=SPBUILD[idx].need;
+  const prev=st.spPhaseStep[a.target]||0;
+  const step=Math.max(prev,+a.amount||0);
+  st.spPhaseStep[a.target]=step;
+  st.work_h=+(st.work_h+SPBUILD[idx].work_h/need*(step-prev)).toFixed(2);
+  if(step>=need&&!st.spBuilt[a.target]){
+    st.spBuilt[a.target]=true;
+    if(idx===2)st.spLedOn=true;                      /* rig commissioned ON */
+  }
+  let sp=0;while(sp<4&&st.spBuilt[SPBUILD[sp].key])sp++;
+  st.spPhase=sp;
+}
+function spApplyAction(st,a){
+  switch(a.action){
+    case 'sp.build':  spApplyBuild(st,a); break;
+    case 'sp.array':  st.spArrayMode=(+a.amount===1)?'track':'edge'; break;
+    case 'sp.led':    st.spLedOn=!!(+a.amount); break;
+    case 'sp.sleep':  if(st.spBuilt.POD){st.spSleepUntil=st.tick+(+a.amount||SCFG.sleep_h*60);st.spSleepCycles++;} break;
+  }
+}
+
+/* ═══════════════ SP 10 · REPLAY — space-aware, byte-identical minutes to live ═══════════════ */
+function spRunReplay(log,opts){
+  opts=opts||{};
+  const st=wgFreshState();
+  spExtend(st,true);
+  if(opts.ph!=null)for(const b of st.soil)b.ph=opts.ph;
+  if(opts.auxDisabled)st.auxDisabled=true;
+  const list=(log||[]).slice().sort((a,b)=>(a.tick||0)-(b.tick||0));
+  const maxTick=list.length?list[list.length-1].tick||0:0;
+  const total=Math.max((opts.days||WCFG.season_total_days)*1440,maxTick);
+  const pend=[];let li=0;
+  for(let t=1;t<=total;t++){
+    while(li<list.length&&(list[li].tick||0)<=t)pend.push(list[li++]);
+    wgStepMinute(st,pend);
+  }
+  return st;
+}
+function spCanonicalReport(st){
+  const s=st||wg;
+  return JSON.stringify({
+    day:s.day,stage:s.stage,stage_day:s.stageDay,health_pct:+s.health.toFixed(1),
+    kg_harvested:s.harvestedKg,harvest_events:s.harvestEvents,
+    dli_yesterday:+s.spDliYesterday.toFixed(2),led_dark_min:s.spLedDarkMin,
+    dose_msv:+s.spDoseMsv.toFixed(3),dose_gcr:+s.spDoseGcrMsv.toFixed(3),dose_spe:+s.spDoseSpeMsv.toFixed(3),
+    sleep_cycles:s.spSleepCycles,degradation_pct:+(s.spDeg*100).toFixed(3),
+    kwh:{gen:+s.spGenKwh.toFixed(2),load:+s.spLoadKwh.toFixed(2),sold:+s.spSoldKwh.toFixed(2),bought:+s.spBoughtKwh.toFixed(2)},
+    eur:{sold:+s.spEurSold.toFixed(2),bought:+s.spEurBought.toFixed(2)}
+  });
+}
+/* the well-run orbital season: farm built day 1, nightly pod sleep, sleep through storms, LEDs on, wings tracking */
+function spStandardLog(){
+  const log=[];
+  log.push({tick:2,day:0,action:'build.phase.done',target:'PHASE 12 PLANT',amount:4});
+  let tk=10;
+  for(let i=0;i<4;i++){
+    const need=SPBUILD[i].need;
+    for(let k=1;k<=need;k++)log.push({tick:tk++,day:0,action:'sp.build',target:SPBUILD[i].key,amount:k});
+  }
+  for(let d=3;d<=105;d+=3)log.push({tick:d*1440,day:d,action:'soil.water',target:'beds A+B',amount:12});
+  for(const d of[25,50,75,100])log.push({tick:d*1440,day:d,action:'soil.npk',target:'beds A+B',amount:40});
+  /* nightly sarcophagus cycle: 19:00 -> 07:00 */
+  for(let d=0;d<=104;d++)log.push({tick:d*1440+19*60,day:d,action:'sp.sleep',target:'pod',amount:720});
+  /* storm discipline: already asleep 19:00 storms; storm 3 starts 09:30 — enter the pod at the warning */
+  log.push({tick:83*1440+8*60,day:83,action:'sp.sleep',target:'pod',amount:720});
+  log.push({tick:105*1440+2,day:105,action:'crop.harvest',target:'beds A+B',amount:280});
+  return log;
+}
+
+/* ═══════════════ SP 11 · SLEEP ENGINE — 12 h, computed minute by minute ═══════════════ */
+/* The skip is REAL: the same wgStepMinute the live loop and the replay use,
+   batch-run 720 times. Nothing is faked, nothing is skipped. */
+let spSleepingUI=false;
+function spCanSleep(){return wgFarm&&wg&&wg.__sp&&wg.spBuilt.POD;}
+function spStartSleep(){
+  if(!spCanSleep())return {ok:false,error:spPodMissingReason()};
+  const mins=SCFG.sleep_h*60;
+  const dose0=wg.spDoseMsv,kg0=wg.harvestedKg,sold0=wg.spEurSold,dark0=wg.spLedDarkMin;
+  const tick0=wg.tick,storm0=spStormAt(wg.tick);
+  /* queue + log exactly like any user action (replay parity) */
+  wgPending.push({tick:wg.tick+1,day:wg.day,action:'sp.sleep',target:'pod',amount:mins});
+  wgLogAdd('sp.sleep','pod',mins);
+  spSleepingUI=true;
+  /* the 12 hours: 720 deterministic minutes */
+  const t0=performance.now();
+  for(let i=0;i<mins;i++)wgStepMinute(wg,wgPending);
+  const ms=+(performance.now()-t0).toFixed(1);
+  spSleepingUI=false;
+  wgDirty=true;
+  wgSave();
+  const wake={
+    ok:true,real_ms:ms,minutes:mins,
+    tick_before:tick0,tick_after:wg.tick,
+    woke_clock:(()=>{const m=wg.tick%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');})(),
+    dose_msv:+(wg.spDoseMsv-dose0).toFixed(2),
+    eur_sold:+(wg.spEurSold-sold0).toFixed(2),
+    led_dark_min:wg.spLedDarkMin-dark0,
+    ripe_kg:+wg.ripeKg.toFixed(1),
+    slept_through_storm:!!(storm0&&(storm0.on||storm0.warn))
+  };
+  return wake;
+}
+function spPodMissingReason(){
+  if(!wgFarm)return 'enter the farm first';
+  if(!wg.__sp||wg.spPhase<4)return 'BUILD THE SLEEP POD FIRST — PHASE '+SPBUILD[Math.min(3,wg.spPhase|0)].key+' REMAINS';
+  return 'pod not ready';
+}
+</script>
+<script>
+"use strict";
+/* ═══════════════ SP 12 · GEOMETRY — array farm, LED rig, sarcophagus pod ═══════════════ */
+/* opaque: appended into the base arena-vertex buffer (shares lights + fog)
+   glow:   own beam VAO drawn after the base translucent pass            */
+let spBVAO=null,spBVBO=null,spBCount=0,spGLReady=false;
+const SP_SITE={mastX:8.5, mastAZ:21, mastBZ:27, boomY:4.7, rackX:11.6, rackZ:24,
+  podX:16, podZ:29.2, ledX:[13.9,15.1,16.9,18.1], ledY:[4.95,5.35,5.35,4.95], ledZ0:18.8, ledZ1:29.2};
+function spFlattenPads(){
+  if(typeof heights==='undefined'||typeof hidx==='undefined')return;
+  for(let z=16;z<=32;z++)for(let x=5;x<=10;x++)heights[hidx(x,z)]=WG_SITE.floorY;
+}
+/* wing tilt: track = 35 deg off horizontal, edge = 90 deg (thin side to the sun) */
+function spWingAngle(){
+  const target=wg&&wg.__sp&&wg.spArrayMode==='edge'?(Math.PI/2):(35*Math.PI/180);
+  const a=wg&&wg.anim&&wg.anim.spArray;
+  if(a){
+    const t=Math.min(1,(performance.now()-a.t0)/900);
+    const from=a.from!=null?a.from:target;
+    return from+(target-from)*(t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2);
+  }
+  return target;
+}
+function spWingPanel(v,cz,row,col,ang,glint){
+  /* one 1.0 m2 panel on the tilted wing plane at mast (SP_SITE.mastX, boomY, cz) — 3 rows x 2 cols per wing */
+  const u=[0,0,1];                                  /* along boom (z) */
+  const vv=[Math.sin(ang),Math.cos(ang),0];         /* up-slope, tilted toward +x (east sun) */
+  const c=[SP_SITE.mastX+(row-1)*1.06*vv[0],SP_SITE.boomY+(row-1)*1.06*vv[1],cz+(col-0.5)*1.06];
+  const su=[u[0]*0.5,u[1]*0.5,u[2]*0.5],sv=[vv[0]*0.5,vv[1]*0.5,vv[2]*0.5];
+  const cell=[0.16+glint*0.10,0.27+glint*0.13,0.58+glint*0.22];   /* arena light is green-heavy: over-brighten blue */
+  const frame=[0.22,0.24,0.28];
+  const p0=[c[0]-su[0]-sv[0],c[1]-su[1]-sv[1],c[2]-su[2]-sv[2]];
+  const p1=[c[0]+su[0]-sv[0],c[1]+su[1]-sv[1],c[2]+su[2]-sv[2]];
+  const p2=[c[0]+su[0]+sv[0],c[1]+su[1]+sv[1],c[2]+su[2]+sv[2]];
+  const p3=[c[0]-su[0]+sv[0],c[1]-su[1]+sv[1],c[2]-su[2]+sv[2]];
+  const n=[vv[1],vv[0],0];
+  wgOQuad(v,p0,p1,p2,p3,n,cell,0.9);
+  /* frame rails */
+  wgOQuad(v,p0,p1,[p1[0]+0.02,p1[1]+0.02,p1[2]],[p0[0]+0.02,p0[1]+0.02,p0[2]],n,frame,0.8);
+}
+function spBuildOpaque(v){
+  const fy=WG_SITE.floorY,now=performance.now();
+  const steel=[0.55,0.6,0.7],steelD=[0.4,0.45,0.55],dark=[0.16,0.17,0.20];
+  /* --- solar array farm (phase 13) --- */
+  const panels=(wg.spPhaseStep.ARRAY|0);
+  if(panels>0){
+    const ang=spWingAngle();
+    const glint=wg.__sp&&wg.spSunlit&&wg.spArrayMode==='track'?0.5+0.5*Math.sin(now/700):0.06;
+    for(const cz of[SP_SITE.mastAZ,SP_SITE.mastBZ]){
+      /* mast + boom */
+      wgOBox(v,SP_SITE.mastX,fy+1.1,cz,0.14,2.2,0.14,steel,0.85);
+      wgOBox(v,SP_SITE.mastX,SP_SITE.boomY,cz,0.10,0.10,2.6,steelD,0.85);
+      wgOBox(v,SP_SITE.mastX,fy+0.15,cz,0.6,0.3,0.6,steelD,0.75);
+      /* drive housing */
+      wgOBox(v,SP_SITE.mastX+0.12,SP_SITE.boomY,cz,0.22,0.3,0.3,dark,0.85);
+    }
+    /* panels appear wing A first (6), then wing B */
+    const wingA=Math.min(6,panels),wingB=Math.max(0,panels-6);
+    for(let i=0;i<wingA;i++)spWingPanel(v,SP_SITE.mastAZ,Math.floor(i/2),i%2,ang,glint);
+    for(let i=0;i<wingB;i++)spWingPanel(v,SP_SITE.mastBZ,Math.floor(i/2),i%2,ang,glint);
+  }
+  /* --- battery rack (phase 14) --- */
+  const mods=wg.spPhaseStep.BATTERY|0;
+  wgOBox(v,SP_SITE.rackX,fy+0.5,SP_SITE.rackZ,0.8,1.0,1.5,dark,0.85);
+  for(let m=0;m<Math.min(2,mods);m++){
+    wgOBox(v,SP_SITE.rackX,fy+0.62+m*0.36,SP_SITE.rackZ,0.66,0.3,1.3,[0.2,0.24,0.28],0.9);
+    wgOBox(v,SP_SITE.rackX+0.35,fy+0.62+m*0.36,SP_SITE.rackZ-0.5,0.06,0.12,0.12,[0.9,0.75,0.2],0.95);
+  }
+  /* --- red LED rig (phase 15): dark housings, glow lives in the beam pass --- */
+  const bars=wg.spPhaseStep.LED|0;
+  for(let b=0;b<Math.min(4,bars);b++){
+    const x=SP_SITE.ledX[b],y=SP_SITE.ledY[b],zm=(SP_SITE.ledZ0+SP_SITE.ledZ1)/2;
+    /* hang rods up to the film shell at this x (arc height) */
+    const shellY=fy+wgArcY(x-WG_SITE.cx)-0.06;
+    for(const ze of[SP_SITE.ledZ0+0.35,SP_SITE.ledZ1-0.35])
+      wgOBox(v,x,(y+shellY)/2,ze,0.035,(shellY-y)/2,0.035,steelD,0.85);
+    wgOBox(v,x,y,zm,0.11,0.05,SP_SITE.ledZ1-SP_SITE.ledZ0,[0.3,0.1,0.12],0.92);
+  }
+  /* --- sleep pod (phase 16): sarcophagus, south end of the aisle --- */
+  const podSteps=wg.spPhaseStep.POD|0;
+  if(podSteps>0){
+    const px=SP_SITE.podX,pz=SP_SITE.podZ;
+    wgOBox(v,px,fy+0.11,pz,1.15,0.22,2.4,[0.2,0.22,0.26],0.85);           /* plinth */
+    if(podSteps>=1){
+      /* trapezoid cross-section body along z (3 faces: 2 slopes + top) */
+      const hw=0.42,h=0.56,L=2.1,y0=fy+0.22;
+      const prof=[[-hw,0],[-hw*0.62,h*0.55],[hw*0.62,h*0.55],[hw,0]];
+      const shell=[0.32,0.35,0.42],shellD=[0.24,0.26,0.32];
+      for(let i=0;i<prof.length-1;i++){
+        const a=prof[i],b=prof[i+1];
+        wgOQuad(v,[px+a[0],y0+a[1],pz-L/2],[px+b[0],y0+b[1],pz-L/2],[px+b[0],y0+b[1],pz+L/2],[px+a[0],y0+a[1],pz+L/2],[0,1,0],i%2?shell:shellD,0.88);
+      }
+      wgOQuad(v,[px-hw,y0,pz+L/2],[px+hw,y0,pz+L/2],[px+hw*0.62,y0+h*0.55,pz+L/2],[px-hw*0.62,y0+h*0.55,pz+L/2],[0,0,1],shell,0.9);
+      wgOBox(v,px-hw-0.03,y0+h*0.28,pz,0.05,0.1,L*0.92,[0.85,0.3,0.2],0.95); /* red trim stripe */
+    }
+    if(podSteps>=2){
+      wgOBox(v,px,fy+1.02,pz+0.55,0.5,0.16,0.16,dark,0.9);           /* scanner mount */
+    }
+    if(podSteps>=3){
+      const open=wg.__sp&&wg.tick<wg.spSleepUntil?0.02:0.55;               /* lid closes when sleeping */
+      wgOBox(v,px+open*0.1,fy+0.22+0.56*0.55+open*0.35,pz,0.86,0.06,2.05,[0.28,0.3,0.36],0.92);
+    }
+  }
+}
+
+/* ═══════════════ SP 13 · GLOW PASS — LEDs, storm, pod (own beam VAO) ═══════════════ */
+function spInitGL(){
+  if(!gl||spGLReady||!wgGLReady)return;
+  spBVAO=gl.createVertexArray();spBVBO=gl.createBuffer();
+  gl.bindVertexArray(spBVAO);gl.bindBuffer(gl.ARRAY_BUFFER,spBVBO);
+  const sb=28;
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,sb,0);
+  gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,sb,12);
+  gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,1,gl.FLOAT,false,sb,24);
+  gl.bindVertexArray(null);
+  spGLReady=true;
+}
+function spBuildBeams(){
+  const v=[],fy=WG_SITE.floorY,now=performance.now();
+  const storm=wg&&wg.__sp?spStormAt(wg.tick):null;
+  const sleeping=wg&&wg.__sp&&wg.tick<wg.spSleepUntil;
+  /* red LED bars: bright core + soft canopy haze */
+  if(wg&&wg.__sp&&wg.spBuilt.LED){
+    const on=wg.spLedActive;
+    for(let b=0;b<4;b++){
+      const x=SP_SITE.ledX[b],y=SP_SITE.ledY[b],zm=(SP_SITE.ledZ0+SP_SITE.ledZ1)/2,hl=(SP_SITE.ledZ1-SP_SITE.ledZ0)/2;
+      if(on){
+        const pulse=0.9+0.1*Math.sin(now/160+b);
+        wgLine(v,[x,y,zm-hl],[x,y,zm+hl],[1.0*pulse,0.10*pulse,0.08*pulse],0.045);
+        wgLine(v,[x,y-0.05,zm-hl],[x,y-0.05,zm+hl],[0.75,0.03,0.03],0.16);
+        /* downwash haze over the bed */
+        const haze=0.30+0.08*Math.sin(now/300+b);
+        wgBQuad(v,[x-0.8,y-0.3,zm-hl],[x+0.8,y-0.3,zm-hl],[x+0.8,y-0.3,zm+hl],[x-0.8,y-0.3,zm+hl],[haze,0.02,0.02],0);
+        /* soft red ambient over the whole aisle — RED LIGHT ONLY */
+        if(b===1)wgBQuad(v,[15.5,y-0.6,zm-hl-1],[16.5,y-0.6,zm-hl-1],[16.5,y-0.6,zm+hl+1],[15.5,y-0.6,zm+hl+1],[0.14,0.008,0.008],0);
+      }else{
+        wgLine(v,[x,y,zm-hl],[x,y,zm+hl],[0.30,0.03,0.05],0.022);
+      }
+    }
+  }
+  /* battery status dot + array cable */
+  if(wg&&wg.__sp&&wg.spBuilt.ARRAY){
+    let col=[0.2,0.2,0.2];
+    if(wg.spBuilt.BATTERY){
+      if(wg.spGenW>wg.spLoadW)col=[0.1,0.9,0.35];
+      else if(wg.spSoc<=SCFG.battery_kwh*SCFG.soc_floor+1e-6)col=[1.0,0.25,0.2];
+      else col=[1.0,0.7,0.15];
+    }
+    const p=0.6+0.4*Math.sin(now/260);
+    wgBQuad(v,[SP_SITE.rackX+0.42,fy+0.85,SP_SITE.rackZ-0.45],[SP_SITE.rackX+0.52,fy+0.85,SP_SITE.rackZ-0.45],
+      [SP_SITE.rackX+0.52,fy+0.95,SP_SITE.rackZ-0.45],[SP_SITE.rackX+0.42,fy+0.95,SP_SITE.rackZ-0.45],[col[0]*p,col[1]*p,col[2]*p],0);
+    /* power cable to the hull */
+    wgLine(v,[SP_SITE.mastX,SP_SITE.boomY-0.1,SP_SITE.mastBZ],[WG_SITE.cx-3,WG_SITE.floorY+1.3,WG_SITE.cz],[0.55,0.1,0.1],0.02);
+  }
+  /* sun-side glint line on wing edges when tracking in sunlight */
+  if(wg&&wg.__sp&&wg.spBuilt.ARRAY&&wg.spSunlit&&wg.spArrayMode==='track'){
+    const ang=35*Math.PI/180;
+    for(const cz of[SP_SITE.mastAZ,SP_SITE.mastBZ]){
+      for(let row=0;row<3;row++){
+        const p0=[SP_SITE.mastX+(row-1)*1.06*Math.sin(ang)+Math.sin(ang)*0.5,SP_SITE.boomY+(row-1)*1.06*Math.cos(ang)+Math.cos(ang)*0.5,cz-1.06];
+        const p1=[p0[0],p0[1],cz+1.06];
+        wgLine(v,p0,p1,[0.95,0.85,0.45],0.022);
+      }
+    }
+  }
+  /* sleep pod: water wall + scanner ring */
+  if(wg&&wg.__sp&&wg.spPhaseStep.POD>=2){
+    const px=SP_SITE.podX,pz=SP_SITE.podZ;
+    const wcol=sleeping?[0.1,0.5,0.6]:[0.07,0.3,0.4];
+    const wp=0.5+0.3*Math.sin(now/(sleeping?900:350));
+    /* translucent water jacket box around the body */
+    const y0=fy+0.22,w=0.52,h=0.62,L=2.16;
+    const faces=[
+      [[px-w,y0,pz-L/2],[px+w,y0,pz-L/2],[px+w,y0+h*0.6,pz-L/2],[px-w,y0+h*0.6,pz-L/2]],
+      [[px-w,y0,pz+L/2],[px+w,y0,pz+L/2],[px+w,y0+h*0.6,pz+L/2],[px-w,y0+h*0.6,pz+L/2]],
+      [[px-w,y0,pz-L/2],[px-w,y0,pz+L/2],[px-w,y0+h*0.6,pz+L/2],[px-w,y0+h*0.6,pz-L/2]],
+      [[px+w,y0,pz-L/2],[px+w,y0,pz+L/2],[px+w,y0+h*0.6,pz+L/2],[px+w,y0+h*0.6,pz-L/2]]
+    ];
+    for(const f of faces)wgBQuad(v,f[0],f[1],f[2],f[3],[wcol[0]*wp,wcol[1]*wp,wcol[2]*wp],0);
+    if(wg.spPhaseStep.POD>=3){
+      const rc=sleeping?[0.1,0.95,0.45]:[0.1,0.7,0.9];
+      const rp=0.55+0.45*Math.sin(now/(sleeping?800:240));
+      for(let i=0;i<10;i++){
+        const a0=i/10*Math.PI*2,a1=(i+0.6)/10*Math.PI*2;
+        wgLine(v,[px+Math.cos(a0)*0.34,fy+0.98,pz+0.55+Math.sin(a0)*0.34],[px+Math.cos(a1)*0.34,fy+0.98,pz+0.55+Math.sin(a1)*0.34],[rc[0]*rp,rc[1]*rp,rc[2]*rp],0.018);
+      }
+    }
+  }
+  /* solar particle event: proton rain from the sun side (+x, high) */
+  if(storm&&(storm.on||storm.warn)){
+    const n=storm.on?30:12;
+    const col=storm.on?[1.0,0.34,0.26]:[1.0,0.75,0.25];
+    const inten=storm.on?(0.65+0.55*storm.profile):0.45;
+    const dir=[-0.42,-1,0.18];
+    for(let i=0;i<n;i++){
+      const ph=((now/140)+i*7.3)%18;
+      const len=4.5+((i*13)%5);
+      const ox=SP_SITE.podX+((i*29)%22)-6, oz=12+((i*17)%24);
+      const oy=fy+9-((ph/18)*4);
+      wgLine(v,[ox+dir[0]*ph,oy+dir[1]*ph,oz+dir[2]*ph],[ox+dir[0]*(ph+len*0.25),oy+dir[1]*(ph+len*0.25),oz+dir[2]*(ph+len*0.25)],
+        [col[0]*inten,col[1]*inten,col[2]*inten],0.014);
+    }
+  }
+  spBCount=v.length/7;
+  return new Float32Array(v);
+}
+function spDrawBeams(){
+  if(!gl||!wgGLReady||typeof contextLost!=='undefined'&&contextLost)return;
+  spInitGL();
+  if(!spGLReady)return;
+  const data=spBuildBeams();
+  if(!data.length)return;
+  gl.bindVertexArray(spBVAO);gl.bindBuffer(gl.ARRAY_BUFFER,spBVBO);
+  gl.bufferData(gl.ARRAY_BUFFER,data,gl.DYNAMIC_DRAW);
+  gl.bindVertexArray(null);
+  gl.useProgram(progBeam);
+  gl.uniformMatrix4fv(progBeam.uVP,false,vpM);
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.depthMask(false);
+  gl.uniform1f(progBeam.uOpacity,0.85);
+  gl.bindVertexArray(spBVAO);
+  gl.drawArrays(gl.TRIANGLES,0,spBCount*6);
+  gl.depthMask(true);gl.disable(gl.BLEND);
+  gl.bindVertexArray(null);
+}
+</script>
+<script>
+"use strict";
+/* ═══════════════ SP 14 · HOOKS — every base function wrapped, zero base edits ═══════════════ */
+/* terrain: flatten the west array pad together with the base site pad */
+const __spBaseFlatten=wgFlattenSite;
+wgFlattenSite=function(){__spBaseFlatten();try{spFlattenPads();}catch(e){}};
+
+/* env tick: base minute first (V05/V06 semantics on plain states), then space physics */
+const __spBaseEnvTick=wgEnvTick;
+wgEnvTick=function(st){__spBaseEnvTick(st);try{spPowerTick(st);}catch(e){}};
+
+/* daily roll: base agronomy, then DLI verdict + red-only ceiling + crew dose */
+const __spBaseDaily=wgDaily;
+wgDaily=function(st){__spBaseDaily(st);try{spDailyTick(st);}catch(e){}};
+
+/* action application: one shared path for live and replay */
+const __spBaseApply=wgApplyAction;
+wgApplyAction=function(st,a){
+  if(st&&st.__sp&&a&&typeof a.action==='string'&&a.action.indexOf('sp.')===0){
+    try{spApplyAction(st,a);}catch(e){}
+    return;
+  }
+  const p12=a&&a.action==='build.phase.done'&&/PHASE 12/.test(String(a.target));
+  __spBaseApply(st,a);
+  if(p12&&st&&st.__sp&&st.spLedDeadline==null)st.spLedDeadline=st.day+7;
+};
+
+/* build interaction: space phases after the base 13 */
+const __spBaseTargets=wgInteractTargets;
+wgInteractTargets=function(){
+  const t=__spBaseTargets();
+  if(t.length)return t;
+  try{
+    if(!wgFarm||!wg.__sp||wg.phase<WBUILD.length||wg.spPhase>=4)return [];
+    const fy=WG_SITE.floorY,out=[];
+    const idx=wg.spPhase,step=(wg.spPhaseStep[SPBUILD[idx].key]|0);
+    if(idx===0){
+      out.push({pos:[SP_SITE.mastX,fy+1.2,(step<6?SP_SITE.mastAZ:SP_SITE.mastBZ)+((step%2)-0.5)*1.06],
+        label:'UNFURL PANEL '+(step+1)+'/12 — 1.0 m2 SPACE-GRADE, '+(step<6?'WING A':'WING B'),key:'sp',sp:true,spIdx:0});
+    }else if(idx===1){
+      out.push({pos:[SP_SITE.rackX,fy+0.6,SP_SITE.rackZ],label:'MOUNT BATTERY MODULE '+(step+1)+'/2 — 1.25 kWh Li-ion + BMS',key:'sp',sp:true,spIdx:1});
+    }else if(idx===2){
+      out.push({pos:[SP_SITE.ledX[step],fy+1.6,(SP_SITE.ledZ0+SP_SITE.ledZ1)/2],label:'HANG RED LED BAR '+(step+1)+'/4 — 540 W, 660 nm DEEP RED',key:'sp',sp:true,spIdx:2});
+    }else if(idx===3){
+      out.push({pos:[SP_SITE.podX,fy+0.6,SP_SITE.podZ],
+        label:['ASSEMBLE POD SHELL — COMPOSITE SARCOPHAGUS','FILL WATER WALL — 200 L = 20 g/cm2 SHIELD','MOUNT LID + SCANNER — TORPOR VITALS'][step],key:'sp',sp:true,spIdx:3});
+    }
+    return out;
+  }catch(e){return [];}
+};
+const __spBaseDoBuild=wgDoBuildAction;
+wgDoBuildAction=function(tg){
+  if(tg&&tg.sp){
+    try{
+      const idx=tg.spIdx,def=SPBUILD[idx];
+      const step=(wg.spPhaseStep[def.key]|0)+1;
+      spApplyBuild(wg,{target:def.key,amount:step});
+      wgLogAdd('sp.build',def.key,step);
+      showToast(def.title+' — '+Math.min(step,def.need)+'/'+def.need+' · +'+(def.work_h/def.need).toFixed(1)+' h WORK');
+      if(wg.spBuilt[def.key]){
+        wgLogAdd('sp.build.done','PHASE '+def.key,def.need);
+        showToast('ORBITAL PHASE DONE — '+def.title);
+        if(wg.spPhase>=4)showToast('ORBITAL FARM COMMISSIONED — RED LIGHT ONLY · FOOD + ENERGY = MONEY FLOW');
+      }
+      if(wg.__sp&&wg.spLedDeadline==null&&wg.built[12])wg.spLedDeadline=wg.day+7;
+      wgDirty=true;wgSave();
+    }catch(e){}
+    return;
+  }
+  const r=__spBaseDoBuild(tg);
+  if(wg.__sp&&wg.spLedDeadline==null&&wg.built[12])wg.spLedDeadline=wg.day+7;
+  return r;
+};
+
+/* geometry: append space hardware into the base opaque buffer */
+const __spBaseOpaque=wgBuildOpaque;
+wgBuildOpaque=function(){
+  const d=__spBaseOpaque();
+  try{
+    const v=[];
+    spBuildOpaque(v);
+    if(v.length){
+      const out=new Float32Array(d.length+v.length);
+      out.set(d,0);out.set(v,d.length);
+      wgQuadCount=out.length/60;
+      return out;
+    }
+  }catch(e){}
+  return d;
+};
+
+/* render: glow pass after the base translucent pass */
+const __spBaseWgDraw=wgDraw;
+wgDraw=function(){__spBaseWgDraw();try{spDrawBeams();}catch(e){}};
+
+/* HUD: base panels, then the power panel + storm banner */
+const __spBaseHud=wgHudUpdate;
+wgHudUpdate=function(){__spBaseHud();try{spHudUpdate();}catch(e){}};
+
+/* prompt: pod sarcophagus when the base has nothing to say */
+const __spBasePrompt=wgPromptUpdate;
+wgPromptUpdate=function(){
+  __spBasePrompt();
+  try{
+    const p=$('wgPrompt');if(!p||!wgFarm)return;
+    if(p.classList.contains('on'))return;
+    if(wg.__sp&&wg.spBuilt.POD){
+      const d=Math.hypot(player.x-SP_SITE.podX,player.z-SP_SITE.podZ);
+      if(d<2.4){p.innerHTML='<b>[E]</b> ENTER SLEEP POD — 12 H CYCLE · STORM-SHELTERED';p.classList.add('on');}
+      else if(d<10){p.innerHTML='&#8594; SLEEP POD ('+d.toFixed(0)+' m — WALK CLOSER)';p.classList.add('on');}
+    }
+  }catch(e){}
+};
+
+/* alerts: space layer first (dose + battery + storms are urgent) */
+const __spBaseAlerts=wgLiveAlerts;
+wgLiveAlerts=function(){
+  const out=[];
+  try{
+    if(wg.__sp){
+      const storm=spStormAt(wg.tick);
+      if(storm&&storm.warn)out.push('SPE WARNING: '+SCFG.spes[storm.i].cls+'-CLASS PROTONS IN '+storm.hours_left.toFixed(1)+' H — SHELTER IN THE POD');
+      if(storm&&storm.on)out.push('SOLAR PARTICLE EVENT ACTIVE — '+Math.round(SCFG.spes[storm.i].peak_uSv_h*storm.profile)+' uSv/h UNSHELTERED');
+      if(wg.spDoseMsv>SCFG.dose_limit_msv)out.push('CREW DOSE '+wg.spDoseMsv.toFixed(0)+' mSv > '+SCFG.dose_limit_msv+' LIMIT — HEALTH PENALTY');
+      if(wg.spBuilt.BATTERY&&wg.spSoc<=SCFG.battery_kwh*SCFG.soc_floor+1e-6)out.push('BATTERY AT BMS FLOOR 10% — LED DARK, GRID BUY 2.20 EUR/kWh');
+      if(wg.spBuilt.LED&&!wg.spLedOn)out.push('RED LED RIG OFF — NO PHOTONS, NO FOOD — [L] ON');
+      if(wg.spLedDarkMin>0)out.push('LED DARK '+wg.spLedDarkMin+' MIN TODAY — LIGHT STARVATION');
+      if(!wg.spBuilt.LED&&wg.spLedDeadline!=null&&wg.day>wg.spLedDeadline)out.push('NURSERY LIGHT ENDED — BUILD THE RED LED RIG, PHASE LED');
+    }
+  }catch(e){}
+  return out.concat(__spBaseAlerts());
+};
+
+/* build overlay: space phases after the base 13 */
+const __spBasePanel=wgRenderBuildPanel;
+wgRenderBuildPanel=function(){
+  __spBasePanel();
+  try{
+    const el=$('wgPhases');if(!el)return;
+    let html='';
+    for(const p of SPBUILD){
+      const done=!!wg.spBuilt[p.key],now=wg.__sp&&wg.spPhase===SPBUILD.indexOf(p);
+      html+='<div class="wgph space '+(done?'done':'')+' '+(now?'now':'')+'">'
+        +'<div class="n">'+(done?'&#10003;':SPBUILD.indexOf(p)+13)+'</div>'
+        +'<div><div class="t">'+p.title+'</div><div class="d">PRODUCTS: '+p.products+'<br>WORK: '+p.todo+'</div></div>'
+        +'<div class="h">'+p.work_h+' h</div></div>';
+    }
+    html+='<div class="wgph space done"><div class="n">&#931;</div>'
+      +'<div><div class="t">ORBITAL TOTALS — '+WBUILD_H_TOTAL+' h GROUND + '+SPBUILD_H_TOTAL+' h ORBITAL · SPACE CAPEX 1240 EUR &rarr; FOOD + ENERGY FLOW</div>'
+      +'<div class="d">REAL DATA: AM0 1361 W/m2 (TSIS-1) · red LEDs 3.1 umol/J (Kusuma 2020) · SPE doses vs 250 mSv NASA event limit · SP.research()</div></div>'
+      +'<div class="h">'+(WBUILD_H_TOTAL+SPBUILD_H_TOTAL)+' h</div></div>';
+    el.insertAdjacentHTML('beforeend',html);
+  }catch(e){}
+};
+
+/* work todo: space phases appended */
+const __spBaseTodo=work.todo;
+work.todo=function(){
+  const r=__spBaseTodo();
+  try{
+    if(wg.__sp&&wg.spPhase<4){
+      const open=SPBUILD.filter((p,i)=>!wg.spBuilt[p.key]);
+      r.remaining_person_h=+(r.remaining_person_h+open.reduce((s,p)=>s+p.work_h,0)).toFixed(1);
+      r.total_person_h=+(r.remaining_person_h+WOPS_H_TOTAL).toFixed(1);
+      for(const p of open)r.todo.push('ORBITAL PHASE '+p.key+' — '+p.title+' | PRODUCTS: '+p.products+' | WORK: '+p.work_h+' h | '+p.todo);
+      console.log(r.todo.join('\n'));
+    }
+  }catch(e){}
+  return r;
+};
+
+/* replay: space-aware — the proof of skill now includes sleep, dose and kWh */
+replay.wg={
+  log:()=>wgLog,
+  export:()=>{const text=wgLog.map(l=>JSON.stringify(l)).join('\n');
+    const blob=new Blob([text],{type:'application/jsonl'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='sun005_replay_day'+wg.day+'.jsonl';a.click();
+    return {ok:true,lines:wgLog.length,file:'sun005_replay_day'+wg.day+'.jsonl'};},
+  verify:text=>{
+    const lines=String(text).split(/\r?\n/).filter(l=>l.trim());
+    const log=lines.map(l=>{try{return JSON.parse(l);}catch(e){return null;}}).filter(Boolean);
+    if(!log.length)return {ok:false,error:'empty or invalid JSONL'};
+    const st=spRunReplay(log,{days:Math.max(1,Math.ceil((log[log.length-1].tick||1)/1440))});
+    const sha=wgSha256(spCanonicalReport(st));
+    const res={ok:true,lines:log.length,days:st.day,harvest_kg:st.harvestedKg,health:st.health,
+      dose_msv:+st.spDoseMsv.toFixed(2),kwh_sold:+st.spSoldKwh.toFixed(1),sleep_cycles:st.spSleepCycles,
+      crop_report_sha256:sha,
+      matches_live_state:(st.harvestedKg===wg.harvestedKg&&st.day===wg.day&&Math.abs(st.spDoseMsv-wg.spDoseMsv)<1e-6)};
+    console.log('replay.wg.verify →',JSON.stringify(res));return res;},
+  run:log=>{const st=spRunReplay(log||wgLog,{});
+    console.log('replay.wg.run →',{day:st.day,health:st.health,harvestedKg:st.harvestedKg,
+      dose_msv:+st.spDoseMsv.toFixed(1),kwh_sold:+st.spSoldKwh.toFixed(0),sha256:wgSha256(spCanonicalReport(st))});
+    return st;}
+};
+
+/* WG.reset: base reset, then a fresh space state */
+const __spBaseReset=WG.reset;
+WG.reset=function(){
+  const r=__spBaseReset();
+  try{spExtend(wg,true);wgDirty=true;wgSave();}catch(e){}
+  return r;
+};
+</script>
+<script>
+"use strict";
+/* ═══════════════ SP 15 · INPUT + HUD + OVERLAYS ═══════════════ */
+function spNearPod(){
+  return Math.hypot(player.x-SP_SITE.podX,player.z-SP_SITE.podZ)<2.4&&Math.abs(player.y-WG_SITE.floorY)<3;
+}
+function spToggleArray(){
+  if(!wgFarm||!wg.__sp)return;
+  if(!wg.spBuilt.ARRAY){showToast('BUILD THE SOLAR ARRAY FIRST — WEST PAD, [E] AT THE MASTS');return;}
+  const to=wg.spArrayMode==='track'?'edge':'track';
+  wgPending.push({tick:wg.tick+1,day:wg.day,action:'sp.array',target:'array',amount:to==='track'?1:0});
+  wgLogAdd('sp.array','array',to==='track'?1:0);
+  try{wg.anim.spArray={t0:performance.now(),from:spWingAngle()};}catch(e){}
+  wgDirty=true;wgSave();
+  showToast(to==='track'
+    ?'ARRAY SUN-POINTED — FULL WATTS · STATION SHADOWED IN STORMS (x0.55) · CELLS EXPOSED'
+    :'ARRAY EDGE-ON — ~2% POWER · CELLS SAFE IN STORMS · STATION EXPOSED');
+}
+function spToggleLed(){
+  if(!wgFarm||!wg.__sp)return;
+  if(!wg.spBuilt.LED){showToast('BUILD THE RED LED RIG FIRST — [E] AT THE BEDS');return;}
+  const to=!wg.spLedOn;
+  wgPending.push({tick:wg.tick+1,day:wg.day,action:'sp.led',target:'ledrig',amount:to?1:0});
+  wgLogAdd('sp.led','ledrig',to?1:0);
+  wgDirty=true;wgSave();
+  showToast(to?'RED LED RIG ON — 2150 W OF 660 nm — PRODUCTION LIGHT ONLY':'RED LED RIG OFF — PHOTONS STOP, DLI STARVES');
+}
+/* sleep: the pod is a physical sarcophagus — walk to it, press E (or 7) */
+function spSleepUI(){
+  if(!spCanSleep()){showToast(spPodMissingReason());return {ok:false};}
+  const ov=$('spSleep');
+  if(!ov)return spStartSleep();
+  ov.classList.add('on');
+  const fade=ov.querySelector('.fade');
+  const wake=ov.querySelector('.wake');
+  if(wake)wake.innerHTML='CORE TEMP 36.6 &rarr; 33.9 &deg;C &middot; HR 62 &rarr; 41 BPM &middot; MET 1.00 &rarr; 0.55<br>TORPOR CYCLE RUNNING — 12 H OF REAL SIM MINUTES, COMPUTED NOT FAKED';
+  requestAnimationFrame(()=>{if(fade)fade.classList.add('in');});
+  setTimeout(()=>{
+    const w=spStartSleep();
+    if(wake&&w.ok){
+      wake.innerHTML='<b>WOKE AT '+w.woke_clock+'</b> — DAY '+wg.day+' · '+w.minutes+' min COMPUTED in '+w.real_ms+' ms<br>'
+        +'DOSE SLEPT: +'+w.dose_msv+' mSv (SHELTERED) · ENERGY SOLD: +'+w.eur_sold.toFixed(2)+' EUR'
+        +(w.led_dark_min>0?' · <span style="color:var(--red)">LED DARK '+w.led_dark_min+' MIN</span>':'')
+        +(w.slept_through_storm?' · <span style="color:var(--amber)">WEATHERED A SOLAR STORM ASLEEP</span>':'')
+        +(w.ripe_kg>0.05?' · RIPE: '+w.ripe_kg+' KG — [6] HARVEST':'');
+    }
+    setTimeout(()=>{
+      if(fade)fade.classList.remove('in');
+      setTimeout(()=>{ov.classList.remove('on');},800);
+    },1600);
+  },750);
+}
+/* E / 7 at the pod — capture phase so the base E (water/harvest) never fires */
+document.addEventListener('keydown',e=>{
+  try{
+    if(!wgFarm||paused)return;
+    if((e.code==='KeyE'||e.code==='Digit7')&&!e.repeat){
+      if(!wg.__sp||!wg.spBuilt.POD)return;
+      if(wgInteractTargets().length)return;              /* build beacons win */
+      if(!spNearPod())return;
+      e.preventDefault();e.stopPropagation();
+      spSleepUI();
+    }
+  }catch(err){}
+},true);
+document.addEventListener('keydown',e=>{
+  try{
+    if(!wgFarm||paused)return;
+    if(e.code==='KeyP'&&!e.repeat)spToggleArray();
+    if(e.code==='KeyL'&&!e.repeat)spToggleLed();
+  }catch(err){}
+});
+
+/* DOM injection — power panel, storm banner, sleep overlay, action chips */
+(function spInjectDOM(){
+  function inject(){
+    const hud=$('wgHud');if(!hud)return false;
+    const panel=document.createElement('div');panel.className='wg-panel';panel.id='spPower';
+    panel.innerHTML=`
+      <div class="cap">ORBITAL POWER — LIVE</div>
+      <div class="orb" id="spOrb">ORBIT 00/92 · SUN</div>
+      <div class="row"><span>ARRAY</span><b id="spGen">0 W</b></div>
+      <div class="row"><span>MODE / DEGRAD</span><b id="spMode">TRACK · 0.0%</b></div>
+      <div class="row"><span>LOAD</span><b id="spLoad">0 W</b></div>
+      <div class="row"><span>BATTERY <b id="spSocTxt">0.00 kWh</b></span><span id="spSocPct">0%</span></div>
+      <div class="sp-bar batt" id="spSocBar"><i style="width:0%"></i></div>
+      <div class="row"><span>RED LED</span><b id="spLed" class="red">—</b></div>
+      <div class="row"><span>DLI TODAY</span><b id="spDli">0.0 / 14</b></div>
+      <div class="row"><span>GRID SOLD</span><b id="spSold" class="good">0.0 kWh · 0.00 EUR</b></div>
+      <div class="row"><span>GRID BOUGHT</span><b id="spBought" class="warn">0.00 EUR</b></div>
+      <div class="row"><span>CREW DOSE</span><b id="spDose">0.0 mSv</b></div>
+      <div class="sp-bar dose" id="spDoseBar"><i style="width:0%"></i></div>`;
+    hud.appendChild(panel);
+    const storm=document.createElement('div');storm.id='spStorm';document.body.appendChild(storm);
+    const sleep=document.createElement('div');sleep.id='spSleep';
+    sleep.innerHTML=`<div class="fade"></div><div class="wrap">
+      <div class="skull">&#9760;</div><h2>SLEEP <b>POD</b> — SARCOPHAGUS 12 H</h2>
+      <div class="vit">WATER WALL 20 g/cm<sup>2</sup> &middot; GCR x0.65 &middot; SPE x0.10 &middot; THERAPEUTIC HYPOTHERMIA</div>
+      <div class="wake"></div></div>`;
+    document.body.appendChild(sleep);
+    const acts=$('wgActions');
+    if(acts){
+      const mk=(id,txt)=>{const s=document.createElement('span');s.className='act sp';s.id=id;s.textContent=txt;acts.appendChild(s);};
+      mk('spChipP','P ARRAY:TRACK');
+      mk('spChipL','L LED:—');
+      mk('spChip7','7 POD');
+    }
+    return true;
+  }
+  if(!inject())document.addEventListener('DOMContentLoaded',inject,false);
+})();
+
+function spHudUpdate(){
+  if(!wgFarm||!wg.__sp)return;
+  const set=(id,v)=>{const n=$(id);if(n)n.textContent=v;};
+  const om=wg.tick%SCFG.orbit_min;
+  const orb=$('spOrb');
+  if(orb){
+    orb.textContent='ORBIT '+String(om).padStart(2,'0')+'/92 · '+(wg.spSunlit?'SUN':'ECLIPSE');
+    orb.className='orb'+(wg.spSunlit?'':' ec');
+  }
+  set('spGen',(wg.spGenW>0?'+':'')+Math.round(wg.spGenW)+' W');
+  set('spMode',(wg.spArrayMode==='track'?'TRACK':'EDGE')+' · '+(wg.spDeg*100).toFixed(1)+'%');
+  set('spLoad',Math.round(wg.spLoadW)+' W');
+  const socPct=Math.round(wg.spSoc/SCFG.battery_kwh*100);
+  set('spSocTxt',wg.spSoc.toFixed(2)+' kWh');
+  set('spSocPct',socPct+'%');
+  const bar=$('spSocBar');
+  if(bar){
+    bar.firstElementChild.style.width=Math.max(1,socPct)+'%';
+    bar.className='sp-bar batt'+(socPct<=SCFG.soc_floor*100+0.5?' floor':(socPct<30?' low':''));
+  }
+  const led=$('spLed');
+  if(led){
+    led.textContent=wg.spBuilt.LED?(wg.spLedActive?'ON 2150 W · RED':(wg.spLedOn?'DARK — NO POWER':'OFF')):'NOT BUILT';
+    led.className=wg.spLedActive?'red':(wg.spBuilt.LED&&wg.spLedOn?'warn':'');
+  }
+  set('spDli',wg.spDliToday.toFixed(1)+' / '+SCFG.dli_target);
+  set('spSold',wg.spSoldKwh.toFixed(1)+' kWh · '+wg.spEurSold.toFixed(2)+' EUR');
+  set('spBought',wg.spEurBought.toFixed(2)+' EUR');
+  set('spDose',wg.spDoseMsv.toFixed(1)+' / '+SCFG.dose_limit_msv+' mSv');
+  const db=$('spDoseBar');
+  if(db){
+    db.firstElementChild.style.width=Math.min(100,wg.spDoseMsv/SCFG.dose_limit_msv*100)+'%';
+    db.className='sp-bar dose'+(wg.spDoseMsv>SCFG.dose_limit_msv*0.75?' hot':'');
+  }
+  set('spChipP','P ARRAY:'+(wg.spArrayMode==='track'?'TRACK':'EDGE'));
+  set('spChipL','L LED:'+(wg.spBuilt.LED?(wg.spLedOn?'ON':'OFF'):'—'));
+  const dPod=Math.hypot(player.x-SP_SITE.podX,player.z-SP_SITE.podZ);
+  set('spChip7',wg.spBuilt.POD?(dPod<2.4?'7 SLEEP NOW':'7 POD ('+dPod.toFixed(0)+' m)'):'7 POD (BUILD)');
+  /* storm banner */
+  const sb=$('spStorm');
+  if(sb){
+    const s=spStormAt(wg.tick);
+    if(!s){sb.className='';sb.style.display='none';}
+    else if(s.warn){
+      sb.className='on';
+      sb.innerHTML='&#9888; <b>SPE WARNING</b> — '+SCFG.spes[s.i].cls+'-CLASS PROTONS ARRIVE IN '+s.hours_left.toFixed(1)+' H &middot; UNSHELTERED '+spSpeUnshelteredMsv(s.i)+' mSv — SHELTER IN THE POD';
+    }else{
+      const rate=Math.round(SCFG.spes[s.i].peak_uSv_h*s.profile);
+      const sleeping=wg.tick<wg.spSleepUntil;
+      sb.className='on hit';
+      sb.innerHTML='&#9762; <b>SOLAR PARTICLE EVENT</b> — '+rate+' &micro;Sv/h UNSHELTERED &middot; '+(sleeping?'CREW SHELTERED IN POD (x0.10)':(wg.spArrayMode==='track'?'ARRAY SHADOW x0.55 — CELLS DEGRADING':'STATION EXPOSED x1.0'))+' — [E] POD';
+    }
+  }
+}
+</script>
+<script>
+"use strict";
+/* ═══════════════ SP 16 · CONSOLE API — every space process has a VERIFY ═══════════════ */
+function spCostLines(){
+  const p=SCFG.prices;
+  return [
+    {item:'solar array 2 wings x 4 panels', qty:SCFG.array_m2+' m2', unit_eur:p.panel_eur_m2, eur:+(SCFG.array_m2*p.panel_eur_m2).toFixed(2)},
+    {item:'Li-ion battery rack + BMS', qty:SCFG.battery_kwh+' kWh', unit_eur:p.battery_eur_kwh, eur:+(SCFG.battery_kwh*p.battery_eur_kwh).toFixed(2)},
+    {item:'red LED rig 660 nm', qty:'4 x 540 W', unit_eur:p.led_bar_eur, eur:+(4*p.led_bar_eur).toFixed(2)},
+    {item:'sleep pod + 200 L water wall', qty:'20 g/cm2', unit_eur:null, eur:p.pod_eur}
+  ];
+}
+function spLedger(st){
+  const s=st||wg;
+  const baseCosts=wgCostLines();
+  const spaceCosts=spCostLines();
+  const sum_base=+baseCosts.reduce((a,c)=>a+c.eur,0).toFixed(2);
+  const sum_space=+spaceCosts.reduce((a,c)=>a+c.eur,0).toFixed(2);
+  const sum_costs=+(sum_base+sum_space).toFixed(2);
+  const food_rev=+(s.harvestedKg*s.price).toFixed(2);
+  const energy_rev=+(s.spEurSold-s.spEurBought).toFixed(2);
+  const sum_revenue=+(food_rev+energy_rev).toFixed(2);
+  const balance=+(sum_revenue-sum_costs).toFixed(2);
+  const mismatch=+Math.abs(sum_costs+balance-sum_revenue).toFixed(2);
+  const res={sum_costs:{ground:sum_base,orbital:sum_space,total:sum_costs},
+    revenue_rule:s.harvestedKg.toFixed(1)+' kg x '+s.price.toFixed(2)+' EUR/kg (FOOD) + '+s.spEurSold.toFixed(2)+' EUR sold - '+s.spEurBought.toFixed(2)+' EUR bought (ENERGY)',
+    food_rev,energy_rev,sum_revenue,balance,mismatch,
+    kwh:{gen:+s.spGenKwh.toFixed(1),load:+s.spLoadKwh.toFixed(1),sold:+s.spSoldKwh.toFixed(1),bought:+s.spBoughtKwh.toFixed(1)},
+    cost_lines:spaceCosts};
+  console.log('SP.ledger →',JSON.stringify({sum_costs,res_rule:res.revenue_rule,sum_revenue,balance,mismatch}));
+  console.table(spaceCosts);
+  return res;
+}
+const SP={
+  dna:()=>SP_DNA,
+  info:()=>({phase:wg.spPhase,built:Object.assign({},wg.spBuilt),array_mode:wg.spArrayMode,led_on:wg.spLedOn,
+    orbit_min:wg.tick%SCFG.orbit_min,sunlit:wg.spSunlit,gen_w:Math.round(wg.spGenW),load_w:Math.round(wg.spLoadW),
+    soc_kwh:+wg.spSoc.toFixed(3),degradation_pct:+(wg.spDeg*100).toFixed(2),
+    dose_msv:+wg.spDoseMsv.toFixed(2),dose_gcr:+wg.spDoseGcrMsv.toFixed(2),dose_spe:+wg.spDoseSpeMsv.toFixed(2),
+    dli_today:+wg.spDliToday.toFixed(2),dli_yesterday:+wg.spDliYesterday.toFixed(2),
+    sleep_cycles:wg.spSleepCycles,sleeping_now:wg.tick<wg.spSleepUntil,
+    eur_sold:+wg.spEurSold.toFixed(2),eur_bought:+wg.spEurBought.toFixed(2)}),
+  theory:()=>{console.log(SPTHEORY);return {sections:9,note:'SP.theory — the orbital Wintergarten physics'};},
+  research:()=>{console.table(SPRESEARCH.map(r=>({id:r.id,topic:r.topic,real:r.real,sim:r.sim,verdict:r.verdict})));
+    SPRESEARCH.forEach(r=>console.log(r.id,'SOURCE:',r.src));
+    return {entries:SPRESEARCH.length,note:'REAL data researched 2026-11. Sim is deliberately conservative where it differs.',
+      sources:SPRESEARCH.map(r=>({id:r.id,src:r.src}))};},
+  storm:()=>({now:spStormAt(wg.tick),
+    schedule:SCFG.spes.map((s,i)=>({day:s.day,start_h:s.h,dur_h:s.dur_h,class:s.cls,
+      unsheltered_msv:spSpeUnshelteredMsv(i),degradation_if_tracking_pct:+(s.deg*100).toFixed(1),
+      pod_sheltered_msv:+(spSpeUnshelteredMsv(i)*SCFG.pod_spe).toFixed(1)}))}),
+  array:m=>{if(m==='track'||m==='edge'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'sp.array',target:'array',amount:m==='track'?1:0});
+      wgLogAdd('sp.array','array',m==='track'?1:0);try{wg.anim.spArray={t0:performance.now(),from:spWingAngle()};}catch(e){}
+      wgDirty=true;return {ok:true,mode:m};}
+    return {ok:false,error:'SP.array(\'track\'|\'edge\')'};},
+  led:on=>{if(typeof on==='boolean'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'sp.led',target:'ledrig',amount:on?1:0});
+      wgLogAdd('sp.led','ledrig',on?1:0);wgDirty=true;return {ok:true,led:on};}
+    return {ok:false,error:'SP.led(true|false)'};},
+  sleep:()=>spStartSleep(),
+  ledger:()=>spLedger(wg),
+  replay:{run:log=>spRunReplay(log||wgLog,{}),
+    verify:text=>replay.wg.verify(text),
+    standardLog:()=>spStandardLog()},
+  verify:function(){return spVerify();}
+};
+window.SP=SP;window.SCFG=SCFG;window.SPRESEARCH=SPRESEARCH;window.SPBUILD=SPBUILD;
+
+/* help: space commands appended to the base list */
+const __spBaseHelp=WG.help;
+WG.help=function(){
+  const r=__spBaseHelp();
+  const cmds=['SP.info()','SP.theory()','SP.research()','SP.ledger()','SP.storm()','SP.array(\'track\'|\'edge\')',
+    'SP.led(true|false)','SP.sleep()','SP.replay.standardLog()','SP.replay.run(log)','SP.replay.verify(text)','SP.verify()'];
+  r.commands=r.commands.concat(cmds);
+  console.log(cmds.join('\n'));
+  return r;
+};
+
+/* ═══════════════ SP 17 · VERIFY BATTERY — 16 space tests, appended to WG.verify ═══════════════ */
+function spVerify(){
+  const R=[];const T=(id,expect,pass,detail)=>{R.push({id,expect,pass:!!pass,detail:detail||''});};
+  try{
+    /* S01 state isolation: space marker only where it belongs */
+    const spSt=spRunReplay([],{days:1});
+    const baseSt=wgRunReplay([],{days:1});
+    T('S01 __sp isolation','space states carry __sp, base replay states do not',
+      spSt.__sp===1&&baseSt.__sp===undefined,'sp='+spSt.__sp+' base='+(baseSt.__sp===undefined?'clean':'CONTAMINATED'));
+    /* S02 array peak math */
+    T('S02 array peak','12 m2 x 1361 W/m2 x 0.30 = 4899.6 W',
+      Math.abs(spPeakW()-4899.6)<0.01,spPeakW().toFixed(1)+' W');
+    /* S03 orbit duty cycle */
+    let sun=0;for(let t=0;t<1440;t++)if(spSunlit(t))sun++;
+    T('S03 orbit duty','92-min orbit, 975 sunlit min/day (67.7%)',sun===975,sun+' min');
+    /* S04 DLI: full photoperiod = 14.0 mol/m2/d */
+    const dliLog=[{tick:2,day:0,action:'build.phase.done',target:'PHASE 12 PLANT',amount:4}];
+    let tk=10;for(let i=0;i<4;i++)for(let k=1;k<=SPBUILD[i].need;k++)dliLog.push({tick:tk++,day:0,action:'sp.build',target:SPBUILD[i].key,amount:k});
+    const dliSt=spRunReplay(dliLog,{days:2});
+    T('S04 red LED DLI','2150 W x 3.1 umol/J x 14 h / 24 m2 = 14.0 mol/m2/d',
+      Math.abs(dliSt.spDliYesterday-14)<0.05,dliSt.spDliYesterday.toFixed(3)+' mol/m2');
+    /* S05 LED heat: exactly led_w x 60 / thermal mass per minute */
+    const mkState=led=>{const s=spExtend(wgFreshState(),true);s.tick=720;s.spBuilt.LED=true;s.spBuilt.ARRAY=true;
+      s.spBuilt.BATTERY=true;s.spLedOn=led;s.spSoc=SCFG.battery_kwh;return s;};
+    const sA=mkState(true),sB=mkState(false);
+    spPowerTick(sA);spPowerTick(sB);
+    const expHeat=SCFG.led_w*60/WCFG.thermal_mass_j_per_k;
+    T('S05 LED heat','tIn delta = 2150 W x 60 s / 17.3 MJ/K',
+      Math.abs((sA.tIn-sB.tIn)-expHeat)<1e-12,(sA.tIn-sB.tIn).toExponential(3)+' vs '+expHeat.toExponential(3));
+    /* S06 full orbital season: healthy, red-only ceiling */
+    const st1=spRunReplay(spStandardLog(),{});
+    T('S06 season red-only','health 100, harvest = 280 x 0.92 = 257.6 kg',
+      st1.health>=95&&Math.abs(st1.harvestedKg-257.6)<0.5,'health='+st1.health+' kg='+st1.harvestedKg);
+    /* S07 dose with pod discipline */
+    T('S07 sheltered dose','nightly pod sleep + storm sleep -> dose < 100 mSv limit',
+      st1.spDoseMsv>40&&st1.spDoseMsv<100,+st1.spDoseMsv.toFixed(1)+' mSv');
+    /* S08 dose without any sleep: the price of staying awake */
+    const noSleep=spStandardLog().filter(l=>l.action!=='sp.sleep');
+    const stNo=spRunReplay(noSleep,{});
+    T('S08 unsheltered dose','no sleep at all -> dose > 150 mSv, health damaged',
+      stNo.spDoseMsv>150&&stNo.health<100,'dose='+stNo.spDoseMsv.toFixed(1)+' mSv health='+stNo.health);
+    /* S09 degradation: tracking takes the storm hits */
+    const degExp=SCFG.deg_baseline_per_day*WCFG.season_total_days+0.02+0.04+0.07;
+    T('S09 degradation','tracking all season: 0.37% baseline + 13% storms',
+      Math.abs(st1.spDeg-degExp)<0.003,'deg='+(st1.spDeg*100).toFixed(2)+'% expected='+(degExp*100).toFixed(2)+'%');
+    /* S10 determinism */
+    const st2=spRunReplay(spStandardLog(),{});
+    const sha1=wgSha256(spCanonicalReport(st1)),sha2=wgSha256(spCanonicalReport(st2));
+    T('S10 replay determinism','same space log 2x -> identical sha256',sha1===sha2,sha1.slice(0,16)+'...');
+    /* S11 tamper: change one sleep cycle */
+    const tampered=spStandardLog();const ix=tampered.findIndex(l=>l.action==='sp.sleep');
+    tampered[ix].amount=60;
+    const stT=spRunReplay(tampered,{});
+    const shaT=wgSha256(spCanonicalReport(stT));
+    T('S11 tamper detection','one pod cycle 720->60 min -> different dose + sha',
+      shaT!==sha1&&Math.abs(stT.spDoseMsv-st1.spDoseMsv)>0.01,'dose '+stT.spDoseMsv.toFixed(2)+' vs '+st1.spDoseMsv.toFixed(2));
+    /* S12 energy conservation over the whole season */
+    const idErr=Math.abs(st1.spGenKwh+st1.spBoughtKwh-st1.spSoc-st1.spLossKwh-(st1.spLoadKwh-st1.spShedKwh)-st1.spSoldKwh);
+    T('S12 energy identity','gen + bought = dSOC + losses + (load - shed) + sold',idErr<1e-6,'residual='+idErr.toExponential(2)+' kWh');
+    /* S13 pod parity: sleep changes ONLY dose-related fields */
+    const parLog=(withSleep)=>{
+      const l=[{tick:2,day:0,action:'build.phase.done',target:'PHASE 12 PLANT',amount:4}];
+      let t=10;for(let i=0;i<4;i++)for(let k=1;k<=SPBUILD[i].need;k++)l.push({tick:t++,day:0,action:'sp.build',target:SPBUILD[i].key,amount:k});
+      if(withSleep)l.push({tick:500,day:0,action:'sp.sleep',target:'pod',amount:720});
+      return l;};
+    const pA=spRunReplay(parLog(true),{days:5}),pB=spRunReplay(parLog(false),{days:5});
+    const sameFarm=pA.harvestedKg===pB.harvestedKg&&pA.health===pB.health
+      &&Math.abs(pA.spGenKwh-pB.spGenKwh)<1e-9&&pA.day===pB.day&&pA.tick===pB.tick;
+    T('S13 pod parity','sleep changes dose fields only, farm outcome identical',
+      sameFarm&&pA.spDoseMsv<pB.spDoseMsv,
+      'dose '+pA.spDoseMsv.toFixed(4)+' < '+pB.spDoseMsv.toFixed(4)+' mSv, kg '+pA.harvestedKg+'='+pB.harvestedKg);
+    /* S14 sleep window is exactly 720 minutes */
+    const expDelta=720*SCFG.gcr_msv_day/1440*(1-SCFG.pod_gcr);
+    const dA=spRunReplay(parLog(true),{days:2}).spDoseMsv,dB=spRunReplay(parLog(false),{days:2}).spDoseMsv;
+    T('S14 sleep window','12 h cycle: GCR saving = 720 x 0.55/1440 x 0.35 mSv',
+      Math.abs((dB-dA)-expDelta)<1e-9,(dB-dA).toFixed(6)+' vs '+expDelta.toFixed(6));
+    /* S15 money flow: FOOD + ENERGY over full capex */
+    const led=spLedger(st1);
+    T('S15 space economy','1895.00 capex, revenue food+energy, positive balance, mismatch 0',
+      led.sum_costs.total===1895&&led.balance>150&&led.mismatch===0,
+      'costs='+led.sum_costs.total+' rev='+led.sum_revenue+' balance='+led.balance+' mismatch='+led.mismatch);
+    /* S16 surface + no bad tokens */
+    const myScripts=[...document.querySelectorAll('script')].map(s=>s.textContent).join('');
+    const bad=['X'+'XX','FIX'+'ME','PLACE'+'HOLDER'].filter(tok=>myScripts.includes(tok));
+    T('S16 surface clean','title SUN005, SP API alive, no placeholder tokens',
+      document.title.indexOf('SUN005')>=0&&typeof window.SP==='object'&&bad.length===0,
+      'title='+document.title+' bad='+JSON.stringify(bad));
+  }catch(e){T('S-ERR','exception',false,String(e&&e.message||e));}
+  const pass=R.filter(r=>r.pass).length,fail=R.length-pass;
+  console.log('%c SP.VERIFY — '+pass+'/'+R.length+' PASS ','background:#0a0e1a;color:'+(fail?'#ff3b30':'#5dff8b')+';font-weight:bold;padding:4px 10px;border:1px solid '+(fail?'#ff3b30':'#5dff8b')+';border-radius:6px');
+  console.table(R);
+  return {pass,fail,total:R.length,results:R};
+}
+
+/* WG.verify: base 16 + space 16 = 32 */
+const __spBaseVerify=WG.verify;
+WG.verify=function(){
+  const base=__spBaseVerify();
+  const space=SP.verify();
+  const pass=base.pass+space.pass,fail=base.fail+space.fail,total=base.total+space.total;
+  console.log('%c WG+SP VERIFY — '+pass+'/'+total+' PASS ','background:#0a0e1a;color:'+(fail?'#ff3b30':'#5dff8b')+';font-weight:bold;padding:4px 10px;border:1px solid '+(fail?'#ff3b30':'#5dff8b')+';border-radius:6px');
+  return {pass,fail,total,results:base.results.concat(space.results),base,space};
+};
+
+/* ═══════════════ SP 18 · BOOT — extend live state, claim the title ═══════════════ */
+spExtend(wg,false);
+try{document.title='SUN005 · MONEY — WINTERGARTEN ORBITAL';}catch(e){}
+console.log('%c SUN005 · add.dna — ORBITAL POWER + RED LED + SLEEP POD ','background:#0a0e1a;color:#b061ff;font-weight:bold;padding:4px 10px;border:1px solid #b061ff;border-radius:6px',
+  'loaded · '+SP_DNA.equation+' · spPhase '+wg.spPhase+'/4'+(wg.spPhase>=4?' (commissioned)':'')+' · work_002 · console: SP.info() · SP.verify() · SP.theory() · SP.research()');
+</script>
 </body>
 </html>
