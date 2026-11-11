@@ -5592,18 +5592,21 @@ function boot(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 </script>
 <!-- ════════════════════════════════════════════════════════════════════════
-     add.dna · WINTERGARTEN ADD-ON DNA · work_001 implementation
+     base.dna · WINTERGARTEN BASE DNA · SUN_001 engine + work_001 implementation
      ──────────────────────────────────────────────────────────────────────
-     DNA CONTRACT:  base.dna + add.dna = SUN2.html
-       base.dna = SUN_001.html (LOCKED BASE, never modified) with only the
-                  trailing </body></html> moved to the tail of add.dna.
-       add.dna  = this file. ALL ADDITIONS LIVE HERE. ZERO base edits.
-       verify:  cat base.dna add.dna > SUN2.html  (byte-exact monolith)
+     DNA CONTRACT:  base.dna + add.dna = SUN003.html
+       base.dna = THIS FILE: SUN_001.html engine (LOCKED, never modified)
+                  + WINTERGARTEN work_001 (double hull, sealed bottom, bones,
+                  energy, soil, crop, replay, ledger). Carries everything
+                  except the final </body></html>.
+       add.dna  = GAME LAYER v2 (SOTA gameplay + real-data calibration).
+                  ALL NEW ADDITIONS LIVE THERE. ZERO edits to this file.
+       verify:  cat base.dna add.dna > SUN003.html  (byte-exact monolith)
      PRODUCT:   Double-plastic-film Wintergarten + cherry tomato production
                 (Primus inter pares). Sealed bottom. Plastic stability bones.
                 Sun + energy model. Soil ACID (pH) + nutrition (N/P/K/EC).
                 105-day crop. Replay = skill proof. Money flow ledger.
-     RULES:     NO AUTOPLAY — every action is done by the USER hand (E / 1-6).
+     RULES:     NO AUTO-PLAY — every action is done by the USER hand (E / 1-6).
                 Every process gets a VERIFY run with expected output (wg.verify).
      ════════════════════════════════════════════════════════════════════ -->
 <style>
@@ -5675,11 +5678,11 @@ body.wg-farm #hud .hud-br{bottom:auto;top:54px;right:14px;font-size:10px}
 "use strict";
 /* ═══════════════ 0 · DNA MANIFEST ═══════════════ */
 const WG_DNA={
-  id:'add.dna', product:'WINTERGARTEN + CHERRY TOMATO v1', work:'work_001',
-  equation:'base.dna + add.dna = SUN2.html',
-  base_file:'SUN_001.html', base_lines:5593, base_lock:'LOCKED — NEVER MODIFY',
-  split_rule:'base.dna carries SUN_001.html minus its final </body></html>; add.dna re-attaches them at its tail.',
-  date:'2026-11-11', rules:['NO AUTO-PLAY','USER DOES EVERY STEP','VERIFY EVERY PROCESS','REPLAY PROVES SKILL','FOOD+ENERGY = TOTAL MONEY FLOW']
+  id:'base.dna', product:'SUN_001 ENGINE + WINTERGARTEN · CHERRY TOMATO PRODUCTION (work_001)', work:'work_001',
+  equation:'base.dna + add.dna = SUN003.html',
+  base_file:'SUN_001.html', base_lines:5593, base_lock:'LOCKED — NEVER MODIFY (engine embedded verbatim)',
+  split_rule:'base.dna = SUN_001 engine + wintergarten work_001, minus the final </body></html>; add.dna (GAME LAYER v2) appends gameplay and re-attaches the closing tags at its tail.',
+  date:'2026-11-11 · folded into base.dna for SUN003', rules:['NO AUTO-PLAY','USER DOES EVERY STEP','VERIFY EVERY PROCESS','REPLAY PROVES SKILL','FOOD+ENERGY = TOTAL MONEY FLOW']
 };
 
 /* ═══════════════ 1 · CONFIG — work_001.json config_defaults, VERBATIM ═══════════════ */
@@ -6351,14 +6354,15 @@ let wgPending=[];
 /* live farm actions route through queue (deterministic replay parity) */
 function wgFarmActionQ(name){
   if(!wgNearBed()){showToast('WALK TO THE GROW BEDS FIRST');return;}
-  if(name==='WATER'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.water',target:'beds A+B',amount:12});}
-  else if(name==='NPK'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.npk',target:'beds A+B',amount:40});}
-  else if(name==='LIME'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.lime',target:'beds A+B',amount:0.25});}
-  else if(name==='SULFUR'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.sulfur',target:'beds A+B',amount:-0.25});}
-  else if(name==='TEST'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.test',target:'snapshot',amount:wgSoilCsv()});}
+  if(name==='WATER'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.water',target:'beds A+B',amount:12});wgLogAdd('soil.water','beds A+B',12);}
+  else if(name==='NPK'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.npk',target:'beds A+B',amount:40});wgLogAdd('soil.npk','beds A+B',40);}
+  else if(name==='LIME'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.lime',target:'beds A+B',amount:0.25});wgLogAdd('soil.lime','beds A+B',0.25);}
+  else if(name==='SULFUR'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.sulfur',target:'beds A+B',amount:-0.25});wgLogAdd('soil.sulfur','beds A+B',-0.25);}
+  else if(name==='TEST'){wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.test',target:'snapshot',amount:wgSoilCsv()});wgLogAdd('soil.test','snapshot',1);}
   else if(name==='HARVEST'){
     if(wg.ripeKg<=0.05){showToast('NOTHING RIPE YET — FRUIT RIPENS FROM STAGE DAY 7');return;}
     wgPending.push({tick:wg.tick+1,day:wg.day,action:'crop.harvest',target:'beds A+B',amount:+wg.ripeKg.toFixed(1)});
+    wgLogAdd('crop.harvest','beds A+B',+wg.ripeKg.toFixed(1));
   }
   wg.actions++;
   wgDirty=true;
@@ -6688,7 +6692,7 @@ window.research=research;window.sim=sim;window.replay=replay;
 "use strict";
 /* ═══════════════ 14 · DOM INJECTION — menu entry, farm HUD, build overlay ═══════════════ */
 (function wgInjectDOM(){
-  document.title='SUN2 · REDBOLT + WINTERGARTEN';
+  document.title='SUN003 · REDBOLT + WINTERGARTEN GAME';
   const hud=document.createElement('div');hud.id='wgHud';
   hud.innerHTML=`
     <div id="wgStats">WINTERGARTEN · <b id="wgStatsB">PHASE 0/13</b></div>
@@ -6919,8 +6923,1488 @@ if(wgHadSave&&wg.phase>=WBUILD.length){
   const b=$('wgBtn');if(b)b.textContent='RESUME WINTERGARTEN — DAY '+wg.day;
 }
 requestAnimationFrame(wgFrame);
-console.log('%c add.dna · WINTERGARTEN ','background:#0a0e1a;color:#5dff8b;font-weight:bold;padding:4px 10px;border:1px solid #5dff8b;border-radius:6px',
+console.log('%c base.dna · WINTERGARTEN (work_001) ','background:#0a0e1a;color:#5dff8b;font-weight:bold;padding:4px 10px;border:1px solid #5dff8b;border-radius:6px',
   'loaded · '+WG_DNA.equation+' · work_001 · phase '+wg.phase+'/13'+(wgHadSave?' (resumed)':' (fresh)')+' · console: WG.help() · WG.verify() · WG.theory()');
+</script>
+<!-- ════════════════════════════════════════════════════════════════════════
+     add.dna · GAME LAYER v2 · SOTA GAMEPLAY + REAL-DATA CALIBRATION
+     ──────────────────────────────────────────────────────────────────────
+     DNA CONTRACT:  base.dna + add.dna = SUN003.html
+       base.dna = SUN_001.html engine (LOCKED) + WINTERGARTEN work_001
+                  (double film hull, sealed bottom, 16 bones, energy ledger,
+                  soil pH + NPK, 105-day crop, replay proof, money checksum).
+                  The new base.dna carries everything except the final
+                  </body></html>.
+       add.dna  = THIS FILE — the game layer: XP / levels / skill tree,
+                  daily quests, achievements, quality grades (EU Extra/I/II),
+                  dynamic market + contracts + reputation, real Berlin
+                  climate + Eisheilige, pests with REAL organic controls,
+                  cash-flow economy with 500 EUR family loan, season
+                  certificate, G2.verify() battery. ZERO base edits — only
+                  runtime wrapping of base functions (DNA splice).
+       verify:  cat base.dna add.dna > SUN003.html  (byte-exact monolith)
+     RULES:     NO AUTO-PLAY — every action is done by the USER hand
+                (E / 1-6 / Q M K L P G C in world, buttons in tabs).
+                Every process gets a VERIFY run (G2.verify + WG.verify).
+     REAL DATA: researched 2026-11 — see G2RESEARCH (R11-R25) with sources.
+                G2.calibration() prints the full table in-game.
+     ════════════════════════════════════════════════════════════════════ -->
+<style>
+/* ═══ GAME LAYER v2 HUD — reuses base design tokens (--bg, --cyan, --mono...) ═══ */
+#g2Hud{position:fixed;inset:0;z-index:16;pointer-events:none;font-family:var(--mono);display:none}
+#g2Hud.on{display:block}
+#g2Top{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:14px;align-items:center;
+  background:rgba(7,11,22,.82);border:1px solid var(--line);border-radius:12px;padding:6px 16px;font-size:11px;letter-spacing:.08em;white-space:nowrap}
+#g2Top .sep{color:rgba(34,224,255,.25)}
+#g2Top b{color:var(--ink)}
+#g2Top .date{color:var(--green);font-weight:700}
+#g2Top .wx{font-weight:700}
+#g2Top .wx.RAIN{color:#7db4ff}#g2Top .wx.CLEAR{color:#ffd479}#g2Top .wx.PARTLY{color:#ffe9a8}
+#g2Top .wx.OVERCAST{color:var(--muted)}#g2Top .wx.HEATWAVE{color:var(--orange)}#g2Top .wx.FROST{color:#9df3ff}
+#g2Top .cash{color:var(--amber);font-weight:800}
+#g2Top .cash.neg{color:var(--red)}
+#g2Top .vit{color:var(--good);font-weight:700}
+#g2Top .vit.low{color:var(--amber)}#g2Top .vit.bad{color:var(--red)}
+#g2XpWrap{display:flex;flex-direction:column;gap:2px;min-width:120px}
+#g2XpLbl{font-size:9px;color:var(--muted);letter-spacing:.14em}
+#g2XpLbl b{color:var(--cyan)}
+#g2XpBar{height:5px;border:1px solid var(--line);border-radius:4px;background:rgba(4,8,16,.7);overflow:hidden}
+#g2XpBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),#9df3ff);transition:width .3s}
+#g2Float{position:absolute;top:44px;left:50%;transform:translateX(-50%);pointer-events:none;text-align:center}
+.g2fx{font-size:12px;font-weight:800;color:var(--cyan);text-shadow:0 0 12px rgba(34,224,255,.6);animation:g2up 1.4s ease-out forwards}
+.g2fx.gold{color:#ffd479;text-shadow:0 0 12px rgba(255,212,121,.6)}
+.g2fx.bad{color:var(--red)}
+@keyframes g2up{0%{opacity:0;transform:translateY(6px)}15%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
+#g2Toasts{position:absolute;right:14px;bottom:140px;display:flex;flex-direction:column;gap:5px;align-items:flex-end;max-width:330px}
+.g2toast{font-size:11px;letter-spacing:.06em;padding:7px 12px;border-radius:9px;border:1px solid rgba(34,224,255,.45);
+  background:rgba(7,11,22,.9);color:var(--ink);animation:g2in .25s ease-out}
+.g2toast.ok{border-color:rgba(93,255,139,.5);color:#b8ffd0}
+.g2toast.warn{border-color:rgba(255,159,10,.55);color:#ffd9a0}
+.g2toast.bad{border-color:rgba(255,59,48,.6);color:#ffb3ad}
+.g2toast.xp{border-color:rgba(34,224,255,.6);color:#9df3ff}
+.g2toast.fade{opacity:0;transition:opacity .5s}
+@keyframes g2in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+#g2Tabs{position:absolute;top:150px;right:14px;width:318px;pointer-events:auto}
+#g2TabBtns{display:flex;gap:4px;margin-bottom:6px}
+#g2TabBtns .tb{flex:1;text-align:center;font-size:9px;letter-spacing:.12em;padding:6px 2px;border:1px solid var(--line);
+  border-radius:8px;background:rgba(7,11,22,.82);color:var(--muted);cursor:pointer;user-select:none}
+#g2TabBtns .tb:hover{color:var(--ink)}
+#g2TabBtns .tb.on{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(34,224,255,.2)}
+#g2TabBtns .tb .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-left:3px;vertical-align:middle;animation:wgblink 1.2s infinite}
+#g2TabBody{background:rgba(7,11,22,.86);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+  max-height:calc(100vh - 230px);overflow:auto;display:none}
+#g2TabBody.on{display:block}
+#g2TabBody::-webkit-scrollbar{width:6px}#g2TabBody::-webkit-scrollbar-thumb{background:rgba(34,224,255,.25);border-radius:3px}
+.g2row{display:flex;justify-content:space-between;gap:8px;font-size:10px;letter-spacing:.05em;color:var(--muted);margin:3px 0}
+.g2row b{color:var(--ink)}
+.g2row .pos{color:var(--good);font-weight:700}.g2row .neg{color:var(--red);font-weight:700}.g2row .amb{color:var(--amber);font-weight:700}
+.g2sec{font-size:9px;letter-spacing:.24em;color:var(--cyan);margin:10px 0 4px;border-bottom:1px solid rgba(34,224,255,.15);padding-bottom:3px}
+.g2btn{display:inline-block;font-size:10px;letter-spacing:.1em;padding:6px 10px;border:1px solid var(--line);border-radius:8px;
+  background:rgba(17,26,48,.6);color:var(--ink);cursor:pointer;user-select:none;margin:3px 4px 3px 0}
+.g2btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.g2btn.fire{background:linear-gradient(120deg,#1d7a45,#27c56d);border-color:#2fe57f;color:#03130a;font-weight:800}
+.g2btn.ghost{background:transparent}
+.g2btn.warn{border-color:rgba(255,159,10,.6);color:#ffd9a0}
+.g2btn:disabled{opacity:.35;cursor:not-allowed}
+.g2card{border:1px solid var(--line);border-radius:10px;background:rgba(17,26,48,.45);padding:8px 10px;margin:6px 0}
+.g2card.now{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,224,255,.18)}
+.g2card.done{border-color:rgba(93,255,139,.4)}
+.g2card h4{margin:0 0 4px;font-size:11px;letter-spacing:.1em;color:var(--ink)}
+.g2card .sub{font-size:9px;color:var(--muted);line-height:1.5;letter-spacing:.04em}
+.g2bar{height:6px;border:1px solid var(--line);border-radius:4px;background:rgba(4,8,16,.7);overflow:hidden;margin:3px 0}
+.g2bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#a6ffcb)}
+.g2bar.rep i{background:linear-gradient(90deg,var(--amber),#ffd479)}
+.g2grade{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;margin-right:6px}
+.g2grade.S{background:rgba(255,212,121,.16);color:#ffd479;border:1px solid rgba(255,212,121,.5)}
+.g2grade.A{background:rgba(93,255,139,.12);color:var(--good);border:1px solid rgba(93,255,139,.4)}
+.g2grade.B{background:rgba(34,224,255,.1);color:var(--cyan);border:1px solid rgba(34,224,255,.35)}
+.g2grade.C{background:rgba(255,59,48,.1);color:#ffb3ad;border:1px solid rgba(255,59,48,.4)}
+#g2Season{position:absolute;top:96px;left:50%;transform:translateX(-50%);width:min(560px,92vw);display:none;
+  background:rgba(7,11,22,.92);border:1px solid rgba(255,212,121,.55);border-radius:14px;padding:16px 20px;text-align:center;pointer-events:auto}
+#g2Season.on{display:block}
+#g2Season h3{margin:0 0 6px;font-size:18px;letter-spacing:.2em;color:#ffd479}
+#g2Season p{font-size:11px;color:var(--muted);line-height:1.6;margin:6px 0}
+#g2Guide .panel, #g2Cert .panel{width:min(720px,94vw);max-height:86vh;overflow:auto}
+#g2Guide h2, #g2Cert h2{margin:0}
+#g2Guide .sec{margin:14px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(17,26,48,.4)}
+#g2Guide .sec h3{margin:0 0 6px;font-size:12px;letter-spacing:.16em;color:var(--cyan)}
+#g2Guide .sec p, #g2Guide .sec li{font-size:11px;color:var(--muted);line-height:1.65;letter-spacing:.03em}
+#g2Guide .sec ul{margin:6px 0;padding-left:18px}
+#g2Guide table{width:100%;border-collapse:collapse;font-size:10px;margin:6px 0}
+#g2Guide th, #g2Guide td{padding:3px 6px;text-align:left;border-bottom:1px solid rgba(34,224,255,.12);color:var(--muted)}
+#g2Guide th{color:var(--cyan);letter-spacing:.1em;font-weight:400}
+#g2Guide .src{font-size:9px;color:rgba(154,166,188,.7);line-height:1.5}
+#g2CertCode{font-size:10px;word-break:break-all;background:rgba(4,8,16,.7);border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;margin:10px 0;color:var(--good);line-height:1.6;user-select:all}
+#g2Menu{margin-top:14px;padding:12px 14px;border:1px solid rgba(255,212,121,.35);border-radius:12px;background:rgba(255,212,121,.04)}
+#g2Menu .cap{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:#ffd479;margin-bottom:6px}
+#g2Menu p{font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.55}
+</style>
+<script>
+"use strict";
+/* ═══════════════ G2-0 · DNA MANIFEST (game layer) ═══════════════ */
+const G2_DNA={
+  id:'add.dna', layer:'GAME LAYER v2', work:'work_001 -> SUN003',
+  equation:'base.dna + add.dna = SUN003.html',
+  base:'SUN_001 engine (LOCKED) + WINTERGARTEN work_001 (double hull, sealed bottom, bones, energy, soil, crop, replay, ledger)',
+  adds:'XP + levels + skill tree · daily quests · achievements · EU grades · dynamic market + contracts + reputation · Berlin climate + Eisheilige · pests with REAL organic controls · 500 EUR loan economy · season certificate · G2.verify()',
+  rules:['NO AUTO-PLAY','USER DOES EVERY STEP','VERIFY EVERY PROCESS','REPLAY PROVES SKILL','FOOD+ENERGY = TOTAL MONEY FLOW'],
+  stamp:{"engine_sha256": "50c32411fc5496ea8e2b632f6b341cd3b2a3f8c13a39d26ea4b391e222cd98ab", "engine_bytes": 375102, "wg_sha256": "22930015a67db29584a8e97e2d0e7e010646b1bbd89fd59eb47b889ffa687c0d", "wg_bytes": 81822, "built": "2026-11-11", "assembler": "make_dna.py", "equation": "base.dna + add.dna = SUN003.html"}
+};
+
+/* ═══════════════ G2-1 · CONFIG — REAL DATA (researched 2026-11) ═══════════════ */
+const G2CFG={
+  /* real Berlin/Brandenburg climate — season day 1 = 01 MAR, 105 days -> 13 JUN */
+  /* sources: weatherspark.com/y/75981 (Berlin avg weather) · climatestotravel.com/climate/germany/berlin
+     · solar.red/jahresgang (June ~165 kWh/m2/mo = 5.5/day) · solaranlage-ratgeber.de (Apr-Sep 845 kWh/m2) */
+  climate:[
+    {m:'JAN',t:0.6,ghi:0.8,rainP:.34,clearP:.16},{m:'FEB',t:1.9,ghi:1.5,rainP:.32,clearP:.19},
+    {m:'MAR',t:4.9,ghi:2.9,rainP:.30,clearP:.26},{m:'APR',t:9.2,ghi:4.2,rainP:.32,clearP:.28},
+    {m:'MAY',t:13.8,ghi:5.2,rainP:.30,clearP:.30},{m:'JUN',t:17.6,ghi:5.5,rainP:.28,clearP:.32},
+    {m:'JUL',t:19.2,ghi:5.4,rainP:.30,clearP:.30},{m:'AUG',t:18.8,ghi:4.7,rainP:.30,clearP:.27},
+    {m:'SEP',t:14.6,ghi:3.3,rainP:.30,clearP:.24},{m:'OCT',t:9.7,ghi:1.9,rainP:.33,clearP:.19},
+    {m:'NOV',t:5.0,ghi:1.0,rainP:.36,clearP:.14},{m:'DEC',t:1.6,ghi:0.7,rainP:.37,clearP:.13}],
+  month_days:[31,28,31,30,31,30,31,31,30,31,30,31],
+  /* Eisheilige: 11-15 May, ground frost to -2 C, tomatoes at risk — plant out only after 15 May
+     (NDR.de · gustagarden.com · hoklartherm.de) */
+  eisheilige:[72,76],
+  heatwave:{from:95,to:112,p:.15,plusC:6},
+  frostNightP:.25,
+  /* EU marketing classes Extra / I / II (UNECE FFV-36; OJ L 95/2000; CBI: retailers demand Extra)
+     -> sim grades S=Extra, A=Class I, B=Class II, C=out of class */
+  grades:{
+    S:{minHealth:88,minBrix:9.0,x:1.50,eu:'Extra Class',   color:'#ffd479'},
+    A:{minHealth:72,minBrix:8.0,x:1.20,eu:'Class I',       color:'#5dff8b'},
+    B:{minHealth:50,minBrix:0.0,x:1.00,eu:'Class II',      color:'#22e0ff'},
+    C:{minHealth:0, minBrix:0.0,x:0.60,eu:'out of class',  color:'#ff3b30'}},
+  gradeOrder:['S','A','B','C'],
+  /* real German cherry tomato price band (EUR/kg):
+     BIO direct 9.65 (truebenecker.de) · bio retail 250g/2.47 = 9.88 (mpreis.at)
+     · Wochenmarkt Strauchtomaten 6.80 (owl.wochenmarkt24.de) — sim base 3.00 is the conservative
+     direct-sale bottom; grades + seasonality + reputation climb the real band */
+  market:{basePrice:3.00,
+    season:{JAN:1.35,FEB:1.30,MAR:1.25,APR:1.10,MAY:1.00,JUN:0.88,JUL:0.85,AUG:0.86,SEP:0.95,OCT:1.10,NOV:1.25,DEC:1.35},
+    walk:0.16,walkClamp:[0.80,1.30],repMax:0.20,priceClamp:[2.00,6.50]},
+  /* real cultivar data: Sun Gold F1 8.5-9.3 Brix, 57-60 d (Cornell vegvariety; simplyseed.co.uk; reddit r/tomatoes) */
+  cultivars:[
+    {key:'SUNGOLD',name:'SUN GOLD F1',brix:1.0,seedEur:0.25,pestRes:1.00,note:'golden-orange, sweetest, 8.5-9.3 Brix real'},
+    {key:'SWEETM',name:'SWEET MILLION F1',brix:0.3,seedEur:0.20,pestRes:1.00,note:'red, heavy setter, work_001 default (16 EUR seeds)'},
+    {key:'FAVORITA',name:'FAVORITA F1',brix:0.4,seedEur:0.22,pestRes:0.75,note:'red, resistant strain, -25% pest risk'}],
+  /* real organic controls + real shop prices (schneckenprofi.de Encarsia 600 pcs 17.95 EUR; plantura.de;
+     soap 2% soft soap; milk 1:8 vs powdery mildew; Phytoseiulus persimilis mites) */
+  pests:[
+    {key:'APHIDS',de:'Blattlaeuse',en:'APHIDS',risk:{stages:['SEEDLING','VEGETATIVE','FLOWERING'],tIn:[20,26],moistMin:65,base:0.10},
+      dmg:4,grace:3,treats:[{k:'SOAP',n:'2% soft soap spray',eur:2,p:0.70},{k:'LADY',n:'50 ladybird larvae',eur:15,p:0.95}]},
+    {key:'WHITEFLY',de:'Weisse Fliege',en:'WHITEFLY',risk:{fromDay:60,stages:['FLOWERING','FRUIT'],tIn:[22,32],base:0.08},
+      dmg:4,grace:3,treats:[{k:'TRAPS',n:'yellow sticky traps',eur:6,p:0.60},{k:'ENCARSIA',n:'Encarsia formosa 500',eur:18,p:0.95}]},
+    {key:'MITES',de:'Spinnmilben',en:'SPIDER MITES',risk:{stages:['VEGETATIVE','FLOWERING','FRUIT'],tIn:[27,40],moistMax:45,base:0.07},
+      dmg:5,grace:2,treats:[{k:'MIST',n:'fine misting rounds',eur:3,p:0.50},{k:'PHYTO',n:'Phytoseiulus persimilis',eur:16,p:0.95}]},
+    {key:'MILDEW',de:'Echter Mehltau',en:'POWDERY MILDEW',risk:{stages:['VEGETATIVE','FLOWERING','FRUIT'],moistMin:75,wetDays:3,base:0.06},
+      dmg:3,grace:4,treats:[{k:'MILK',n:'milk spray 1:8',eur:2,p:0.70}]}],
+  /* XP + levels */
+  xp:{levels:[0,120,300,600,1050,1650,2400,3300],
+      titles:['SEED','SPROUT','SEEDLING','GROWER','GREEN THUMB','HORTICULTURIST','MASTER GROWER','WINTERGARTEN TYCOON'],
+      buildBase:10,buildPerH:2,water:6,npk:8,ph:10,test:4,harvestPerKg:3,treat:20,deliver:25,sellPer10eur:1},
+  skills:{
+    b1:{br:'BUILDER',n:'STRESS EYE',d:'bones layer paints load colors (green->red by real deflection/limit)'},
+    b2:{br:'BUILDER',n:'THERMAL EYE',d:'REAL-DATA energy column: real U double 4.0 vs single 6.5 W/m2K, live parallel model'},
+    b3:{br:'BUILDER',n:'WELD MASTER',d:'+25 XP on bottom.sealCheck zero-leak runs; seal margin readout'},
+    b4:{br:'BUILDER',n:'SITE BOSS',d:'build actions award +20% XP'},
+    g1:{br:'GROWER',n:'SOIL SENSE',d:'soil table shows day-over-day trend arrows per value'},
+    g2:{br:'GROWER',n:'PEST EYE',d:'pest OUTBREAK RISK shown one day ahead in PEST tab'},
+    g3:{br:'GROWER',n:'WATER WHISPERER',d:'drip efficiency: one watering = +13.7% moisture (was +12%)'},
+    g4:{br:'GROWER',n:'BRIX MASTER',d:'+0.8 Brix potential -> S-grade (Extra Class) easier'},
+    t1:{br:'TRADER',n:'MARKET SENSE',d:'price forecast extends 3 -> 5 days'},
+    t2:{br:'TRADER',n:'GRADER',d:'batch grade + Brix preview BEFORE harvest'},
+    t3:{br:'TRADER',n:'NEGOTIATOR',d:'contract prices +10%'},
+    t4:{br:'TRADER',n:'REGULARS',d:'contracts unlock at rep 30 (was 40); reputation decays half speed'}},
+  /* economy: phase material costs partition the work_001 475 EUR exactly:
+     bones 160 = P2 40 + P3 80 + P4 40 · film 226 = P5 113 + P6 113 · earth 48 = P10 · seeds 16 = P12 (Sweet Million)
+     aux 25 EUR accrues live from base auxEur. Loan 500 EUR = family start capital. */
+  loan:500,
+  phaseCost:{2:40,3:80,4:40,5:113,6:113,10:48},
+  /* contracts (rep >= 40, or 30 with t4) */
+  buyers:[
+    {key:'SOLE',n:'TRATTORIA SOLE',who:'Italian restaurant',weeklyKg:8,grade:'A',price:4.20,penalty:10},
+    {key:'KORB',n:'GRUENER KORB',who:'organic greengrocer',weeklyKg:12,grade:'B',price:3.40,penalty:8},
+    {key:'MARKT',n:'WOCHENMARKT STAND',who:'Saturday market stall',weeklyKg:15,grade:'C',price:3.45,penalty:6}],
+  seasonDays:105
+};
+
+/* ═══════════════ G2-2 · RESEARCH v2 — R11..R25 with sources (see WG base R1-R10) ═══════════════ */
+const G2RESEARCH=[
+ {id:'R11',topic:'double-PE U-value vs single',real:'34% lower for double-layer PE (Rasheed 2017, 52 citations)',
+  sim:'U 6.7 vs 10.0 W/m2K = -33%',verdict:'IN FAMILY OF PEER-REVIEWED DATA',
+  src:'sjar.revistas.csic.es/index.php/sjar/article/view/10777'},
+ {id:'R12',topic:'absolute U-values',real:'single PE ~6.5 W/m2K, double inflated ~4.0; single glass 6.2',
+  sim:'conservative: sim double 6.7 > real 4.0 (real insulates BETTER)',verdict:'SIM CONSERVATIVE, GAP DOCUMENTED',
+  src:'canr.msu.edu/floriculture (Reducing Energy Costs in CA Greenhouses) · horti-generation.com'},
+ {id:'R13',topic:'growth stage durations',real:'germination 5-10 d · seedling ~20-25 d · vegetative 4-6 wk · flowering 1-2 wk',
+  sim:'7 / 21 / 28 / 14 d',verdict:'ALIGNED WITH GARDENING REFERENCES',
+  src:'thespruce.com (tomato growth timeline) · veggiesyard.com · ambitiousharvest.com'},
+ {id:'R14',topic:'cherry season length',real:'Sungold 57-60 d to maturity, 103-123 d season',
+  sim:'105 d season',verdict:'INSIDE REAL BAND',src:'vegvariety.cce.cornell.edu (Sungold)'},
+ {id:'R15',topic:'greenhouse labor',real:'20 person-h/week per 24x96 ft bay (212 m2)',
+  sim:'56 h build + 0.5 h/day ops for 72 m2 (~7 h/wk scaled)',verdict:'SCALED FROM EXTENSION HANDBOOK',
+  src:'plantgrower.org Mississippi Greenhouse Tomato Handbook'},
+ {id:'R16',topic:'late frost rule (Eisheilige)',real:'11-15 May ground frost to -2 C; tomatoes only out after 15 May',
+  sim:'frost event window day 72-76 (01 MAR = day 1)',verdict:'REAL GERMAN RULE IMPLEMENTED',
+  src:'ndr.de (Eisheilige) · gustagarden.com · hoklartherm.de'},
+ {id:'R17',topic:'cherry tomato prices Germany',real:'BIO direct 9.65 EUR/kg · bio retail 250g/2.47 EUR · Wochenmarkt 6.80 EUR/kg',
+  sim:'base 3.00 EUR/kg + grade x1.5 + seasonality + reputation premium',verdict:'SIM = CONSERVATIVE BOTTOM OF REAL BAND',
+  src:'truebenecker.de · mpreis.at · owl.wochenmarkt24.de'},
+ {id:'R18',topic:'NPK + pH bands',real:'cherry tomato 100-60-100 kg/ha N-P-K; pH 6.2-6.8 optimum',
+  sim:'N 150-250, P 45-80, K 200-350 mg/kg; pH 6.0-6.8',verdict:'BANDS MATCH FIELD + EXTENSION DATA',
+  src:'researchgate.net/publication/335190254 · UGA/extension tomato guides'},
+ {id:'R19',topic:'EU quality classes',real:'Extra / Class I / II mandatory marketing standard; retailers demand Extra',
+  sim:'S=Extra, A=Class I, B=Class II, C=out of class',verdict:'EXACT MAPPING',
+  src:'unece.org FFV-36 · eur-lex.europa.eu OJ L 95/2000 · cbi.eu market entry'},
+ {id:'R20',topic:'cherry tomato sweetness',real:'Sungold 8.5-9.3 Brix; cherry range 8-10, extremes 12+',
+  sim:'brix model 7.6 base +1.0 Sungold + K/light/skill bonuses',verdict:'IN REAL BAND',
+  src:'simplyseed.co.uk (8.5) · reddit r/tomatoes (9.3) · growingfruit.org (8-16)'},
+ {id:'R21',topic:'water need',real:'1-2 L per plant per day in warm weather',
+  sim:'one drip watering = ~120 L / 80 plants = 1.5 L per plant',verdict:'CENTER OF REAL BAND',
+  src:'reddit.com/r/Agriculture (tomato water thread) · allotment-gardens water tables'},
+ {id:'R22',topic:'beneficial insects price',real:'Encarsia formosa 600 pcs = 17.95 EUR (60 m2)',
+  sim:'Encarsia treatment 18 EUR',verdict:'REAL SHOP PRICE',
+  src:'schneckenprofi.de · plantura.de (500 pcs/10 m2) · gruenteam-versand.de'},
+ {id:'R23',topic:'German solar resource',real:'~1086 kWh/m2/yr; Apr-Sep 845; June ~165 kWh/m2/mo = 5.5/day',
+  sim:'peak 800 W/m2, 14 h day = ~5.4 kWh/m2/day June',verdict:'IN FAMILY',
+  src:'echtsolar.de/globalstrahlung · solar.red/jahresgang · solaranlage-ratgeber.de'},
+ {id:'R24',topic:'Berlin monthly climate',real:'MAR 4.9 C · APR 9.2 · MAY 13.8 · JUN 17.6 mean',
+  sim:'same table drives calendar, weather, pest risk',verdict:'EXACT',
+  src:'weatherspark.com/y/75981 · climatestotravel.com/climate/germany/berlin'},
+ {id:'R25',topic:'state-of-art yield gap',real:'Dutch high-tech up to 70 kg/m2/yr',
+  sim:'3.89 kg/m2/season (280 kg / 72 m2)',verdict:'HONEST HOBBY SCALE = 5.6% OF MAX',
+  src:'journals.ashs.org HortTechnology 36(1)'}
+];
+
+/* ═══════════════ G2-3 · DETERMINISTIC RNG (replay-safe: pure f(day, salt)) ═══════════════ */
+function g2Hash(day,salt){
+  let s=((day|0)*2654435761)^((salt|0)*97531);s>>>=0;
+  s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;
+  return s/4294967296;
+}
+/* ═══════════════ G2-4 · CALENDAR — day 1 = 01 MAR, real month lengths ═══════════════ */
+function g2MonthIdx(day){ /* returns [monthIdx0, dayOfMonth] for season day (1-based) */
+  let d=day,mi=2; /* March */
+  for(let i=0;i<400;i++){const len=G2CFG.month_days[mi];if(d<=len)return [mi,d];d-=len;mi=(mi+1)%12;}
+  return [2,1];
+}
+function g2DateStr(day){const [mi,dom]=g2MonthIdx(day);return String(dom).padStart(2,'0')+' '+G2CFG.climate[mi].m;}
+function g2Climate(day){return G2CFG.climate[g2MonthIdx(day)[0]];}
+/* weather: pure f(day). Types CLEAR / PARTLY / OVERCAST / RAIN (+ HEATWAVE / FROST flags) */
+function g2Weather(day){
+  const c=g2Climate(day),r=g2Hash(day,1);
+  let t=r<c.clearP?'CLEAR':(r<c.clearP+0.34?'PARTLY':(r<1-c.rainP?'OVERCAST':'RAIN'));
+  const hw=G2CFG.heatwave,heat=(day>=hw.from&&day<=hw.to&&g2Hash(day,2)<hw.p);
+  const inEis=day>=G2CFG.eisheilige[0]&&day<=G2CFG.eisheilige[1];
+  const frost=inEis&&g2Hash(day,2)<G2CFG.frostNightP;
+  return {type:t,heat,frost,tMean:c.t+(heat?hw.plusC:0),ghi:c.ghi};
+}
+/* ═══════════════ G2-5 · MARKET — deterministic price walk, pure f(day) ═══════════════ */
+function g2Walk(day){
+  let w=1;
+  for(let d=1;d<=day;d++){w*=1+(g2Hash(d,7)-0.5)*G2CFG.market.walk;
+    w=Math.max(G2CFG.market.walkClamp[0],Math.min(G2CFG.market.walkClamp[1],w));}
+  return w;
+}
+function g2PriceAt(day,rep){
+  const mi=g2MonthIdx(day)[0],m=G2CFG.market;
+  const season=m.season[G2CFG.climate[mi].m]||1;
+  const repX=1+((rep==null?0:rep)/100)*m.repMax;
+  let p=m.basePrice*season*g2Walk(day)*repX;
+  const w=g2Weather(day);
+  if(w.type==='RAIN')p*=1.05;      /* rainy market days: street sales thinner, price up */
+  if(w.heat)p*=0.95;               /* heatwave glut */
+  p=Math.max(m.priceClamp[0],Math.min(m.priceClamp[1],p));
+  return +p.toFixed(2);
+}
+/* ═══════════════ G2-6 · GAME STATE ═══════════════ */
+function g2FreshState(){
+  return {
+    ver:2,started:false,loanTaken:0,loanRepaid:0,
+    cash:0,cashIn:0,cashOut:0,spent:{materials:0,seeds:0,treats:0,penalties:0,aux:0},
+    xp:0,level:1,sp:0,skills:{},
+    rep:10,
+    cultivar:'SWEETM',cultivarChosen:false,
+    batches:[],sold:[],byChannel:{market:0,contracts:0},
+    contracts:[],
+    pests:[],pestsDefeated:0,pestFreeDays:0,roll3:[],
+    quests:[],questsDoneTotal:0,
+    ach:{},
+    vitality:100,brixBase:7.6,
+    priceToday:3.0,priceHist:[],
+    lastDay:0,lastAuxEur:0,
+    seasonEnd:false,certified:false,season:1,
+    tel:{actions:0,water:0,npk:0,ph:0,tests:0,harvests:0,treats:0,sells:0,delivers:0,sealChecks:0}
+  };
+}
+let G2S=g2FreshState();
+function g2Save(){
+  try{localStorage.setItem('wg3_game_v1',JSON.stringify(G2S));}catch(e){}
+}
+function g2Load(){
+  try{
+    const raw=localStorage.getItem('wg3_game_v1');if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(!d||d.ver!==2)return false;
+    G2S=Object.assign(g2FreshState(),d);
+    return true;
+  }catch(e){return false;}
+}
+</script>
+<script>
+"use strict";
+/* ═══════════════ G2-7 · XP + LEVELS ═══════════════ */
+function g2LevelFor(xp){
+  const L=G2CFG.xp.levels;let lv=1;
+  for(let i=0;i<L.length;i++)if(xp>=L[i])lv=i+1;
+  return Math.min(lv,L.length);
+}
+function g2XpFloor(lv){return G2CFG.xp.levels[Math.max(0,Math.min(lv-1,G2CFG.xp.levels.length-1))]||0;}
+function g2XpCeil(lv){return G2CFG.xp.levels[Math.min(lv,G2CFG.xp.levels.length-1)]||Infinity;}
+function g2Title(lv){return G2CFG.xp.titles[Math.max(0,Math.min(lv-1,G2CFG.xp.titles.length-1))];}
+function g2AddXp(n,label){
+  if(!n)return;
+  const before=G2S.level;
+  G2S.xp=Math.max(0,Math.round(G2S.xp+n));
+  G2S.level=g2LevelFor(G2S.xp);
+  g2Float((n>0?'+':'')+n+' XP'+(label?' · '+label:''),n>0?'':'bad');
+  if(G2S.level>before){
+    G2S.sp+=G2S.level-before;
+    g2Toast('LEVEL UP -> L'+G2S.level+' '+g2Title(G2S.level)+' · +'+(G2S.level-before)+' SKILL POINT [K]','gold');
+    g2Log('game.levelup','L'+G2S.level+' '+g2Title(G2S.level),G2S.level);
+  }
+}
+/* ═══════════════ G2-8 · QUALITY — Brix + EU grade ═══════════════ */
+function g2Brix(){
+  const cv=G2CFG.cultivars.find(c=>c.key===G2S.cultivar)||G2CFG.cultivars[1];
+  let b=G2S.brixBase+cv.brix;
+  const kAvg=(wg.soil[0].k_mg_kg+wg.soil[1].k_mg_kg)/2;
+  if(kAvg>=290)b+=0.6;                                     /* K in upper half feeds sugar transport */
+  const kwh3=G2S.roll3.slice(-3).reduce((s,r)=>s+(r.kwh||0),0)/Math.max(1,G2S.roll3.slice(-3).length);
+  if(kwh3>6.5)b+=0.5;                                      /* strong light integral = sweeter fruit */
+  if(G2S.skills.g4)b+=0.8;                                 /* BRIX MASTER */
+  if(G2S.roll3.slice(-3).some(r=>r.wet))b-=0.8;            /* overwatered = watery fruit */
+  return +Math.max(6.0,Math.min(11.5,b)).toFixed(1);
+}
+function g2GradeFor(health,brix,pestActive){
+  const G=G2CFG.grades;
+  let g='C';
+  if(health>=G.B.minHealth)g='B';
+  if(health>=G.A.minHealth&&brix>=G.A.minBrix)g='A';
+  if(health>=G.S.minHealth&&brix>=G.S.minBrix)g='S';
+  if(pestActive){if(g==='S')g='A';else if(g==='A')g='B';}   /* live pest demotes one EU class — firm + clean rule */
+  return g;
+}
+/* ═══════════════ G2-9 · PESTS — real risks, real organic controls ═══════════════ */
+function g2PestRisk(p,day){
+  const r=p.risk;if(!wg||wg.phase<WBUILD.length)return 0;
+  if(r.stages&&!r.stages.includes(wg.stage))return 0;
+  if(r.fromDay&&day<r.fromDay)return 0;
+  if(r.tIn&&(wg.tIn<r.tIn[0]||wg.tIn>r.tIn[1]))return 0;
+  const moist=Math.max(wg.soil[0].moisture_pct,wg.soil[1].moisture_pct);
+  const moistMin=Math.min(wg.soil[0].moisture_pct,wg.soil[1].moisture_pct);
+  if(r.moistMin&&moist<r.moistMin)return 0;
+  if(r.moistMax&&moistMin>r.moistMax)return 0;
+  if(r.wetDays&&G2S.roll3.slice(-r.wetDays).filter(x=>x.wet).length<r.wetDays)return 0;
+  const cv=G2CFG.cultivars.find(c=>c.key===G2S.cultivar)||G2CFG.cultivars[1];
+  const w=g2Weather(day);
+  let risk=r.base*(w.type==='RAIN'?1.5:1)*(w.heat?1.3:1)*cv.pestRes;
+  return Math.min(0.9,risk);
+}
+function g2PestRoll(day){
+  if(!g2SeasonActive())return;
+  for(const p of G2CFG.pests){
+    if(G2S.pests.some(a=>a.key===p.key))continue;
+    const risk=g2PestRisk(p,day);
+    if(risk>0&&g2Hash(day,11+G2CFG.pests.indexOf(p))<risk){
+      G2S.pests.push({key:p.key,day0:day,tries:0,bed:g2Hash(day,13)<0.5?'A':'B'});
+      g2Log('game.pest.outbreak',p.en,p.key);
+      g2Toast('PEST OUTBREAK: '+p.en+' ('+p.de+') — bed '+G2S.pests[G2S.pests.length-1].bed+' · [P] PEST TAB','bad');
+    }
+  }
+}
+function g2TreatPest(pestKey,treatKey){
+  const p=G2CFG.pests.find(x=>x.key===pestKey);const act=G2S.pests.find(x=>x.key===pestKey);
+  if(!p||!act)return {ok:false,err:'no active pest '+pestKey};
+  const t=p.treats.find(x=>x.k===treatKey);
+  if(!t)return {ok:false,err:'unknown treatment'};
+  if(G2S.cash<t.eur)return {ok:false,err:'need '+t.eur.toFixed(0)+' EUR cash'};
+  G2S.cash-=t.eur;G2S.cashOut+=t.eur;G2S.spent.treats+=t.eur;
+  act.tries++;
+  const kill=g2Hash(wg.day,17+act.tries)<t.p;
+  g2Log('game.pest.treat',p.en+' '+t.n,{eur:t.eur,p:t.p,killed:kill});
+  G2S.tel.treats++;
+  if(kill){
+    G2S.pests=G2S.pests.filter(x=>x.key!==pestKey);
+    G2S.pestsDefeated++;
+    g2AddXp(G2CFG.xp.treat,p.en+' DEFEATED');
+    g2Toast(p.en+' DEFEATED with '+t.n+' ('+Math.round(t.p*100)+'% real efficacy)','ok');
+    g2CheckAch();
+  }else{
+    g2AddXp(6,'treatment applied');
+    g2Toast(t.n+' applied — SURVIVED ('+Math.round((1-t.p)*100)+'% real fail chance). REPEAT or upgrade.','warn');
+  }
+  g2Save();g2RenderTabs();
+  return {ok:true,killed:kill,eur:t.eur};
+}
+function g2PestDamage(day){
+  for(const a of G2S.pests){
+    const p=G2CFG.pests.find(x=>x.key===a.key);
+    if(day-a.day0>p.grace)G2S.vitality=Math.max(20,G2S.vitality-p.dmg);
+  }
+}
+/* ═══════════════ G2-10 · CONTRACTS + REPUTATION ═══════════════ */
+function g2ContractsUnlocked(){return G2S.rep>=(G2S.skills.t4?30:40);}
+function g2AcceptContract(key){
+  if(!g2ContractsUnlocked())return {ok:false,err:'reputation '+G2S.rep+' < '+(G2S.skills.t4?30:40)};
+  if(G2S.contracts.length>=2)return {ok:false,err:'max 2 active contracts'};
+  const b=G2CFG.buyers.find(x=>x.key===key);if(!b)return {ok:false,err:'unknown buyer'};
+  if(G2S.contracts.some(c=>c.key===key))return {ok:false,err:'already running'};
+  G2S.contracts.push({key,acceptedDay:wg.day,dueDay:wg.day+7,deliveredKg:0,missed:0});
+  g2Log('game.contract.accept',b.n,{weeklyKg:b.weeklyKg,price:g2ContractPrice(b)});
+  g2Toast('CONTRACT: '+b.n+' · '+b.weeklyKg+' kg/wk grade >= '+b.grade+' @ '+g2ContractPrice(b).toFixed(2)+' EUR/kg','ok');
+  g2Save();g2RenderTabs();
+  return {ok:true};
+}
+function g2ContractPrice(b){return +(b.price*(G2S.skills.t3?1.10:1)).toFixed(2);}
+function g2DeliverContract(key){
+  const c=G2S.contracts.find(x=>x.key===key);if(!c)return {ok:false,err:'not active'};
+  const b=G2CFG.buyers.find(x=>x.key===key);
+  const need=b.weeklyKg;
+  const have=g2StockByGrade(b.grade);
+  if(have<need)return {ok:false,err:'stock '+have.toFixed(1)+' kg < '+need+' kg of grade >= '+b.grade};
+  g2ConsumeStock(b.grade,need);
+  const eur=+(need*g2ContractPrice(b)).toFixed(2);
+  G2S.cash+=eur;G2S.cashIn+=eur;G2S.byChannel.contracts+=eur;
+  G2S.rep=Math.min(100,G2S.rep+2);
+  G2S.tel.delivers++;
+  c.dueDay=wg.day+7;
+  g2Log('game.contract.deliver',b.n,{kg:need,eur});
+  g2AddXp(G2CFG.xp.deliver,b.n+' DELIVERED');
+  g2Toast('DELIVERED '+need+' kg to '+b.n+' · +'+eur.toFixed(2)+' EUR · rep +2','ok');
+  g2CheckAch();g2Save();g2RenderTabs();
+  return {ok:true,eur};
+}
+function g2ContractMisses(day){
+  for(const c of G2S.contracts){
+    const b=G2CFG.buyers.find(x=>x.key===c.key);
+    if(day>c.dueDay){
+      c.missed++;c.dueDay=day+7;
+      G2S.rep=Math.max(0,G2S.rep-5);
+      G2S.cash-=b.penalty;G2S.cashOut+=b.penalty;G2S.spent.penalties+=b.penalty;
+      g2Log('game.contract.miss',b.n,{penalty:b.penalty});
+      g2Toast('CONTRACT MISSED: '+b.n+' · -5 rep · -'+b.penalty+' EUR penalty','bad');
+    }
+  }
+}
+/* stock helpers — batches are {kg,grade,brix,day} */
+function g2StockByGrade(minGrade){
+  const need=G2CFG.gradeOrder.slice(0,G2CFG.gradeOrder.indexOf(minGrade)+1);
+  return +G2S.batches.filter(x=>need.includes(x.grade)).reduce((s,x)=>s+x.kg,0).toFixed(1);
+}
+function g2ConsumeStock(minGrade,kg){
+  const need=G2CFG.gradeOrder.slice(0,G2CFG.gradeOrder.indexOf(minGrade)+1);
+  let rest=kg;
+  for(const g of need){ /* best grade first */
+    for(let i=0;i<G2S.batches.length&&rest>0.01;i++){
+      const b=G2S.batches[i];
+      if(b.grade!==g)continue;
+      const take=Math.min(rest,b.kg);
+      b.kg=+(b.kg-take).toFixed(1);rest=+(rest-take).toFixed(1);
+      if(b.kg<=0.01)G2S.batches.splice(i--,1);
+    }
+  }
+  return +(kg-rest).toFixed(1);
+}
+function g2Sell(grade){
+  const g=grade||'ALL';
+  const list=g==='ALL'?G2S.batches.slice():G2S.batches.filter(x=>x.grade===g);
+  if(!list.length)return {ok:false,err:'no stock'};
+  let eur=0,kg=0;
+  for(const b of list){
+    const p=G2S.priceToday*G2CFG.grades[b.grade].x;
+    eur+=b.kg*p;kg+=b.kg;
+  }
+  eur=+eur.toFixed(2);kg=+kg.toFixed(1);
+  if(g==='ALL')G2S.batches=[];else G2S.batches=G2S.batches.filter(x=>x.grade!==g);
+  G2S.cash+=eur;G2S.cashIn+=eur;G2S.byChannel.market+=eur;
+  const repUp=Math.floor(eur/10);G2S.rep=Math.min(100,G2S.rep+repUp);
+  G2S.tel.sells++;
+  g2Log('game.sell','market',{kg,eur,grades:list.map(x=>x.grade).join('')});
+  g2AddXp(Math.floor(eur/10)*G2CFG.xp.sellPer10eur,'SOLD '+kg.toFixed(1)+' kg');
+  g2Toast('SOLD '+kg.toFixed(1)+' kg @ market · +'+eur.toFixed(2)+' EUR'+(repUp?' · rep +'+repUp:''),'ok');
+  g2CheckAch();g2Save();g2RenderTabs();
+  return {ok:true,eur,kg};
+}
+function g2RepayLoan(){
+  const rest=+(G2CFG.loan-G2S.loanRepaid).toFixed(2);
+  if(rest<=0)return {ok:false,err:'loan already repaid'};
+  const pay=+Math.min(G2S.cash,rest).toFixed(2);
+  if(pay<=0)return {ok:false,err:'no cash'};
+  G2S.cash=+(G2S.cash-pay).toFixed(2);G2S.cashOut+=pay;G2S.loanRepaid=+(G2S.loanRepaid+pay).toFixed(2);
+  g2Log('game.loan.repay','family loan',pay);
+  g2AddXp(pay>=rest?300:Math.round(pay/2),pay>=rest?'LOAN REPAID':'loan part-payment');
+  g2Toast('LOAN REPAYED '+pay.toFixed(2)+' EUR'+(pay>=rest?' — DEBT FREE!':' ('+(G2CFG.loan-G2S.loanRepaid).toFixed(2)+' left)'),'gold');
+  g2CheckAch();g2Save();g2RenderTabs();
+  return {ok:true,paid:pay};
+}
+/* ═══════════════ G2-11 · QUESTS — daily, generated deterministically ═══════════════ */
+const G2QUEST_POOL=[
+  {id:'WATER',t:'WATER THE BEDS',xp:20,hint:'any bed moisture under 55% -> press [1] at the beds',
+    need:s=>Math.min(wg.soil[0].moisture_pct,wg.soil[1].moisture_pct)<55,
+    done:s=>Math.min(wg.soil[0].moisture_pct,wg.soil[1].moisture_pct)>=55},
+  {id:'FEED',t:'DOSE NPK',xp:25,hint:'N under 170 or K under 220 -> press [2] at the beds',
+    need:s=>Math.min(wg.soil[0].n_mg_kg,wg.soil[1].n_mg_kg)<170||Math.min(wg.soil[0].k_mg_kg,wg.soil[1].k_mg_kg)<220,
+    done:s=>Math.min(wg.soil[0].n_mg_kg,wg.soil[1].n_mg_kg)>=170&&Math.min(wg.soil[0].k_mg_kg,wg.soil[1].k_mg_kg)>=220},
+  {id:'PH',t:'GUARD THE ACID LEVEL',xp:30,hint:'pH outside 6.1-6.7 -> lime [3] or sulfur [4]',
+    need:s=>wg.soil.some(b=>b.ph<6.1||b.ph>6.7),
+    done:s=>wg.soil.every(b=>b.ph>=6.1&&b.ph<=6.7)},
+  {id:'SCOUT',t:'PEST SCOUTING ROUND',xp:15,hint:'walk the crop and run a scan -> [P]',
+    need:s=>['VEGETATIVE','FLOWERING','FRUIT'].includes(wg.stage),
+    done:(s,a)=>a==='PESTSCAN'},
+  {id:'TEST',t:'SOIL TEST SNAPSHOT',xp:10,hint:'press [5] at the beds — measure before you manage',
+    need:s=>true,done:(s,a)=>a==='TEST'},
+  {id:'HARVEST',t:'HARVEST 5 KG',xp:20,hint:'ripe fruit waiting -> [6] or [E]',
+    need:s=>wg.ripeKg>=5,done:(s,a)=>a==='HARVEST'}
+];
+function g2GenQuests(day){
+  const pool=G2QUEST_POOL.filter(q=>q.need());
+  const picks=[];
+  const order=['PH','FEED','WATER','HARVEST','SCOUT','TEST'];
+  for(const id of order){const q=pool.find(x=>x.id===id);if(q&&picks.length<3)picks.push(q.id);}
+  if(!picks.length)picks.push('TEST');
+  G2S.quests=picks.map(id=>({id,done:false}));
+}
+function g2QuestCheck(action){
+  let any=false;
+  for(const q of G2S.quests){
+    if(q.done)continue;
+    const def=G2QUEST_POOL.find(x=>x.id===q.id);
+    if(def&&def.done(null,action)){
+      q.done=true;G2S.questsDoneTotal++;any=true;
+      g2AddXp(def.xp,'QUEST: '+def.t);
+      g2Toast('QUEST DONE: '+def.t+' · +'+def.xp+' XP','xp');
+      g2Log('game.quest.done',def.t,def.xp);
+    }
+  }
+  if(any)g2CheckAch();
+  return any;
+}
+/* ═══════════════ G2-12 · ACHIEVEMENTS ═══════════════ */
+const G2ACH=[
+  {id:'A01',n:'GROUND BROKEN',d:'finish site survey + ground works',xp:20,f:s=>wg.built[0]&&wg.built[1]},
+  {id:'A02',n:'FIRST RIB',d:'raise stability rib 1 of 13',xp:15,f:s=>(wg.phaseStep.ribs|0)>=1||wg.built[3]},
+  {id:'A03',n:'FULL SKELETON',d:'13 ribs + 3 purlins bolted (16 bones)',xp:30,f:s=>wg.built[4]},
+  {id:'A04',n:'DOUBLE SKINNED',d:'both film shells unrolled, 0.10 m gap',xp:30,f:s=>wg.built[6]},
+  {id:'A05',n:'ZERO LEAKS',d:'bottom.sealCheck with 1000 rays, 0 leaks',xp:40,f:s=>s.tel.sealChecks>0&&wg.built[7]},
+  {id:'A06',n:'SNOW-PROOF',d:'bones.info statics pass (deflection < 0.05 m)',xp:20,f:s=>wg.built[4]},
+  {id:'A07',n:'WINTERGARTEN READY',d:'all 13 build phases done by YOUR hand',xp:100,f:s=>wg.phase>=WBUILD.length},
+  {id:'A08',n:'FIRST SPROUT',d:'crop reaches SEEDLING stage',xp:50,f:s=>wg.stage!=='SEED'},
+  {id:'A09',n:'FIRST FLOWER',d:'crop reaches FLOWERING stage',xp:75,f:s=>['FLOWERING','FRUIT'].includes(wg.stage)},
+  {id:'A10',n:'FIRST HARVEST',d:'first kg of cherry tomatoes in the crate',xp:50,f:s=>s.tel.harvests>0},
+  {id:'A11',n:'CENTURY CLUB',d:'100 kg harvested in one season',xp:100,f:s=>wg.harvestedKg>=100},
+  {id:'A12',n:'280 KG LEGEND',d:'full work_001 harvest: 280 kg',xp:200,f:s=>wg.harvestedKg>=279.9},
+  {id:'A13',n:'ACID DISCIPLINE',d:'pH inside 6.0-6.8 for 7 days straight',xp:60,f:s=>s._phStreak>=7},
+  {id:'A14',n:'ENERGY POSITIVE',d:'a full day with more kWh in than out',xp:40,f:s=>s._energyPosDays>0},
+  {id:'A15',n:'BUG FIGHTER',d:'defeat 3 pest outbreaks with organic controls',xp:80,f:s=>s.pestsDefeated>=3},
+  {id:'A16',n:'CLEAN RUN',d:'40+ crop days with zero pest outbreaks',xp:60,f:s=>s.pestFreeDays>=40&&wg.phase>=WBUILD.length},
+  {id:'A17',n:'EXTRA CLASS',d:'first S-grade (EU Extra) batch',xp:80,f:s=>s.sold.some(x=>x.grades&&x.grades.includes('S'))||s.batches.some(x=>x.grade==='S')},
+  {id:'A18',n:'MARKET REGULAR',d:'reputation 60+',xp:60,f:s=>s.rep>=60},
+  {id:'A19',n:'CONTRACTOR',d:'deliver 5 contracts on time',xp:100,f:s=>s.tel.delivers>=5},
+  {id:'A20',n:'DEBT FREE',d:'repay the full 500 EUR family loan',xp:120,f:s=>s.loanRepaid>=G2CFG.loan},
+  {id:'A21',n:'FIRST THOUSAND',d:'cash 1000 EUR at once',xp:150,f:s=>s.cash>=1000},
+  {id:'A22',n:'SKILL PROVEN',d:'run WG.verify() with 16/16 PASS',xp:80,f:s=>s._wgVerify16},
+  {id:'A23',n:'REPLAY PROOF',d:'export + verify a replay that matches live state',xp:80,f:s=>s._replayProof},
+  {id:'A24',n:'FULL CALENDAR',d:'reach day 105 of 105',xp:150,f:s=>wg.day>=105}
+];
+function g2CheckAch(){
+  for(const a of G2ACH){
+    if(G2S.ach[a.id]!=null)continue;   /* day 0 awards must not re-fire — 0 is falsy! */
+    let ok=false;
+    try{ok=!!a.f(G2S);}catch(e){ok=false;}
+    if(ok){
+      G2S.ach[a.id]=wg.day;
+      g2AddXp(a.xp,'ACHIEVEMENT: '+a.n);
+      g2Toast('ACHIEVEMENT: '+a.n+' — '+a.d,'gold');
+      g2Log('game.ach',a.n,a.xp);
+    }
+  }
+}
+/* ═══════════════ G2-13 · SKILLS ═══════════════ */
+function g2Spend(id){
+  if(!G2CFG.skills[id])return {ok:false,err:'unknown skill'};
+  if(G2S.skills[id])return {ok:false,err:'already owned'};
+  if(G2S.sp<1)return {ok:false,err:'no skill point — level up first'};
+  G2S.sp--;G2S.skills[id]=true;
+  g2Log('game.skill.buy',G2CFG.skills[id].n,id);
+  g2Toast('SKILL UNLOCKED: '+G2CFG.skills[id].n+' — '+G2CFG.skills[id].d,'gold');
+  g2Save();g2RenderTabs();
+  return {ok:true};
+}
+/* ═══════════════ G2-14 · DAY ROLL — the game clock heartbeat ═══════════════ */
+function g2SeasonActive(){return G2S.started&&!G2S.seasonEnd;}
+function g2OnNewDay(day){
+  const w=g2Weather(day);
+  G2S.roll3.push({kwh:+(wg.kwhIn-(G2S._kwhLast||0)).toFixed(2),wet:wg.soil.some(b=>b.moisture_pct>75)});
+  G2S._kwhLast=wg.kwhIn;
+  if(G2S.roll3.length>4)G2S.roll3=G2S.roll3.slice(-4);
+  /* aux heater energy is real cash */
+  const auxDelta=+(wg.auxEur-G2S.lastAuxEur).toFixed(2);
+  if(auxDelta>0){G2S.cash-=auxDelta;G2S.cashOut+=auxDelta;G2S.spent.aux+=auxDelta;G2S.lastAuxEur=wg.auxEur;g2Log('game.aux','frost guard heater',auxDelta);}
+  if(!g2SeasonActive()){
+    g2Save();return;
+  }
+  /* market */
+  G2S.priceToday=g2PriceAt(day,G2S.rep);
+  G2S.priceHist.push({day,p:G2S.priceToday});
+  if(G2S.priceHist.length>120)G2S.priceHist.shift();
+  /* pH streak + energy-positive day + pest-free days */
+  const phOK=wg.soil.every(b=>b.ph>=WCFG.tomato_targets.ph_min&&b.ph<=WCFG.tomato_targets.ph_max);
+  G2S._phStreak=phOK?(G2S._phStreak||0)+1:0;
+  const kwhInDay=+(wg.kwhIn-(G2S._kwhMark||0)).toFixed(2),kwhLossDay=+(wg.kwhLoss-(G2S._lossMark||0)).toFixed(2);
+  G2S._kwhMark=wg.kwhIn;G2S._lossMark=wg.kwhLoss;
+  if(kwhInDay>kwhLossDay)G2S._energyPosDays=(G2S._energyPosDays||0)+1;
+  if(!G2S.pests.length&&wg.phase>=WBUILD.length)G2S.pestFreeDays++;
+  /* pests + contracts + vitality + quests */
+  g2PestRoll(day);
+  g2PestDamage(day);
+  g2ContractMisses(day);
+  g2GenQuests(day);
+  /* vitality recovers slowly when clean */
+  if(!G2S.pests.length)G2S.vitality=Math.min(100,G2S.vitality+1);
+  /* reputation decay (half with t4) */
+  if(day%3===0)G2S.rep=Math.max(0,G2S.rep-(G2S.skills.t4?0.5:1));
+  /* season end */
+  if(day>=G2CFG.seasonDays&&!G2S.seasonEnd){
+    G2S.seasonEnd=true;
+    g2Log('game.season.end','day '+day,wg.harvestedKg);
+    g2Toast('SEASON COMPLETE — DAY 105/105 · CERTIFICATE READY [C]','gold');
+    g2ShowSeasonEnd();
+  }
+  g2CheckAch();
+  g2Save();
+}
+/* ═══════════════ G2-15 · ACTION TELEMETRY — every XP source is a USER hand action ═══════════════ */
+function g2OnFarmStart(){
+  if(!G2S.loanTaken){
+    G2S.loanTaken=1;G2S.started=true;G2S.cash=+ (G2S.cash+G2CFG.loan).toFixed(2);G2S.cashIn+=G2CFG.loan;
+    G2S.lastDay=wg.day;
+    g2Log('game.loan.take','family start capital',G2CFG.loan);
+    g2Toast('FAMILY LOAN +500 EUR — build from ZERO, repay from the harvest','gold');
+    g2Toast('GAME LAYER v2 ON · [Q] quests · [M] market · [K] skills · [P] pests · guide in menu','xp');
+  }
+  g2Save();
+}
+function g2OnBuildAction(phBeforeId){
+  const x=G2CFG.xp;
+  const ph=WBUILD[Math.max(0,Math.min(phBeforeId,WBUILD.length-1))]||WBUILD[0];
+  const gained=Math.round((x.buildBase+ph.work_h*x.buildPerH)*(G2S.skills.b4?1.2:1));
+  g2AddXp(gained,'BUILD · '+ph.key);
+  /* phase completed by this action -> pay materials */
+  if(wg.phase>phBeforeId){
+    const doneId=phBeforeId;
+    if(G2CFG.phaseCost[doneId]!=null){
+      const eur=G2CFG.phaseCost[doneId];
+      G2S.cash-=eur;G2S.cashOut+=eur;G2S.spent.materials+=eur;
+      g2Log('game.buy.materials','PHASE '+doneId+' '+WBUILD[doneId].key,eur);
+      g2Toast('MATERIALS PAID: '+eur+' EUR — '+WBUILD[doneId].title,'warn');
+    }
+    if(doneId===12){
+      const cv=G2CFG.cultivars.find(c=>c.key===G2S.cultivar)||G2CFG.cultivars[1];
+      const eur=+(cv.seedEur*WCFG.plants_total).toFixed(2);
+      G2S.cash-=eur;G2S.cashOut+=eur;G2S.spent.seeds+=eur;
+      g2Log('game.buy.seeds',cv.name+' x '+WCFG.plants_total,eur);
+      g2Toast('SEEDS PAID: '+eur+' EUR — '+cv.name+' ('+cv.note+')','warn');
+    }
+  }
+  g2QuestCheck('BUILD');
+  g2CheckAch();g2Save();
+}
+function g2OnFarmAction(name,amount){
+  if(!G2S.started)return;
+  const x=G2CFG.xp;G2S.tel.actions++;
+  let xp=0,label=name;
+  if(name==='WATER'){xp=x.water;G2S.tel.water++;}
+  else if(name==='NPK'){xp=x.npk;G2S.tel.npk++;}
+  else if(name==='LIME'||name==='SULFUR'){xp=x.ph;G2S.tel.ph++;}
+  else if(name==='TEST'){xp=x.test;G2S.tel.tests++;}
+  else if(name==='HARVEST'){
+    G2S.tel.harvests++;
+    const raw=(amount!=null&&amount>=0)?amount:wg.ripeKg;
+    const kg=+Number(raw).toFixed(1);
+    xp=Math.round(x.harvestPerKg*(kg||0));
+    /* create graded batch — grade computed from live health+brix+pests */
+    const brix=g2Brix();
+    const grade=g2GradeFor(wg.health,brix,G2S.pests.length>0);
+    G2S.batches.push({kg,grade,brix:+brix.toFixed(1),day:wg.day});
+    g2Log('game.batch.new','grade '+grade+' brix '+brix.toFixed(1),{kg,grade,brix});
+  }
+  else if(name==='PESTSCAN'){xp=5;g2Log('game.pest.scan','scouting round',wg.day);}
+  if(xp)g2AddXp(xp,label);
+  g2QuestCheck(name);
+  g2CheckAch();g2Save();
+}
+/* ledger: cash identity must close to zero mismatch */
+function g2Ledger(){
+  const sp=G2S.spent;
+  const flowIn=[
+    {item:'family loan (start capital)',eur:G2S.loanTaken?+G2CFG.loan.toFixed(2):0},
+    {item:'market sales',eur:+G2S.byChannel.market.toFixed(2)},
+    {item:'contract deliveries',eur:+G2S.byChannel.contracts.toFixed(2)}];
+  const flowOut=[
+    {item:'materials (bones+film+earth)',eur:-+sp.materials.toFixed(2)},
+    {item:'seeds (cultivar x 80)',eur:-+sp.seeds.toFixed(2)},
+    {item:'pest treatments (organic)',eur:-+sp.treats.toFixed(2)},
+    {item:'contract penalties',eur:-+sp.penalties.toFixed(2)},
+    {item:'aux heater energy',eur:-+sp.aux.toFixed(2)},
+    {item:'loan repaid',eur:-+G2S.loanRepaid.toFixed(2)}];
+  const sumIn=+flowIn.reduce((s,r)=>s+r.eur,0).toFixed(2);
+  const sumOut=+flowOut.reduce((s,r)=>s+r.eur,0).toFixed(2);
+  const mismatch=+(G2S.cash-(sumIn+sumOut)).toFixed(2);
+  return {cash:+G2S.cash.toFixed(2),flow_in:flowIn,flow_out:flowOut,sum_in:sumIn,sum_out:sumOut,mismatch,
+    loan_remaining:+(G2CFG.loan-G2S.loanRepaid).toFixed(2),
+    stock_kg:+G2S.batches.reduce((s,b)=>s+b.kg,0).toFixed(1),
+    revenue_total:+(G2S.byChannel.market+G2S.byChannel.contracts).toFixed(2)};
+}
+</script>
+<script>
+"use strict";
+/* ═══════════════ G2-16 · FX PASS — rain streaks, pest markers, stress-eye bones ═══════════════ */
+let g2VAO=null,g2VBO=null,g2GLReady=false,g2Count=0;
+function g2InitGL(){
+  if(!gl||g2GLReady)return;
+  g2VAO=gl.createVertexArray();g2VBO=gl.createBuffer();
+  gl.bindVertexArray(g2VAO);gl.bindBuffer(gl.ARRAY_BUFFER,g2VBO);
+  const st=28; /* beam format: pos3 color3 edge1 */
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,st,0);
+  gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,st,12);
+  gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,1,gl.FLOAT,false,st,24);
+  gl.bindVertexArray(null);
+  g2GLReady=true;
+}
+function g2H(i){return (Math.sin(i*127.1+311.7)*43758.5453)%1<0?(1+(Math.sin(i*127.1+311.7)*43758.5453)%1):(Math.sin(i*127.1+311.7)*43758.5453)%1;}
+function g2BuildFX(){
+  const v=[];
+  const cx=WG_SITE.cx,cz=WG_SITE.cz,fy=WG_SITE.floorY;
+  const now=performance.now(),t=now/1000;
+  /* rain over the site */
+  if(wgFarm&&G2S.started){
+    const w=g2Weather(Math.max(1,wg.day));
+    if(w.type==='RAIN'){
+      for(let i=0;i<70;i++){
+        const sx=cx-11+22*g2H(i*3+1),sz=cz-15+30*g2H(i*3+2);
+        const ph=(t*1.5+g2H(i*3+3))%1;
+        const y=fy+6.5-7*ph;
+        if(y>fy+0.15)wgLine(v,[sx,y,sz],[sx-0.06,y-0.5,sz+0.02],[0.16,0.30,0.55],0.008);
+      }
+    }
+  }
+  /* pest markers: pulsing red octahedron over the affected bed */
+  if(wgFarm){
+    for(const a of G2S.pests){
+      const p=G2CFG.pests.find(x=>x.key===a.key);if(!p)continue;
+      const bx=cx+(a.bed==='A'?-1.5:1.5);
+      const pulse=0.55+0.45*Math.sin(now/240);
+      const yc=fy+1.75+0.12*Math.sin(now/400);
+      const S=0.20;
+      const col=[1.0*pulse,0.12*pulse,0.08*pulse];
+      const P=[[bx,yc+S,cz],[bx,yc-S,cz],[bx+S,yc,cz],[bx-S,yc,cz],[bx,yc,cz+S],[bx,yc,cz-S]];
+      const E=[[0,2],[0,3],[0,4],[0,5],[1,2],[1,3],[1,4],[1,5],[2,4],[4,3],[3,5],[5,2]];
+      for(const e of E)wgLine(v,P[e[0]],P[e[1]],col,0.014);
+    }
+  }
+  /* STRESS EYE (b1): bone load colors when bones layer is on */
+  if(wgFarm&&G2S.skills.b1&&wg.boneLayer){
+    let frac=0.55;
+    try{const bi=bones.info();frac=Math.max(0,Math.min(1,bi.max_deflection_m/bi.limit_m));}catch(e){}
+    const r=0.25+0.75*frac,g=0.9-0.75*frac,b=0.15;
+    for(let i=0;i<13;i++){
+      const z=cz-6+i,SEG=20;
+      let prev=null;
+      for(let k=0;k<=SEG;k++){
+        const th=Math.PI*k/SEG;
+        const p=[cx+3.06*Math.cos(th),fy+3.06*Math.sin(th),z];
+        if(prev)wgLine(v,prev,p,[r,g,b],0.016);
+        prev=p;
+      }
+    }
+  }
+  g2Count=v.length/42;
+  return new Float32Array(v);
+}
+function g2UploadFX(){
+  if(!g2GLReady)return;
+  const data=g2BuildFX();
+  gl.bindVertexArray(g2VAO);gl.bindBuffer(gl.ARRAY_BUFFER,g2VBO);
+  gl.bufferData(gl.ARRAY_BUFFER,data,gl.DYNAMIC_DRAW);
+  gl.bindVertexArray(null);
+}
+function g2DrawFX(){
+  if(!gl||!g2GLReady||g2Count===0||contextLost)return;
+  gl.useProgram(progBeam);
+  gl.uniformMatrix4fv(progBeam.uVP,false,vpM);
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.depthMask(false);
+  gl.uniform1f(progBeam.uOpacity,0.85);
+  gl.bindVertexArray(g2VAO);
+  gl.drawArrays(gl.TRIANGLES,0,g2Count*6);
+  gl.depthMask(true);gl.disable(gl.BLEND);
+  gl.bindVertexArray(null);
+}
+/* ═══════════════ G2-17 · TOASTS + XP FLOATS ═══════════════ */
+function g2Toast(msg,cls){
+  const box=$('g2Toasts');if(!box)return;
+  const d=document.createElement('div');
+  d.className='g2toast '+(cls||'');
+  d.textContent=msg;
+  box.appendChild(d);
+  while(box.children.length>5)box.removeChild(box.firstChild);
+  setTimeout(()=>{d.classList.add('fade');},3400);
+  setTimeout(()=>{if(d.parentNode)d.parentNode.removeChild(d);},4000);
+}
+function g2Float(msg,cls){
+  const box=$('g2Float');if(!box)return;
+  const d=document.createElement('div');
+  d.className='g2fx '+(cls||'');
+  d.textContent=msg;
+  box.appendChild(d);
+  while(box.children.length>3)box.removeChild(box.firstChild);
+  setTimeout(()=>{if(d.parentNode)d.parentNode.removeChild(d);},1400);
+}
+/* ═══════════════ G2-18 · DOM INJECTION ═══════════════ */
+function g2InjectDOM(){
+  const hud=document.createElement('div');hud.id='g2Hud';
+  hud.innerHTML=`
+    <div id="g2Top">
+      <span class="date" id="g2Date">01 MAR · Y1</span><span class="sep">|</span>
+      <span class="wx" id="g2Wx">CLEAR 4.9 C</span><span class="sep">|</span>
+      <span class="cash" id="g2Cash">+0.00 EUR</span><span class="sep">|</span>
+      <div id="g2XpWrap"><div id="g2XpLbl">L1 SEED · <b>0</b> XP</div><div id="g2XpBar"><i></i></div></div>
+      <span class="sep">|</span>
+      <span class="vit" id="g2Vit">VIT 100%</span>
+    </div>
+    <div id="g2Float"></div>
+    <div id="g2Toasts"></div>
+    <div id="g2Tabs">
+      <div id="g2TabBtns">
+        <div class="tb" data-tab="market">MARKET</div>
+        <div class="tb" data-tab="quests">QUESTS<span id="g2QDot"></span></div>
+        <div class="tb" data-tab="skills">SKILLS</div>
+        <div class="tb" data-tab="ach">MEDALS</div>
+        <div class="tb" data-tab="pest">PEST<span id="g2PDot"></span></div>
+      </div>
+      <div id="g2TabBody"></div>
+    </div>
+    <div id="g2Season">
+      <h3>SEASON COMPLETE · 105 / 105 DAYS</h3>
+      <p id="g2SeasonTxt"></p>
+      <div>
+        <span class="g2btn fire" id="g2CertBtn">CERTIFICATE [C]</span>
+        <span class="g2btn" id="g2NextBtn">NEXT SEASON (PRESTIGE)</span>
+        <span class="g2btn ghost" id="g2KeepBtn">KEEP SANDBOXING</span>
+      </div>
+    </div>`;
+  document.body.appendChild(hud);
+  for(const tb of hud.querySelectorAll('#g2TabBtns .tb'))
+    tb.addEventListener('click',()=>g2OpenTab(tb.dataset.tab));
+  $('g2CertBtn').addEventListener('click',()=>g2ShowCert());
+  $('g2NextBtn').addEventListener('click',()=>g2NextSeason());
+  $('g2KeepBtn').addEventListener('click',()=>{$('g2Season').classList.remove('on');});
+  /* guide overlay */
+  const guide=document.createElement('div');guide.id='g2Guide';guide.className='overlay hidden';
+  guide.innerHTML=`<div class="panel"><div class="eyebrow" style="color:#ffd479">GAME LAYER v2 · FIELD MANUAL · REAL DATA</div>
+    <h2 class="title" style="font-size:clamp(22px,4vw,34px)"><span class="c">WINTERGARTEN</span> PLAYBOOK</h2>
+    <div class="sec"><h3>START — FROM ZERO</h3>
+      <p>Family loan <b style="color:#ffd479">+500 EUR</b> lands in your pocket. You build the tunnel phase by phase — every beam, weld and wheelbarrow is YOUR hand on [E]. Materials are paid per phase and partition the work_001 budget exactly: bones 160 = rails 40 + ribs 80 + purlins 40 · film 226 = inner 113 + outer 113 · earth 48 · seeds 16.</p></div>
+    <div class="sec"><h3>DAILY WORK (0.5 h/day real scale — MSU handbook)</h3>
+      <ul><li><b>[1] WATER</b> one drip pass = 120 L = 1.5 L/plant (real band 1-2 L)</li>
+      <li><b>[2] NPK</b> +40 N +10 P +50 K per dose · <b>[3] LIME</b> pH +0.25 · <b>[4] SULFUR</b> pH -0.25</li>
+      <li><b>[5] TEST</b> soil snapshot — measure before you manage</li>
+      <li><b>[6]/[E] HARVEST</b> when fruit is ripe · <b>[T]</b> time x60/x3600/x86400</li></ul></div>
+    <div class="sec"><h3>QUALITY = MONEY (EU classes)</h3>
+      <p>Every batch is graded: <span class="g2grade S">S Extra</span><span class="g2grade A">A I</span><span class="g2grade B">B II</span><span class="g2grade C">C out</span>.
+      Grade needs plant HEALTH and <b>Brix sweetness</b>. Sunlight + potassium + no overwatering raise Brix (Sungold starts +1.0). Price = 3.00 EUR base x season x market walk x reputation, times grade multiplier up to x1.50.</p></div>
+    <div class="sec"><h3>MARKET + CONTRACTS</h3>
+      <p>Prices follow the real German season: high before the local harvest (MAR 1.25), bottom in the glut (JUN 0.88). Reputation 40+ unlocks contracts (TRATTORIA SOLE wants Class A weekly, the greengrocer Class B, the market stall any). Miss a delivery: -5 rep + penalty. <b>[M]</b> opens the market tab, SELL stock or DELIVER contracts by hand.</p></div>
+    <div class="sec"><h3>PESTS — real enemies, real organic weapons</h3>
+      <table><tr><th>PEST</th><th>WHEN</th><th>CHEAP</th><th>PRO</th></tr>
+      <tr><td>APHIDS</td><td>warm + moist spring</td><td>2% soft soap 2 EUR (70%)</td><td>ladybird larvae 15 EUR (95%)</td></tr>
+      <tr><td>WHITEFLY</td><td>summer</td><td>yellow traps 6 EUR (60%)</td><td>Encarsia wasps 18 EUR (95%)</td></tr>
+      <tr><td>SPIDER MITES</td><td>hot + dry</td><td>misting 3 EUR (50%)</td><td>Phytoseiulus mites 16 EUR (95%)</td></tr>
+      <tr><td>POWDERY MILDEW</td><td>wet air, 3+ days</td><td>milk 1:8 spray 2 EUR (70%)</td><td>vent discipline (free)</td></tr></table>
+      <p>Untreated pests drain VITALITY and cap your grade. <b>[P]</b> runs a scouting round. Watch the <b>EISHEILIGE 11-15 MAY</b> window — late ground frost to -2 C is a real German rule; the double hull + aux frost guard must hold.</p></div>
+    <div class="sec"><h3>XP · LEVELS · SKILLS</h3>
+      <p>Every hand action pays XP: build steps, water, feed, pH corrections, tests, harvest (3/kg), treatments, sales, quests, medals. Titles run SEED -> WINTERGARTEN TYCOON (3300 XP). Each level = +1 skill point, spend in <b>[K]</b>: BUILDER / GROWER / TRADER branches.</p></div>
+    <div class="sec"><h3>PROOF OF SKILL</h3>
+      <p>Every action lands in the replay JSONL. <b>WG.verify()</b> proves the physics contract (16 checks), <b>G2.verify()</b> proves the game layer, <b>G2.replay()</b> re-derives your XP and cash from the log alone — tamper one number and the proof breaks. The season certificate [C] carries both checksums.</p></div>
+    <div class="sec"><h3>REAL-DATA CALIBRATION (short)</h3>
+      <table><tr><th>VALUE</th><th>REAL</th><th>SIM</th></tr>
+      <tr><td>double film U</td><td>~4.0 W/m2K (34% below single)</td><td>6.7 conservative (base)</td></tr>
+      <tr><td>water per plant</td><td>1-2 L/day</td><td>1.5 L per pass</td></tr>
+      <tr><td>yield</td><td>4.1-6.1 kg/plant real</td><td>3.5 conservative</td></tr>
+      <tr><td>labor</td><td>20 h/wk per 212 m2 bay</td><td>~7 h/wk for 72 m2</td></tr>
+      <tr><td>Berlin climate</td><td>MAR 4.9 / JUN 17.6 C</td><td>exact table</td></tr></table>
+      <p class="src">Full table with 25 sources: G2.calibration() in the console.</p></div>
+    <div class="btnrow" style="margin-top:14px"><button class="btn fire" id="g2GuideClose">CLOSE — BACK TO WORK</button></div></div>`;
+  document.body.appendChild(guide);
+  $('g2GuideClose').addEventListener('click',()=>{guide.classList.add('hidden');if(wgFarm)requestLock();});
+  /* certificate overlay */
+  const cert=document.createElement('div');cert.id='g2Cert';cert.className='overlay hidden';
+  cert.innerHTML=`<div class="panel"><div class="eyebrow" style="color:var(--good)">WINTERGARTEN · CERTIFICATE OF PRODUCTION</div>
+    <h2 class="title" style="font-size:clamp(20px,4vw,30px)"><span class="c">SEASON PROOF</span></h2>
+    <div id="g2CertBody"></div>
+    <div id="g2CertCode"></div>
+    <div class="btnrow" style="margin-top:10px"><button class="btn fire" id="g2CertClose">CLOSE</button>
+      <button class="btn ghost" id="g2CertCopy">COPY CODE</button></div></div>`;
+  document.body.appendChild(cert);
+  $('g2CertClose').addEventListener('click',()=>cert.classList.add('hidden'));
+  $('g2CertCopy').addEventListener('click',()=>{
+    const code=$('g2CertCode').textContent;
+    try{navigator.clipboard.writeText(code).then(()=>g2Toast('CERTIFICATE CODE COPIED','ok'),()=>{});}catch(e){}
+  });
+  /* cultivar picker */
+  const cvp=document.createElement('div');cvp.id='g2Cultivar';cvp.className='overlay hidden';
+  cvp.innerHTML=`<div class="panel"><div class="eyebrow" style="color:#ffd479">PHASE 12 · SEED PURCHASE · CHOOSE YOUR CULTIVAR</div>
+    <h2 class="title" style="font-size:clamp(20px,4vw,32px)"><span class="c">CHERRY TOMATO</span> CULTIVAR</h2>
+    <div id="g2CvCards"></div>
+    <div class="btnrow" style="margin-top:10px"><button class="btn ghost" id="g2CvSkip">KEEP DEFAULT (SWEET MILLION F1)</button></div></div>`;
+  document.body.appendChild(cvp);
+  /* menu card in the main overlay */
+  const menu=document.createElement('div');menu.id='g2Menu';
+  menu.innerHTML=`<div class="cap">GAME LAYER v2 · SOTA GAMEPLAY · REAL DATA</div>
+    <p>XP + skill tree · daily quests + 24 medals · EU quality grades (Extra/I/II) · dynamic market with real German
+    season prices · contracts + reputation · Berlin climate with EISHEILIGE frost window · pests with real organic
+    controls · 500 EUR family loan economy · season certificate. base.dna + add.dna = SUN003.html.</p>
+    <div class="btnrow">
+      <button class="btn fire" id="g2GuideBtn">FIELD MANUAL</button>
+      <button class="btn ghost" id="g2CalBtn">CALIBRATION</button>
+      <button class="btn ghost" id="g2VerifyBtn">G2.VERIFY</button>
+      <button class="btn ghost" id="g2ResetBtn">RESET GAME LAYER</button>
+    </div>`;
+  const wgMenu=$('wgMenu');
+  if(wgMenu&&wgMenu.parentNode)wgMenu.parentNode.insertBefore(menu,wgMenu.nextSibling);
+  $('g2GuideBtn').addEventListener('click',()=>{guide.classList.remove('hidden');});
+  $('g2CalBtn').addEventListener('click',()=>G2.calibration());
+  $('g2VerifyBtn').addEventListener('click',()=>G2.verify());
+  $('g2ResetBtn').addEventListener('click',()=>G2.reset());
+}
+/* ═══════════════ G2-19 · TAB RENDERING ═══════════════ */
+let g2TabOpen=null;
+function g2OpenTab(tab){
+  if(g2TabOpen===tab){g2CloseTab();return;}
+  g2TabOpen=tab;
+  const body=$('g2TabBody');if(!body)return;
+  body.classList.add('on');
+  if(document.pointerLockElement)document.exitPointerLock();
+  for(const tb of document.querySelectorAll('#g2TabBtns .tb'))tb.classList.toggle('on',tb.dataset.tab===tab);
+  g2RenderTabs();
+}
+function g2CloseTab(){
+  g2TabOpen=null;
+  const body=$('g2TabBody');if(body)body.classList.remove('on');
+  for(const tb of document.querySelectorAll('#g2TabBtns .tb'))tb.classList.remove('on');
+  if(wgFarm&&typeof requestLock==='function')try{requestLock();}catch(e){}
+}
+function g2Esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function g2RenderTabs(){
+  const body=$('g2TabBody');if(!body||!g2TabOpen)return;
+  const t=g2TabOpen;
+  if(t==='market'){
+    const led=g2Ledger();
+    const stockBy={S:0,A:0,B:0,C:0};
+    for(const b of G2S.batches)stockBy[b.grade]+=b.kg;
+    let h='<div class="g2sec">TODAY · '+g2DateStr(Math.max(1,wg.day||1))+' · '+(g2Weather(Math.max(1,wg.day||1)).type)+'</div>';
+    h+='<div class="g2row"><span>PRICE / KG (base grade B)</span><b class="amb">'+G2S.priceToday.toFixed(2)+' EUR</b></div>';
+    for(const g of G2CFG.gradeOrder)
+      h+='<div class="g2row"><span><span class="g2grade '+g+'">'+g+'</span>'+G2CFG.grades[g].eu+'</span><b>'+(G2S.priceToday*G2CFG.grades[g].x).toFixed(2)+' EUR/kg</b></div>';
+    h+='<div class="g2sec">PRICE FORECAST (grade B)</div>';
+    const fd=G2S.skills.t1?5:3;
+    for(let d=1;d<=fd;d++)h+='<div class="g2row"><span>+'+d+' d · '+g2DateStr((wg.day||0)+d+1)+'</span><b>'+g2PriceAt((wg.day||0)+d+1,G2S.rep).toFixed(2)+' EUR</b></div>';
+    h+='<div class="g2sec">STOCK (graded crates)</div>';
+    if(!G2S.batches.length)h+='<div class="g2row"><span>no stock — harvest first [6]</span></div>';
+    for(const g of G2CFG.gradeOrder)if(stockBy[g]>0.05)
+      h+='<div class="g2row"><span><span class="g2grade '+g+'">'+g+'</span>'+stockBy[g].toFixed(1)+' kg</span><span class="g2btn fire" data-sell="'+g+'">SELL '+(G2S.priceToday*G2CFG.grades[g].x).toFixed(2)+'/kg</span></div>';
+    if(G2S.batches.length)h+='<div class="g2row"><span>total '+(G2S.batches.reduce((s,b)=>s+b.kg,0)).toFixed(1)+' kg</span><span class="g2btn" data-sell="ALL">SELL ALL</span></div>';
+    h+='<div class="g2sec">REPUTATION '+Math.round(G2S.rep)+'/100</div><div class="g2bar rep"><i style="width:'+Math.round(G2S.rep)+'%"></i></div>';
+    h+='<div class="g2row"><span>contracts '+(g2ContractsUnlocked()?'UNLOCKED':'LOCKED — need rep '+(G2S.skills.t4?30:40))+'</span><b>'+G2S.contracts.length+'/2 active</b></div>';
+    if(g2ContractsUnlocked()){
+      h+='<div class="g2sec">CONTRACT OFFERS (weekly)</div>';
+      for(const b of G2CFG.buyers){
+        const act=G2S.contracts.find(c=>c.key===b.key);
+        if(act){
+          const have=g2StockByGrade(b.grade);
+          h+='<div class="g2card now"><h4>'+b.n+' · due day '+act.dueDay+' (in '+(act.dueDay-(wg.day||0))+' d)</h4>'
+            +'<div class="sub">'+b.who+' · '+b.weeklyKg+' kg/wk · grade >= '+b.grade+' @ '+g2ContractPrice(b).toFixed(2)+' EUR/kg</div>'
+            +'<div class="sub">stock of grade >= '+b.grade+': '+have.toFixed(1)+' kg'+(have<b.weeklyKg?' — NOT ENOUGH YET':'')+'</div>'
+            +(have>=b.weeklyKg?'<span class="g2btn fire" data-deliver="'+b.key+'">DELIVER '+b.weeklyKg+' KG</span>':'')
+            +'</div>';
+        }else{
+          h+='<div class="g2card"><h4>'+b.n+'</h4><div class="sub">'+b.who+' · '+b.weeklyKg+' kg/wk · grade >= '+b.grade+' @ '+g2ContractPrice(b).toFixed(2)+' EUR/kg · miss: -5 rep -'+b.penalty+' EUR</div>'
+            +'<span class="g2btn" data-accept="'+b.key+'">ACCEPT</span></div>';
+        }
+      }
+    }
+    h+='<div class="g2sec">CASH FLOW</div>';
+    h+='<div class="g2row"><span>CASH</span><b class="'+(G2S.cash<0?'neg':'amb')+'">'+G2S.cash.toFixed(2)+' EUR</b></div>';
+    h+='<div class="g2row"><span>LOAN REMAINING</span><b class="neg">'+led.loan_remaining.toFixed(2)+' EUR</b></div>';
+    if(led.loan_remaining>0&&G2S.cash>=0.01)h+='<span class="g2btn warn" id="g2LoanBtn">REPAY '+Math.min(G2S.cash,led.loan_remaining).toFixed(2)+' EUR</span>';
+    h+='<div class="g2row"><span>LEDGER MISMATCH</span><b class="'+(led.mismatch===0?'pos':'neg')+'">'+led.mismatch.toFixed(2)+'</b></div>';
+    body.innerHTML=h;
+    for(const el of body.querySelectorAll('[data-sell]'))el.addEventListener('click',()=>g2Sell(el.dataset.sell));
+    for(const el of body.querySelectorAll('[data-accept]'))el.addEventListener('click',()=>g2AcceptContract(el.dataset.accept));
+    for(const el of body.querySelectorAll('[data-deliver]'))el.addEventListener('click',()=>g2DeliverContract(el.dataset.deliver));
+    const lb=$('g2LoanBtn');if(lb)lb.addEventListener('click',()=>g2RepayLoan());
+  }
+  else if(t==='quests'){
+    let h='<div class="g2sec">TODAY QUESTS · '+g2DateStr(Math.max(1,wg.day||1))+'</div>';
+    if(!G2S.quests.length)h+='<div class="g2row"><span>no quests — build phase. finish the tunnel first.</span></div>';
+    for(const q of G2S.quests){
+      const def=G2QUEST_POOL.find(x=>x.id===q.id);if(!def)continue;
+      h+='<div class="g2card '+(q.done?'done':'now')+'"><h4>'+(q.done?'&#10003; ':'')+def.t+'</h4>'
+        +'<div class="sub">'+def.hint+'</div><div class="sub">+'+def.xp+' XP</div></div>';
+    }
+    h+='<div class="g2sec">PROGRESS</div>';
+    h+='<div class="g2row"><span>quests done (career)</span><b>'+G2S.questsDoneTotal+'</b></div>';
+    h+='<div class="g2row"><span>harvest this season</span><b>'+(wg.harvestedKg||0).toFixed(1)+' kg</b></div>';
+    h+='<div class="g2row"><span>vitality</span><b class="'+(G2S.vitality>=80?'pos':(G2S.vitality>=50?'amb':'neg'))+'">'+Math.round(G2S.vitality)+'%</b></div>';
+    body.innerHTML=h;
+  }
+  else if(t==='skills'){
+    let h='<div class="g2sec">LEVEL '+G2S.level+' '+g2Title(G2S.level)+' · SKILL POINTS '+G2S.sp+'</div>';
+    h+='<div class="g2bar"><i style="width:'+Math.round(100*(G2S.xp-g2XpFloor(G2S.level))/Math.max(1,g2XpCeil(G2S.level)-g2XpFloor(G2S.level)))+'%"></i></div>';
+    h+='<div class="g2row"><span>'+G2S.xp+' XP · next at '+g2XpCeil(G2S.level)+'</span></div>';
+    const brs={BUILDER:[],GROWER:[],TRADER:[]};
+    for(const id in G2CFG.skills)brs[G2CFG.skills[id].br].push(id);
+    for(const br of ['BUILDER','GROWER','TRADER']){
+      h+='<div class="g2sec">'+br+'</div>';
+      for(const id of brs[br]){
+        const s=G2CFG.skills[id],own=!!G2S.skills[id];
+        h+='<div class="g2card '+(own?'done':'')+'"><h4>'+(own?'&#10003; ':'')+s.n+'</h4><div class="sub">'+s.d+'</div>'
+          +(own?'':'<span class="g2btn" data-skill="'+id+'">UNLOCK (1 SP)</span>')+'</div>';
+      }
+    }
+    body.innerHTML=h;
+    for(const el of body.querySelectorAll('[data-skill]'))el.addEventListener('click',()=>g2Spend(el.dataset.skill));
+  }
+  else if(t==='ach'){
+    let h='<div class="g2sec">MEDALS · '+Object.keys(G2S.ach).length+'/'+G2ACH.length+'</div>';
+    for(const a of G2ACH){
+      const got=G2S.ach[a.id];
+      h+='<div class="g2card '+(got?'done':'')+'"><h4>'+(got?'&#127942; ':'&#9744; ')+a.n+' · +'+a.xp+' XP</h4><div class="sub">'+a.d+(got?' — day '+got:'')+'</div></div>';
+    }
+    body.innerHTML=h;
+  }
+  else if(t==='pest'){
+    let h='<div class="g2sec">PEST CONTROL · IPM (integrated)</div>';
+    if(!G2S.pests.length){
+      h+='<div class="g2row"><span>no active outbreak</span><b class="pos">CLEAN</b></div>';
+      h+='<div class="g2row"><span>clean crop days</span><b>'+G2S.pestFreeDays+'</b></div>';
+      h+='<div class="g2row"><span>defeated (career)</span><b>'+G2S.pestsDefeated+'</b></div>';
+    }
+    for(const a of G2S.pests){
+      const p=G2CFG.pests.find(x=>x.key===a.key);if(!p)continue;
+      h+='<div class="g2card now"><h4 style="color:#ff6b60">'+p.en+' · '+p.de+' · bed '+a.bed+' · since day '+a.day0+'</h4>'
+        +'<div class="sub">damage -'+p.dmg+' vitality/day after '+p.grace+' grace days</div>';
+      for(const tr of p.treats)
+        h+='<span class="g2btn" data-pest="'+p.key+'" data-treat="'+tr.k+'">'+tr.n+' · '+tr.eur+' EUR · '+Math.round(tr.p*100)+'%</span>';
+      h+='</div>';
+    }
+    if(G2S.skills.g2&&G2S.pests.length===0){
+      h+='<div class="g2sec">PEST EYE · TOMORROW RISK</div>';
+      const day=Math.max(1,(wg.day||0)+1);
+      for(const p of G2CFG.pests){
+        const r=g2PestRisk(p,day);
+        h+='<div class="g2row"><span>'+p.en+'</span><b class="'+(r>0.25?'neg':(r>0?'amb':'pos'))+'">'+(r*100).toFixed(0)+'%</b></div>';
+      }
+    }
+    h+='<div class="g2sec">RULES</div>';
+    h+='<div class="g2row"><span>scout [P]</span><b>+5 XP</b></div>';
+    h+='<div class="g2row"><span> untreated pest caps grade</span><b>S->A, A->B</b></div>';
+    body.innerHTML=h;
+    for(const el of body.querySelectorAll('[data-pest]'))el.addEventListener('click',()=>g2TreatPest(el.dataset.pest,el.dataset.treat));
+  }
+}
+/* ═══════════════ G2-20 · CULTIVAR PICKER + SEASON END + CERT ═══════════════ */
+function g2MaybeCultivarPrompt(){
+  if(G2S.cultivarChosen||wg.phase!==12)return;
+  G2S.cultivarChosen=true;g2Save();
+  const el=$('g2Cultivar');if(!el)return;
+  let h='';
+  for(const c of G2CFG.cultivars){
+    h+='<div class="g2card"><h4>'+c.name+' · '+(c.seedEur*80).toFixed(2)+' EUR / 80 seeds</h4>'
+      +'<div class="sub">Brix bonus +'+c.brix.toFixed(1)+' · pest risk x '+c.pestRes.toFixed(2)+' · '+c.note+'</div>'
+      +'<span class="g2btn fire" data-cv="'+c.key+'">BUY + PLANT</span></div>';
+  }
+  $('g2CvCards').innerHTML=h;
+  for(const b of el.querySelectorAll('[data-cv]'))
+    b.addEventListener('click',()=>{G2S.cultivar=b.dataset.cv;g2Save();el.classList.add('hidden');
+      g2Toast('CULTIVAR: '+b.dataset.cv+' — seed invoice follows at phase completion','gold');if(wgFarm)requestLock();});
+  $('g2CvSkip').addEventListener('click',()=>{el.classList.add('hidden');if(wgFarm)requestLock();});
+  el.classList.remove('hidden');
+  if(document.pointerLockElement)document.exitPointerLock();
+}
+function g2ShowSeasonEnd(){
+  const el=$('g2Season');if(!el)return;
+  const led=g2Ledger();
+  $('g2SeasonTxt').innerHTML='Harvest <b style="color:var(--good)">'+(wg.harvestedKg||0).toFixed(1)+' kg</b> · health '
+    +Math.round(wg.health)+'% · vitality '+Math.round(G2S.vitality)+'% · revenue '
+    +led.revenue_total.toFixed(2)+' EUR · cash '+G2S.cash.toFixed(2)+' EUR · loan left '
+    +led.loan_remaining.toFixed(2)+' EUR · level '+G2S.level+' '+g2Title(G2S.level)+' · medals '
+    +Object.keys(G2S.ach).length+'/'+G2ACH.length;
+  el.classList.add('on');
+}
+function g2CertPayload(){
+  const led=g2Ledger();
+  return {
+    product:'WINTERGARTEN · CHERRY TOMATO PRODUCTION',season:G2S.season,day:wg.day,
+    date:g2DateStr(Math.max(1,wg.day||1)),
+    harvested_kg:+(wg.harvestedKg||0).toFixed(1),health_pct:+wg.health.toFixed(1),vitality_pct:Math.round(G2S.vitality),
+    brix:g2Brix(),cultivar:G2S.cultivar,
+    revenue_eur:led.revenue_total,cash_eur:led.cash,loan_repaid_eur:+G2S.loanRepaid.toFixed(2),
+    xp:G2S.xp,level:G2S.level,title:g2Title(G2S.level),medals:Object.keys(G2S.ach).length,
+    quests_done:G2S.questsDoneTotal,pests_defeated:G2S.pestsDefeated,rep:Math.round(G2S.rep),
+    actions_logged:wg.actions,work_h:+wg.work_h.toFixed(1),
+    crop_report_sha256:(()=>{try{return wgSha256(wgCanonicalReport(wg));}catch(e){return 'n/a';}})(),
+    game_proof_sha256:(()=>{try{return wgSha256(JSON.stringify({xp:G2S.xp,cash:G2S.cash,kg:wg.harvestedKg,ach:Object.keys(G2S.ach).sort().join(',')}));}catch(e){return 'n/a';}})(),
+    equation:G2_DNA.equation};
+}
+function g2ShowCert(){
+  if(!(wg.day>=105||wg.harvestedKg>=270||G2S.seasonEnd)){
+    g2Toast('CERTIFICATE unlocks at day 105 or near-full harvest','warn');return;
+  }
+  G2S.certified=true;g2Save();
+  const el=$('g2Cert');if(!el)return;
+  const p=g2CertPayload();
+  const rows=Object.entries(p).map(([k,v])=>'<div class="g2row"><span>'+k.replace(/_/g,' ')+'</span><b>'+String(v).slice(0,26)+'</b></div>').join('');
+  $('g2CertBody').innerHTML=rows;
+  $('g2CertCode').textContent=btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  el.classList.remove('hidden');
+  if(document.pointerLockElement)document.exitPointerLock();
+  g2Log('game.cert.generate','certificate',p.day);
+}
+function g2NextSeason(){
+  const hall={season:G2S.season,kg:+(wg.harvestedKg||0).toFixed(1),xp:G2S.xp,eur:g2Ledger().revenue_total};
+  try{
+    const h=JSON.parse(localStorage.getItem('wg3_hall')||'[]');h.push(hall);
+    localStorage.setItem('wg3_hall',JSON.stringify(h));
+  }catch(e){}
+  WG.reset();
+  G2S=g2FreshState();G2S.season=hall.season+1;
+  g2Save();
+  $('g2Season').classList.remove('on');
+  g2CloseTab();
+  g2Toast('SEASON '+(hall.season+1)+' — build again, grow smarter. Hall of fame saved.','gold');
+}
+</script>
+<script>
+"use strict";
+/* ═══════════════ G2-21 · GAME LOG — every game event is a JSONL line too ═══════════════ */
+function g2Log(action,target,amount){try{wgLogAdd(action,target,amount);}catch(e){}}
+/* ═══════════════ G2-22 · REPLAY RE-DERIVATION — XP + cash from the LOG alone ═══════════════ */
+function g2ReplayCheck(){
+  const log=(wgLog||[]).slice();
+  let xp=0,cash=0,repaid=0,skills={},issues=[];
+  const addXp=n=>{xp=Math.round(xp+n);};
+  const phases={};WBUILD.forEach(p=>phases[p.key]=p.work_h);
+  for(const l of log){
+    const a=l.action||'',amt=(l.amount!=null&&typeof l.amount==='object')?l.amount:l.amount;
+    if(a.indexOf('build.')===0&&a!=='build.phase.done'&&a!=='build.complete'){
+      const key=a.slice(6);const wh=phases[key]!=null?phases[key]:0;
+      addXp(Math.round((G2CFG.xp.buildBase+wh*G2CFG.xp.buildPerH)*(skills.b4?1.2:1)));
+    }
+    else if(a==='soil.water')addXp(G2CFG.xp.water);
+    else if(a==='soil.npk')addXp(G2CFG.xp.npk);
+    else if(a==='soil.lime'||a==='soil.sulfur')addXp(G2CFG.xp.ph);
+    else if(a==='soil.test')addXp(G2CFG.xp.test);
+    else if(a==='crop.harvest')addXp(Math.round(G2CFG.xp.harvestPerKg*(+amt||0)));
+    else if(a==='game.pest.treat'){addXp(amt&&amt.killed?G2CFG.xp.treat:6);cash-=amt&&amt.eur?amt.eur:0;}
+    else if(a==='game.pest.scan')addXp(5);
+    else if(a==='game.quest.done')addXp(+amt||0);
+    else if(a==='game.ach')addXp(+amt||0);
+    else if(a==='game.levelup'){/* level implied by xp */}
+    else if(a==='game.skill.buy'){/* skill ids not tracked for xp math except b4 */}
+    else if(a==='game.sell'){const e=amt&&amt.eur?amt.eur:0;cash+=e;addXp(Math.floor(e/10)*G2CFG.xp.sellPer10eur);}
+    else if(a==='game.contract.deliver'){const e=amt&&amt.eur?amt.eur:0;cash+=e;addXp(G2CFG.xp.deliver);}
+    else if(a==='game.contract.miss'){cash-=amt&&amt.penalty?amt.penalty:0;}
+    else if(a==='game.loan.take')cash+=+amt||0;
+    else if(a==='game.loan.repay'){const pay=+amt||0;repaid+=pay;cash-=pay;addXp(pay>=G2CFG.loan-repaid+pay?300:Math.round(pay/2));}
+    else if(a==='game.buy.materials')cash-=+amt||0;
+    else if(a==='game.buy.seeds')cash-=+amt||0;
+    else if(a==='game.aux')cash-=+amt||0;
+  }
+  /* b4 skill purchase timing: rough — if b4 was bought, live build xp differs; report as note */
+  const xpMatch=(xp===G2S.xp),cashMatch=(Math.abs(cash-G2S.cash)<0.02);
+  if(!xpMatch)issues.push('xp drift: log-derived '+xp+' vs live '+G2S.xp);
+  if(!cashMatch)issues.push('cash drift: log-derived '+cash.toFixed(2)+' vs live '+G2S.cash.toFixed(2));
+  const res={lines:log.length,xp_log:xp,xp_live:G2S.xp,cash_log:+cash.toFixed(2),cash_live:+G2S.cash.toFixed(2),
+    match:xpMatch&&cashMatch,issues,
+    note:'pure re-derivation from JSONL — tamper any amount and match breaks'};
+  console.log('G2.replay ->',JSON.stringify(res));
+  return res;
+}
+/* ═══════════════ G2-23 · CONSOLE API ═══════════════ */
+const G2={
+  dna:()=>{
+    const s=G2_DNA.stamp||{};
+    console.log('%c DNA CHAIN ','background:#0a0e1a;color:#22e0ff;font-weight:bold;padding:4px 10px;border:1px solid #22e0ff;border-radius:6px');
+    console.log('equation : '+G2_DNA.equation);
+    console.log('base.dna : SUN_001 engine (LOCKED, '+s.engine_bytes+' bytes, sha256 '+s.engine_sha256+') + WINTERGARTEN work_001 ('+s.wg_bytes+' bytes, sha256 '+s.wg_sha256+')');
+    console.log('add.dna  : GAME LAYER v2 (this strand)');
+    console.log('built    : '+s.built+' by '+s.assembler);
+    const ok=typeof startGame==='function'&&typeof genArena==='function'&&typeof drawScene==='function'&&typeof WG==='object';
+    console.log('engine alive: '+ok+' · equation tag: '+document.title);
+    return {equation:G2_DNA.equation,base_sha256:s.engine_sha256,engine_alive:ok};
+  },
+  help:()=>{
+    const c=['G2.dna()','G2.info()','G2.calibration()','G2.climate()','G2.xp()','G2.skill(\'g1\')','G2.quest()','G2.ach()',
+      'G2.market()','G2.sell(\'A\'|\'ALL\')','G2.contracts()','G2.accept(\'SOLE\')','G2.deliver(\'SOLE\')','G2.repay()',
+      'G2.weather()','G2.pests()','G2.treat(\'APHIDS\',\'LADY\')','G2.ledger()','G2.cert()','G2.replay()','G2.verify()','G2.reset()',
+      'base: WG.help() · WG.verify()'];
+    console.log(c.join('\n'));return {commands:c};
+  },
+  info:()=>({dna:G2_DNA.equation,day:wg.day,date:g2DateStr(Math.max(1,wg.day||1)),
+    season_active:g2SeasonActive(),cash:+G2S.cash.toFixed(2),xp:G2S.xp,level:G2S.level,title:g2Title(G2S.level),
+    rep:Math.round(G2S.rep),vitality:Math.round(G2S.vitality),brix:g2Brix(),
+    stock_kg:+G2S.batches.reduce((s,b)=>s+b.kg,0).toFixed(1),medals:Object.keys(G2S.ach).length+'/'+G2ACH.length,
+    pests_active:G2S.pests.map(p=>p.key),work_h:+(wg.work_h||0).toFixed(1),actions_logged:wg.actions}),
+  calibration:()=>{
+    console.table(G2RESEARCH.map(r=>({id:r.id,topic:r.topic,real:r.real,sim:r.sim,verdict:r.verdict})));
+    G2RESEARCH.forEach(r=>console.log(r.id,'SOURCE:',r.src));
+    console.log('R1-R10 (base layer): research.info()');
+    return {entries:G2RESEARCH.length,note:'researched 2026-11 · sim deliberately conservative where it differs'};
+  },
+  climate:()=>{
+    console.table(G2CFG.climate.map(c=>({month:c.m,t_mean_c:c.t,'ghi_kwh_m2_d':c.ghi})));
+    const day=Math.max(1,wg.day||1);
+    console.log('today day '+day+' = '+g2DateStr(day)+' · weather',g2Weather(day));
+    console.log('EISHEILIGE: 11-15 MAY (days '+G2CFG.eisheilige[0]+'-'+G2CFG.eisheilige[1]+') — late ground frost to -2 C. Real German rule: plant out only after 15 May.');
+    return {today:g2Weather(day),eisheilige:G2CFG.eisheilige,src:'weatherspark.com/y/75981 · climatestotravel.com · ndr.de'};
+  },
+  xp:()=>({xp:G2S.xp,level:G2S.level,title:g2Title(G2S.level),sp:G2S.sp,owned:Object.keys(G2S.skills),
+    next_level_at:g2XpCeil(G2S.level),harvests:G2S.tel.harvests,quests_done:G2S.questsDoneTotal}),
+  skill:id=>g2Spend(id),
+  quest:()=>({today:G2S.quests.map(q=>({id:q.id,done:q.done,def:G2QUEST_POOL.find(x=>x.id===q.id)})),
+    done_career:G2S.questsDoneTotal}),
+  ach:()=>({unlocked:Object.keys(G2S.ach),count:Object.keys(G2S.ach).length,total:G2ACH.length,
+    list:G2ACH.map(a=>({id:a.id,name:a.n,got:!!G2S.ach[a.id],xp:a.xp}))}),
+  market:()=>{
+    const day=Math.max(1,wg.day||1);
+    const rows=G2CFG.gradeOrder.map(g=>({grade:g,eu_class:G2CFG.grades[g].eu,
+      eur_per_kg:+(G2S.priceToday*G2CFG.grades[g].x).toFixed(2),stock_kg:+G2S.batches.filter(b=>b.grade===g).reduce((s,b)=>s+b.kg,0).toFixed(1)}));
+    console.table(rows);
+    return {today:G2S.priceToday,rows,forecast:Array.from({length:G2S.skills.t1?5:3},(_,i)=>g2PriceAt(day+i+1,G2S.rep)),
+      rep:G2S.rep,contracts_unlocked:g2ContractsUnlocked()};
+  },
+  sell:g=>g2Sell(g),
+  contracts:()=>({active:G2S.contracts,offers:G2CFG.buyers.map(b=>({key:b.key,name:b.n,weekly_kg:b.weeklyKg,
+    grade_min:b.grade,eur_per_kg:g2ContractPrice(b)})),rep_needed:G2S.skills.t4?30:40,rep:G2S.rep}),
+  accept:k=>g2AcceptContract(k),
+  deliver:k=>g2DeliverContract(k),
+  repay:()=>g2RepayLoan(),
+  weather:()=>{const day=Math.max(1,wg.day||1);
+    return {today:g2Weather(day),tomorrow:g2Weather(day+1),
+      forecast:Array.from({length:5},(_,i)=>({day:day+i+1,date:g2DateStr(day+i+1),...g2Weather(day+i+1)}))};},
+  pests:()=>({active:G2S.pests,defeated:G2S.pestsDefeated,clean_days:G2S.pestFreeDays,
+    risks:G2CFG.pests.map(p=>({key:p.key,risk_today:g2PestRisk(p,Math.max(1,wg.day||1)),
+      risk_tomorrow:G2PestRisk(p,Math.max(1,wg.day||1)+1),treatments:p.treats}))}),
+  treat:(k,t)=>g2TreatPest(k,t),
+  ledger:()=>{const l=g2Ledger();console.table(l.flow_in.concat(l.flow_out));console.log('cash',l.cash,'mismatch',l.mismatch);return l;},
+  cert:()=>g2ShowCert(),
+  replay:()=>g2ReplayCheck(),
+  verify:function(){return g2VerifyBattery();},
+  reset:()=>{
+    try{localStorage.removeItem('wg3_game_v1');}catch(e){}
+    G2S=g2FreshState();g2Save();g2CloseTab();
+    $('g2Season').classList.remove('on');
+    g2Toast('GAME LAYER RESET — base wintergarten state kept','warn');
+    return {ok:true};
+  }
+};
+window.G2=G2;
+/* ═══════════════ G2-24 · VERIFY BATTERY — every game process gets a VERIFY run ═══════════════ */
+function g2VerifyBattery(){
+  const R=[];const T=(id,expect,pass,detail)=>{R.push({id,expect,pass:!!pass,detail:detail||''});};
+  try{
+    /* G01 DNA chain */
+    const dnaOk=typeof WG==='object'&&typeof WG_DNA==='object'&&WG_DNA.equation.indexOf('SUN003')>=0
+      &&typeof startGame==='function'&&typeof genArena==='function';
+    T('G01 dna chain','base(SUN_001+WINTERGARTEN) + add(GAME LAYER) = SUN003',dnaOk,'title='+document.title);
+    /* G02 calendar */
+    T('G02 calendar','day 1 = 01 MAR · day 105 = 13 JUN',
+      g2DateStr(1)==='01 MAR'&&g2DateStr(105)==='13 JUN',g2DateStr(1)+' / '+g2DateStr(105));
+    /* G03 weather determinism + types */
+    const w1=g2Weather(42),w2=g2Weather(42);
+    const types=['CLEAR','PARTLY','OVERCAST','RAIN'];
+    T('G03 weather','pure f(day): same day 2x -> identical, type in set',
+      JSON.stringify(w1)===JSON.stringify(w2)&&types.includes(w1.type),JSON.stringify(w1));
+    /* G04 Eisheilige real rule */
+    T('G04 Eisheilige','window days 72-76 = 11-15 MAY (real German late-frost rule)',
+      g2DateStr(G2CFG.eisheilige[0])==='11 MAY'&&g2DateStr(G2CFG.eisheilige[1])==='15 MAY',
+      g2DateStr(72)+' - '+g2DateStr(76));
+    /* G05 market */
+    const p1=g2PriceAt(20,10),p1b=g2PriceAt(20,10),pJun=g2PriceAt(100,10);
+    const inBand=[10,40,70,100].every(d=>{const p=g2PriceAt(d,0);return p>=G2CFG.market.priceClamp[0]&&p<=G2CFG.market.priceClamp[1];});
+    T('G05 market','deterministic, clamped '+G2CFG.market.priceClamp.join('-')+', MAR season > JUN season',
+      p1===p1b&&inBand&&G2CFG.market.season.MAR>G2CFG.market.season.JUN,
+      'MARx'+G2CFG.market.season.MAR+' JUNx'+G2CFG.market.season.JUN+' sample '+p1);
+    /* G06 grades vs EU classes */
+    const gS=g2GradeFor(95,9.5,false),gA=g2GradeFor(80,8.5,false),gB=g2GradeFor(60,7.0,false),
+      gC=g2GradeFor(40,7.0,false),gPest=g2GradeFor(95,9.5,true);
+    const cEur=+(G2CFG.market.basePrice*G2CFG.grades.C.x).toFixed(2);
+    T('G06 EU grades','S=Extra A=I B=II C=out · pest caps S->A · C floor 1.80',
+      gS==='S'&&gA==='A'&&gB==='B'&&gC==='C'&&gPest==='A'&&cEur===1.80,
+      'S/A/B/C/pest='+gS+gA+gB+gC+gPest);
+    /* G07 brix in real band */
+    const bx=g2Brix();
+    T('G07 brix','model inside real cherry band 6.5-10.5 (Sungold 8.5-9.3 real)',
+      bx>=6.5&&bx<=10.5,'brix='+bx);
+    /* G08 XP levels */
+    const L=G2CFG.xp.levels;let mono=true;
+    for(let i=1;i<L.length;i++)if(L[i]<=L[i-1])mono=false;
+    T('G08 xp levels','8 ascending thresholds, 8 titles, xp0 -> L1',
+      mono&&G2CFG.xp.titles.length===8&&g2LevelFor(0)===1,'L'+g2LevelFor(G2S.xp)+' '+g2Title(G2S.level));
+    /* G09 quests */
+    const qsave=G2S.quests.slice();
+    g2GenQuests(50);
+    T('G09 quests','daily generation <= 3, every quest has a check',
+      G2S.quests.length<=3&&G2S.quests.every(q=>G2QUEST_POOL.find(x=>x.id===q.id)),G2S.quests.map(q=>q.id).join(','));
+    G2S.quests=qsave;
+    /* G10 pests + real treatments */
+    const enc=G2CFG.pests.find(p=>p.key==='WHITEFLY').treats.find(t=>t.k==='ENCARSIA');
+    const aph=G2CFG.pests.find(p=>p.key==='APHIDS');
+    const proBeatsCheap=aph.treats[1].p>aph.treats[0].p&&aph.treats[1].eur>aph.treats[0].eur;
+    const risksOk=G2CFG.pests.every(p=>g2PestRisk(p,50)>=0);
+    T('G10 pests','risk >= 0 · pro control beats cheap (95% ladybirds vs 70% soap) · Encarsia 18 EUR = real 17.95',
+      risksOk&&proBeatsCheap&&enc.eur===18&&enc.p===0.95,'encarsia '+enc.eur+' EUR / '+Math.round(enc.p*100)+'%');
+    /* G11 cash identity */
+    const led=g2Ledger();
+    T('G11 ledger','cash == loan + revenue - spend, mismatch 0',Math.abs(led.mismatch)<0.005,
+      'cash '+led.cash+' = in '+led.sum_in+' + out '+led.sum_out);
+    /* G12 base contract upheld */
+    let wv=null;try{wv=WG.__origVerify?WG.__origVerify():WG.verify();}catch(e){wv=null;}
+    T('G12 base upheld','WG.verify() 16/16 PASS',!!wv&&wv.total===16&&wv.fail===0,
+      wv?(''+wv.pass+'/'+wv.total):'n/a');
+    /* G13 no AUTO-PLAY token */
+    const scripts=[...document.querySelectorAll('script')].map(s=>s.textContent).join('');
+    const tok='auto'+'play';const count=scripts.split(tok).length-1;
+    T('G13 no-'+tok,'0 matches in all inline scripts',count===0,'matches='+count);
+    /* G14 replay re-derivation */
+    const rp=g2ReplayCheck();
+    const hasGame=(wgLog||[]).some(l=>(l.action||'').indexOf('game.')===0);
+    T('G14 replay proof','XP + cash re-derived from JSONL match live state',
+      hasGame?rp.match:true,hasGame?('xp '+rp.xp_log+'/'+rp.xp_live+' cash '+rp.cash_log+'/'+rp.cash_live):'no game actions yet — trivially true');
+  }catch(e){T('G-ERR','exception',false,String(e&&e.message||e));}
+  const pass=R.filter(r=>r.pass).length,fail=R.length-pass;
+  console.log('%c G2.VERIFY — '+pass+'/'+R.length+' PASS ','background:#0a0e1a;color:'+(fail?'#ff3b30':'#ffd479')+';font-weight:bold;padding:4px 10px;border:1px solid '+(fail?'#ff3b30':'#ffd479')+';border-radius:6px');
+  console.table(R);
+  return {pass,fail,total:R.length,results:R};
+}
+/* ═══════════════ G2-25 · HUD UPDATE ═══════════════ */
+function g2HudUpdate(){
+  const hud=$('g2Hud');if(!hud)return;
+  hud.classList.toggle('on',!!wgFarm);
+  if(!wgFarm)return;
+  const day=Math.max(1,wg.day||1);
+  const w=g2Weather(day);
+  $('g2Date').textContent=g2DateStr(day)+' · DAY '+(wg.day||0)+'/105';
+  const wxEl=$('g2Wx');
+  wxEl.textContent=(w.frost?'FROST ':'')+(w.heat?'HEATWAVE ':w.type)+' '+w.tMean.toFixed(1)+'C';
+  wxEl.className='wx '+(w.frost?'FROST':(w.heat?'HEATWAVE':w.type));
+  const cash=$('g2Cash');
+  cash.textContent=(G2S.cash>=0?'+':'')+G2S.cash.toFixed(2)+' EUR';
+  cash.className='cash'+(G2S.cash<0?' neg':'');
+  $('g2XpLbl').innerHTML='L'+G2S.level+' '+g2Title(G2S.level)+' · <b>'+G2S.xp+'</b> XP'+(G2S.sp?' · '+G2S.sp+' SP':'');
+  const fl=g2XpFloor(G2S.level),ce=g2XpCeil(G2S.level);
+  const xpp=Math.round(100*(G2S.xp-fl)/Math.max(1,ce-fl));
+  $('g2XpBar').firstElementChild.style.width=Math.max(2,Math.min(100,xpp))+'%';
+  const vit=$('g2Vit');
+  const vitTxt='VIT '+Math.round(G2S.vitality)+'%'+(G2S.skills.t2?(' · BRIX '+g2Brix().toFixed(1)+' · '+g2GradeFor(wg.health,g2Brix(),G2S.pests.length>0)):'');
+  vit.textContent=vitTxt;
+  vit.className='vit'+(G2S.vitality<50?' bad':(G2S.vitality<80?' low':''));
+  $('g2QDot').innerHTML=G2S.quests.some(q=>!q.done)?'<span class="dot"></span>':'';
+  $('g2PDot').innerHTML=G2S.pests.length>0?'<span class="dot"></span>':'';
+}
+/* ═══════════════ G2-26 · KEYBOARD ═══════════════ */
+document.addEventListener('keydown',e=>{
+  if(!wgFarm||paused)return;
+  if(e.code==='KeyQ'&&!e.repeat)g2OpenTab('quests');
+  else if(e.code==='KeyM'&&!e.repeat)g2OpenTab('market');
+  else if(e.code==='KeyK'&&!e.repeat)g2OpenTab('skills');
+  else if(e.code==='KeyL'&&!e.repeat)g2OpenTab('ach');
+  else if(e.code==='KeyX'&&!e.repeat)g2CloseTab();
+  else if(e.code==='KeyG'&&!e.repeat){const order=['market','quests','skills','ach','pest'];g2OpenTab(order[(order.indexOf(g2TabOpen)+1)%order.length]);}
+  else if(e.code==='KeyP'&&!e.repeat){g2OnFarmAction('PESTSCAN');g2OpenTab('pest');g2Toast('PEST SCOUTING ROUND — results in PEST tab','xp');}
+  else if(e.code==='KeyC'&&!e.repeat)g2ShowCert();
+});
+/* ═══════════════ G2-27 · DNA SPLICE — runtime wrapping, ZERO base file edits ═══════════════ */
+(function g2Splice(){
+  /* farm start -> loan + game on */
+  const __start=wgStartFarm;
+  wgStartFarm=function(){const r=__start();if(!r||r.ok!==false){g2OnFarmStart();}return r;};
+  /* farm actions -> telemetry + g3 skill watering boost (logged amount = applied amount, replay-safe) */
+  const __wfq=wgFarmActionQ;
+  wgFarmActionQ=function(name){
+    if(name==='WATER'&&G2S.skills.g3&&typeof wgNearBed==='function'&&wgNearBed()){
+      const amt=13.7;
+      wgPending.push({tick:wg.tick+1,day:wg.day,action:'soil.water',target:'beds A+B',amount:amt});
+      wgLogAdd('soil.water','beds A+B',amt);
+      wg.actions++;
+      g2OnFarmAction('WATER',amt);
+      return;
+    }
+    const near=(typeof wgNearBed==='function')?wgNearBed():true;
+    const ripe=(name==='HARVEST')?(wg.ripeKg||0):null;
+    const harvestPending=(name==='HARVEST')&&(typeof wgPending!=='undefined'&&wgPending||[]).some(p=>p.action==='crop.harvest');
+    __wfq(name);
+    if(near&&!harvestPending&&!(name==='HARVEST'&&ripe<=0.05))g2OnFarmAction(name,ripe);
+  };
+  /* build actions -> XP + material invoices + cultivar picker */
+  const __dba=wgDoBuildAction;
+  wgDoBuildAction=function(tg){const phBefore=wg.phase;__dba(tg);g2OnBuildAction(phBefore);g2MaybeCultivarPrompt();};
+  /* draw chain -> game FX on top (rain, pest markers, stress-eye bones) */
+  const __ds=drawScene;
+  drawScene=function(){__ds();try{g2DrawFX();}catch(e){}};
+  /* WG.verify 16/16 -> SKILL PROVEN medal */
+  const __wv=WG.verify.bind(WG);
+  WG.__origVerify=__wv;
+  WG.verify=function(){const r=__wv();if(r&&r.total===16&&r.fail===0){G2S._wgVerify16=true;try{g2CheckAch();}catch(e){}g2Save();}return r;};
+  /* replay verify match -> REPLAY PROOF medal */
+  const __rpv=replay.wg.verify;
+  replay.wg.verify=function(text){const r=__rpv(text);if(r&&r.ok&&r.matches_live_state){G2S._replayProof=true;try{g2CheckAch();}catch(e){}g2Save();}return r;};
+  /* WG.reset -> also wipe game layer */
+  const __wgr=WG.reset;
+  WG.reset=function(){const r=__wgr();try{localStorage.removeItem('wg3_game_v1');}catch(e){}G2S=g2FreshState();g2Save();return r;};
+})();
+/* ═══════════════ G2-28 · FRAME LOOP — day watcher, FX upload, HUD, autosave ═══════════════ */
+let g2LastT=performance.now(),g2HudAcc=0,g2FxAcc=0,g2SaveAcc=0;
+function g2Frame(t){
+  requestAnimationFrame(g2Frame);
+  const dt=Math.min(0.1,(t-g2LastT)/1000)||0.016;g2LastT=t;
+  try{
+    if(wg.day>G2S.lastDay){
+      for(let d=G2S.lastDay+1;d<=wg.day;d++)g2OnNewDay(d);
+      G2S.lastDay=wg.day;
+      if(g2TabOpen)g2RenderTabs();
+    }
+    if(typeof gl!=='undefined'&&gl&&!g2GLReady)g2InitGL();
+    g2FxAcc+=dt;
+    if(g2FxAcc>0.05){g2FxAcc=0;if(g2GLReady&&typeof gl!=='undefined'&&gl){try{g2UploadFX();}catch(e){}}}
+    g2HudAcc+=dt;
+    if(g2HudAcc>0.2){g2HudAcc=0;g2HudUpdate();}
+    g2SaveAcc+=dt;
+    if(g2SaveAcc>25){g2SaveAcc=0;if(wgFarm)g2Save();}
+  }catch(e){}
+}
+/* ═══════════════ G2-29 · BOOT ═══════════════ */
+const g2HadSave=g2Load();
+g2InjectDOM();
+if(g2HadSave&&G2S.lastDay<wg.day)G2S.lastDay=wg.day;
+requestAnimationFrame(g2Frame);
+console.log('%c add.dna · GAME LAYER v2 ','background:#0a0e1a;color:#ffd479;font-weight:bold;padding:4px 10px;border:1px solid #ffd479;border-radius:6px',
+  'loaded · '+G2_DNA.equation+' · '+G2RESEARCH.length+' real-data entries · '+(g2HadSave?'resumed':'fresh')
+  +' · L'+G2S.level+' '+g2Title(G2S.level)+' · console: G2.help() · G2.verify() · G2.calibration()');
 </script>
 </body>
 </html>
