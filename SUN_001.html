@@ -640,7 +640,7 @@ function jsKernel(){
   const rnd=s=>{let x=s|0;x^=x<<13;x^=x>>>17;x^=x<<5;return x|0;};
   const mix=(a,b,t)=>(a+(((b-a)*t)>>10))|0;
   const fade=x=>{const u=x*64;const u2=(u*u)>>10;const u3=(u2*u)>>10;return (3*u2-2*u3)|0;};
-  const noise2d=(x,y)=>{const cx=x>>4,cy=y>>4,fx=fade(x&15),fy=fade(y&15);
+  const noise2d=(x,y)=>{const cx=x>>>4,cy=y>>>4,fx=fade(x&15),fy=fade(y&15);
     const h00=hash2(cx,cy)&1023,h10=hash2(cx+1,cy)&1023,h01=hash2(cx,cy+1)&1023,h11=hash2(cx+1,cy+1)&1023;
     return mix(mix(h00,h10,fx),mix(h01,h11,fx),fy);};
   const fbm2d=(x,y,oct)=>{oct=Math.max(1,Math.min(8,oct|0));let sum=0,amp=1024,tot=0,f=0;
@@ -737,7 +737,7 @@ let isPointerLocked=false,lastLockExit=0,lockErrors=0;const LOCK_COOLDOWN_MS=130
 /* VM mouse drivers + the Chromium pointer-lock re-entry bug can deliver NaN or 1e9-pixel deltas.
    Every raw pointer delta passes sanitizeDelta before it can reach player.yaw. */
 const MAX_LOOK_DELTA=250;
-const IN={sanN:0,sanMax:0,sanRec:0,lastTel:0,lockGrantAt:0,accX:0,accY:0,evHz:0,evCount:0,vmNoted:false};
+const IN={sanN:0,sanMax:0,sanRec:0,lastTel:0,lockGrantAt:0,accX:0,accY:0,evHz:0,evCount:0,vmNoted:false,dropN:0,repN:0,repRun:0,repX:0,repY:0,holdX:0,holdAt:0,holdT:0};
 /* NaN vertex data segfaults real GPU drivers (VM paravirtual / ANGLE-D3D); software rasterizers
    silently tolerate it, which is why MESH MELTDOWN never reproduced in the sandbox. The firewall
    converts that class of crash into a one-frame glitch plus telemetry. */
@@ -897,6 +897,8 @@ function renderDaily(){
     return {ok:true};
   }catch(e){return {ok:false,error:String(e&&e.message||e)};}
 }
+/* difficulty chosen before a daily run forced NORMAL; restored when leaving daily mode */
+let dailyBakDiff=null;
 function startDaily(){
   try{
     const r=startGame({daily:true});
@@ -1917,7 +1919,7 @@ const MUSIC={
 let musicTimer=null,musicMode='menu',musicStep=0,musicWanted=false;
 function musicModeFor(){
   try{
-    if(!gameStarted||G.mode==='menu'||G.mode==='over')return 'menu';
+    if(!gameStarted||G.mode==='menu'||G.mode==='gameover')return 'menu';
     if(enemies.some(e=>e.boss))return 'boss';
     return enemies.length>0?'combat':'menu';
   }catch(e){return 'menu';}
@@ -2418,9 +2420,9 @@ function setWeapon(n){
   }catch(e){return {ok:false,error:String(e&&e.message||e)};}
 }
 function damagePlayer(dmg){
+  if(player.hurtCd>0)return;player.hurtCd=0.4;
   G.tookDamage=true;G.noDmgT=0;
   if(player.shield>0){player.shield=Math.max(0,player.shield-dmg*0.5);dmg*=0.3;}
-  if(player.hurtCd>0)return;player.hurtCd=0.4;
   const hpBefore=player.hp;player.hp-=dmg;telemetryRecord('damage',Math.max(0,hpBefore-player.hp));G.combo=1;G.comboTimer=0;G.shake=Math.min(G.shake+0.8,1.6);sfx('hurt');hapticFire(24);
   const d=$('damage');d.style.opacity='0.9';setTimeout(()=>{d.style.opacity='0';},180);
   if(player.hp<=0){player.hp=0;endGame();}
@@ -2794,7 +2796,7 @@ function endGame(){
   }
   $('goScore').textContent=G.score;$('goWave').textContent=G.wave;$('goKills').textContent=G.kills;
   $('goAcc').textContent=(G.shots?Math.round(G.hits/G.shots*100):0)+'%';$('goTime').textContent=Math.floor(G.time)+'s';$('goBest').textContent=bestScore;
-  $('goSeed').textContent=G.runSeed;$('goDmg').textContent=Math.round(G.dmgTaken);
+  $('goSeed').textContent=G.daily?G.runSeed>>>0:G.runSeed;$('goDmg').textContent=Math.round(G.dmgTaken);
   const kb=G.killsBy||[0,0,0,0,0,0,0,0,0,0,0,0],wa=telemetrySummary().weaponAcc||[0,0,0];
   $('goDetail').textContent='KILLS  GRUNT '+kb[0]+'  RUNNER '+kb[1]+'  BRUTE '+kb[2]+'  STINGER '+kb[3]+'  WARDEN '+kb[4]+'  LANCE '+(kb[5]||0)+'  HIVE '+(kb[6]||0)+'  SWARM '+(kb[7]||0)+'  '+t('turretName')+' '+(kb[8]||0)+'  '+t('dashName')+' '+(kb[9]||0)+'  '+t('shielderName')+' '+(kb[10]||0)+'  '+t('pyre')+' '+(kb[11]||0)+'\nACC  PULSE '+wa[0]+'%  SCATTER '+wa[1]+'%  RAIL '+wa[2]+'%  ARC '+(wa[3]||0)+'%';
   if(!inPB){
@@ -2805,7 +2807,7 @@ function endGame(){
   if(G.daily&&!inPB&&!benchRunning){
     const dr=dailySeedAt(),sc=makeShareCode(G.runSeed,G.score,G.kills,G.wave);
     if(dr.ok&&sc.ok){
-      saveDaily({date:dr.ymd,score:G.score,kills:G.kills,waves:G.wave,hash:sc.hash,code:sc.code});
+      saveDaily({date:G.dailyYmd||dr.ymd,score:G.score,kills:G.kills,waves:G.wave,hash:sc.hash,code:sc.code});
       if($('goDailyWrap')){$('goDailyWrap').style.display='';$('goDailyCode').textContent=sc.code;}
     }
   }else if($('goDailyWrap'))$('goDailyWrap').style.display='none';
@@ -2938,6 +2940,27 @@ function sanitizeDelta(v,tag){
     return v|0;
   }catch(e){IN.sanN++;return 0;}
 }
+/* A real hand cannot produce these: an out-of-range delta (pointer warp) or the same large delta repeated
+   event after event (VM absolute-pointer drivers under pointer lock). Clamping them still turned the view on
+   every event and pinned it to the floor. Lone out-of-range events are dropped. A repeated run is what such a
+   driver sends while the cursor is parked away from the centre, so it is not applied per event either: it is
+   held as a steady left/right turn (lookFlush), and its up/down part is ignored. */
+const LOOK_REPEAT_MIN=20,LOOK_REPEAT_RUN=6,LOOK_HOLD_RATE=12,LOOK_HOLD_MS=60;
+function lookFilter(mx,my){
+  try{
+    if(!Number.isFinite(mx)||!Number.isFinite(my)){IN.sanN++;IN.dropN++;IN.repRun=0;IN.holdX=0;return {ok:true,drop:true,why:'non-finite',dx:0,dy:0};}
+    const big=Math.max(Math.abs(mx),Math.abs(my));
+    if(mx===IN.repX&&my===IN.repY&&big>=LOOK_REPEAT_MIN)IN.repRun++;else{IN.repRun=0;IN.repX=mx;IN.repY=my;IN.holdX=0;}
+    if(IN.repRun>=LOOK_REPEAT_RUN){
+      /* the run is now known to be an artefact: take back the copies that were let through before it was recognised */
+      if(IN.repRun===LOOK_REPEAT_RUN&&big<=MAX_LOOK_DELTA){IN.accX-=sanitizeDelta(mx)*LOOK_REPEAT_RUN;IN.accY-=sanitizeDelta(my)*LOOK_REPEAT_RUN;}
+      IN.holdX=clamp(mx,-MAX_LOOK_DELTA,MAX_LOOK_DELTA);IN.holdAt=performance.now();
+      IN.sanN++;IN.repN++;return {ok:true,drop:true,why:'repeat',dx:0,dy:0};
+    }
+    if(big>MAX_LOOK_DELTA){IN.sanN++;IN.dropN++;if(big>IN.sanMax)IN.sanMax=big;return {ok:true,drop:true,why:'range',dx:0,dy:0};}
+    return {ok:true,drop:false,dx:sanitizeDelta(mx),dy:sanitizeDelta(my)};
+  }catch(e){IN.sanN++;return {ok:false,drop:true,dx:0,dy:0,error:String(e&&e.message||e)};}
+}
 function sanitizeTelemetry(now){
   try{
     if(IN.sanN>IN.sanRec&&now-IN.lastTel>10000){
@@ -2979,7 +3002,7 @@ function mcToggle(on,ms){
 }
 function updateMascot(dt){
   try{
-    if(!MC.on||G.mode!=='play')return {ok:true,idle:true};
+    if(!MC.on||(G.mode!=='playing'&&G.mode!=='play'))return {ok:true,idle:true};
     const deck=$('vmDeck'),ch=$('cheese'),ms=$('mouseMascot');
     if(!deck||!ch||!ms)return {ok:false,error:'mc dom missing'};
     if(performance.now()>MC.until)mcToggle(false,0);
@@ -3023,6 +3046,9 @@ function mcReAnchor(){
 }
 function lookFlush(k){
   try{
+    const hn=performance.now();
+    if(IN.holdX&&hn-IN.holdAt<LOOK_HOLD_MS)IN.accX+=IN.holdX*LOOK_HOLD_RATE*clamp((hn-IN.holdT)/1000,0,0.05);else IN.holdX=0;
+    IN.holdT=hn;
     if(IN.accX===0&&IN.accY===0)return {ok:true,applied:false};
     const dx=IN.accX,dy=IN.accY;
     IN.accX=0;IN.accY=0;
@@ -3321,7 +3347,7 @@ function bindInput(){
   document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===$('glcanvas');
     if(isPointerLocked&&!locked)lastLockExit=performance.now();
     isPointerLocked=locked;LK.state=locked?'LOCKED':'UNLOCKED';
-    if(locked)IN.lockGrantAt=performance.now();});
+    if(locked){IN.lockGrantAt=performance.now();IN.repRun=0;IN.holdX=0;}});
   document.addEventListener('pointerlockerror',()=>{LK.state='UNLOCKED';lockErrors++;showToast(t('lockIssue')+' ('+lockErrors+')');});
   window.addEventListener('unhandledrejection',e=>{const msg=String(e.reason);if(/lock/i.test(msg)){lockErrors++;e.preventDefault();return;}showErr('REJECT: '+msg);});
   document.addEventListener('keydown',e=>{
@@ -3360,8 +3386,8 @@ function bindInput(){
       const now=performance.now();
       if(now-IN.lockGrantAt<50)return; // Chromium emits a giant first delta right after lock grant
       IN.evCount++;
-      IN.accX+=sanitizeDelta(e.movementX);
-      IN.accY+=sanitizeDelta(e.movementY);
+      const lf=lookFilter(e.movementX,e.movementY);
+      if(!lf.drop){IN.accX+=lf.dx;IN.accY+=lf.dy;}
       if(typeof e.buttons==='number')keys['Mouse0']=(e.buttons&1)===1;
       sanitizeTelemetry(now);
     }catch(err){IN.sanN++;}
@@ -3403,10 +3429,14 @@ function startGame(opts){
   G.daily=!!opts.daily;
   const seg=$('diffSeg');
   if(G.daily){
+    if(dailyBakDiff===null)dailyBakDiff=difficulty;
     difficulty=1;
+    const dd=dailySeedAt();G.dailyYmd=dd.ok?dd.ymd:0;
     if($('seedInput')){$('seedInput').value=String(dailySeed());$('seedInput').disabled=true;}
     if(seg)for(const b of seg.children){b.disabled=true;b.classList.toggle('on',+b.dataset.d===1);}
   }else{
+    G.dailyYmd=0;
+    if(dailyBakDiff!==null){difficulty=dailyBakDiff;dailyBakDiff=null;}
     if($('seedInput'))$('seedInput').disabled=false;
     if(seg)for(const b of seg.children){b.disabled=false;b.classList.toggle('on',+b.dataset.d===difficulty);}
   }
@@ -3414,7 +3444,7 @@ function startGame(opts){
   startMusicDirector();duckMusic(false);
   const raw=$('seedInput')?String($('seedInput').value||'').trim():'';
   G.runSeed=raw?parseSeed(raw):randomRunSeed();
-  if($('seedInput'))$('seedInput').value=String(G.runSeed);
+  if($('seedInput'))$('seedInput').value=String(G.daily?G.runSeed>>>0:G.runSeed);
   resetGame();gameOver=false;paused=false;gameStarted=true;G.mode='playing';
   replayLog={v:2,seed:G.runSeed|0,lang:LANG,diff:difficulty,frames:[],truncated:false};replayCount=0;replayLook=[0,0];replayLastWi=-1;
   PB=null;$('pbBar').classList.add('hidden');$('pbEnd').classList.add('hidden');
@@ -3437,6 +3467,7 @@ function togglePause(){
 function toMenu(){
   gameStarted=false;gameOver=false;paused=false;G.mode='menu';clearInput();
   if(PB){difficulty=PB.bakDiff;PB=null;}
+  if(dailyBakDiff!==null){difficulty=dailyBakDiff;dailyBakDiff=null;}
   $('pbBar').classList.add('hidden');$('pbEnd').classList.add('hidden');
   if($('watchBtn'))$('watchBtn').style.display='none';
   stopMusicDirector();duckMusic(false);startMusic();
@@ -3447,9 +3478,9 @@ function toMenu(){
   $('hud').classList.remove('on');$('crosshair').classList.remove('on');$('touch').classList.remove('on');$('pauseBtn').style.display='none';
   if($('photoBtn'))$('photoBtn').style.display='none';
   $('bgfx').style.display='block';$('gridfx').style.display='block';$('lowhp').style.opacity='0';
-  G.daily=false;
+  G.daily=false;G.dailyYmd=0;
   if($('seedInput'))$('seedInput').disabled=false;
-  const seg=$('diffSeg');if(seg)for(const b of seg.children)b.disabled=false;
+  const seg=$('diffSeg');if(seg)for(const b of seg.children){b.disabled=false;b.classList.toggle('on',+b.dataset.d===difficulty);}
   if($('goDailyWrap'))$('goDailyWrap').style.display='none';
   renderScores();renderDaily();renderMeta();
 }
@@ -3477,8 +3508,11 @@ function recordReplayFrame(dt){
     if(keys['KeyR'])k|=64;
     let w=-1;
     if(player.wi!==replayLastWi){w=player.wi;replayLastWi=player.wi;}
-    replayLog.frames.push({k,l:[+replayLook[0].toFixed(3),+replayLook[1].toFixed(3)],
-      f:(keys['Mouse0']||touch.fire)?1:0,w,j:(keys['Space']||touch.jump)?1:0,dt});
+    /* a: absolute view angles [yaw,pitch], so playback does not depend on the viewer's sensitivity or invert-Y; l is kept for older readers */
+    const fr={k,l:[+replayLook[0].toFixed(3),+replayLook[1].toFixed(3)],a:[player.yaw,player.pitch],
+      f:(keys['Mouse0']||touch.fire||touch.fireTouch)?1:0,w,j:(keys['Space']||touch.jump)?1:0,dt};
+    if(touch.mx||touch.mz)fr.m=[touch.mx,touch.mz];
+    replayLog.frames.push(fr);
     replayLook[0]=0;replayLook[1]=0;replayCount++;
     return {ok:true,count:replayCount};
   }catch(e){return {ok:false,error:String(e&&e.message||e)};}
@@ -3589,6 +3623,8 @@ function replayPlay(payload,opts){
     $('hud').classList.add('on');$('pauseBtn').style.display='none';
     if($('photoBtn'))$('photoBtn').style.display='none';
     $('crosshair').classList.toggle('on',cam==='first');
+    /* an imported replay can start straight from the menu, where the menu backdrop still covers the canvas */
+    $('bgfx').style.display='none';$('gridfx').style.display='none';
     $('pbBar').classList.remove('hidden');$('pbEnd').classList.add('hidden');
     updatePbBar();
     if(PB.legacy)showToast(t('pbLegacy'));
@@ -3606,9 +3642,14 @@ function applyPlaybackFrame(f,i){
     keys['KeyW']=!!(k&1);keys['KeyA']=!!(k&2);keys['KeyS']=!!(k&4);keys['KeyD']=!!(k&8);
     keys['ShiftLeft']=!!(k&16);keys['Space']=!!(k&32);keys['KeyR']=!!(k&64);
     keys['Mouse0']=!!f.f;touch.fire=!!f.f;touch.jump=!!(k&32)||!!f.j;
-    const l=Array.isArray(f.l)?f.l:[Number(f.dx)||0,Number(f.dy)||0];
-    const lx=Number(l[0])||0,ly=Number(l[1])||0;
-    if(lx||ly)applyLook(lx,ly,0.0022);
+    const mv=Array.isArray(f.m)?f.m:null;
+    touch.mx=mv?clamp(Number(mv[0])||0,-1,1):0;touch.mz=mv?clamp(Number(mv[1])||0,-1,1):0;
+    if(Array.isArray(f.a)&&typeof f.a[0]==='number'&&typeof f.a[1]==='number'&&isFinite(f.a[0])&&isFinite(f.a[1])){player.yaw=f.a[0];player.pitch=clamp(f.a[1],-1.45,1.45);}
+    else{
+      const l=Array.isArray(f.l)?f.l:[Number(f.dx)||0,Number(f.dy)||0];
+      const lx=Number(l[0])||0,ly=Number(l[1])||0;
+      if(lx||ly)applyLook(lx,ly,0.0022);
+    }
     if(typeof f.w==='number'&&f.w>=0&&f.w<WEAPONS.length&&f.w!==player.wi)setWeapon(f.w);
     G.time+=dt;
     updatePlayer(dt);updateEnemies(dt);updateProjectiles(dt);updateParticles(dt);updateWaves(dt);updateFX(dt);
@@ -3740,7 +3781,7 @@ const FN_REGISTRY=['kernel.imul32','kernel.iabs','kernel.iclamp','kernel.imin','
  'i18n.parity','i18n.typos',
  'sim.spawnTableFor','sim.spawnEnemyArch','sim.updateTurret','sim.updateDash','sim.updateShielder',
  'sim.spawnPyre','sim.updatePyre',
- 'input.sanitizeDelta','input.lookGuard','input.lookAccumulate','input.lookFlush','input.eventRate',
+ 'input.sanitizeDelta','input.lookFilter','input.lookGuard','input.lookAccumulate','input.lookFlush','input.eventRate',
  'render.matFinite','render.nanFirewall','render.recoverView',
  'input.tapFireZone','input.setFireZone','input.hapticsFire','input.touchCancel','input.touchWatchdog',
  'input.lockMachine','input.lockStateGet',
@@ -4537,7 +4578,7 @@ function runBenchmark(){
         for(let i=0;i<10;i++)updateGame(1/60);
         keys['KeyW']=false;touch.fire=false;
         const f=replayLog.frames;const f0=f[0]||{};
-        const okv=f.length===10&&f0.k===1&&f0.f===1&&f0.dt===1/60&&f0.w===0&&Array.isArray(f0.l)&&f0.j===0;
+        const okv=f.length===10&&f0.k===1&&f0.f===1&&f0.dt===1/60&&Array.isArray(f0.a)&&f0.a.length===2&&f0.w===0&&Array.isArray(f0.l)&&f0.j===0;
         return {ok:okv,error:'frames='+f.length+' k='+f0.k+' f='+f0.f+' dt='+f0.dt+' w='+f0.w+' j='+f0.j};
       }finally{benchRunning=bakBench;restoreState(snap);}});
     test('replay.exportGuard',()=>{mark('replay.payload');
@@ -5088,6 +5129,17 @@ function runBenchmark(){
         return {ok:okv,error:'fields='+fields+' stored='+(stored&&stored.kind)+' dump='+JSON.stringify(d.card&&d.card.kind)};
       }finally{CR.last=bL;CR.ring=bR;window.__CRASH_CARD__=bC;
         try{if(raw===null)sessionStorage.removeItem(CR.key);else sessionStorage.setItem(CR.key,raw);}catch(e){}}});
+    test('input.lookFilter',()=>{mark('input.lookFilter');
+      const bak=Object.assign({},IN);
+      try{
+        IN.repRun=0;IN.repX=0;IN.repY=0;
+        const a=lookFilter(12,-7),b=lookFilter(1e9,3),c=lookFilter(4,NaN);
+        let passed=0;for(let i=0;i<40;i++){if(!lookFilter(180,180).drop)passed++;}
+        const d=lookFilter(-30,5);
+        let small=0;for(let i=0;i<40;i++){if(!lookFilter(2,1).drop)small++;}
+        return {ok:a.drop===false&&a.dx===12&&a.dy===-7&&b.drop===true&&c.drop===true&&passed<=LOOK_REPEAT_RUN&&d.drop===false&&small===40,
+          error:'passed='+passed+' small='+small};
+      }finally{Object.assign(IN,bak);}});
     test('input.sanitizeDelta',()=>{mark('input.sanitizeDelta');mark('input.lookGuard');
       const sanBak=IN.sanN,maxBak=IN.sanMax,recBak=IN.sanRec,telBak=IN.lastTel;
       const y0=player.yaw,p0=player.pitch;
@@ -5521,7 +5573,7 @@ function boot(){
       forceCrashCard:kind=>{crashRecord();return crashCapture(kind||'manual','forced');},
       drillContextLoss:()=>{try{const ext=gl&&gl.getExtension('WEBGL_lose_context');if(!ext)return {ok:false,error:'no WEBGL_lose_context'};ext.loseContext();setTimeout(()=>{try{ext.restoreContext();}catch(e){}},800);return {ok:true};}catch(e){return {ok:false,error:String(e&&e.message||e)};}},
       stormMouse,stormTouch,stormReport,
-      get inputStats(){return {san:IN.sanN,sanMax:IN.sanMax,evHz:IN.evHz,lock:LK.state,ghosts:TW.ghosts,nearMiss:FW.nearMiss};},
+      get inputStats(){return {san:IN.sanN,sanMax:IN.sanMax,drop:IN.dropN,rep:IN.repN,evHz:IN.evHz,lock:LK.state,ghosts:TW.ghosts,nearMiss:FW.nearMiss};},
       startGame,requestLock,runBenchmark,togglePause,toMenu,restoreGraphics,
       spawnEnemyType:(arch,x,z)=>{try{const r=spawnEnemyArch(arch,x,z);return r.ok?{ok:true,arch:r.arch,type:r.type}:r;}catch(e){return {ok:false,error:String(e&&e.message||e)};}},
       spawnPyre:(ph)=>{try{const r=spawnPyre();if(!r.ok)return r;const e=enemies[enemies.length-1];const p=clamp(ph|0||1,1,3);e.hp=e.maxhp*(p===1?1:p===2?0.5:0.2);e.phase=p;if(p>=2)e.speed=1.4;return {ok:true,phase:p,type:11};}catch(e){return {ok:false,error:String(e&&e.message||e)};}},
