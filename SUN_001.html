@@ -737,7 +737,7 @@ let isPointerLocked=false,lastLockExit=0,lockErrors=0;const LOCK_COOLDOWN_MS=130
 /* VM mouse drivers + the Chromium pointer-lock re-entry bug can deliver NaN or 1e9-pixel deltas.
    Every raw pointer delta passes sanitizeDelta before it can reach player.yaw. */
 const MAX_LOOK_DELTA=250;
-const IN={sanN:0,sanMax:0,sanRec:0,lastTel:0,lockGrantAt:0,accX:0,accY:0,evHz:0,evCount:0,vmNoted:false};
+const IN={sanN:0,sanMax:0,sanRec:0,lastTel:0,lockGrantAt:0,accX:0,accY:0,evHz:0,evCount:0,vmNoted:false,dropN:0,repN:0,repRun:0,repX:0,repY:0};
 /* NaN vertex data segfaults real GPU drivers (VM paravirtual / ANGLE-D3D); software rasterizers
    silently tolerate it, which is why MESH MELTDOWN never reproduced in the sandbox. The firewall
    converts that class of crash into a one-frame glitch plus telemetry. */
@@ -1919,7 +1919,7 @@ const MUSIC={
 let musicTimer=null,musicMode='menu',musicStep=0,musicWanted=false;
 function musicModeFor(){
   try{
-    if(!gameStarted||G.mode==='menu'||G.mode==='over')return 'menu';
+    if(!gameStarted||G.mode==='menu'||G.mode==='gameover')return 'menu';
     if(enemies.some(e=>e.boss))return 'boss';
     return enemies.length>0?'combat':'menu';
   }catch(e){return 'menu';}
@@ -2940,6 +2940,24 @@ function sanitizeDelta(v,tag){
     return v|0;
   }catch(e){IN.sanN++;return 0;}
 }
+/* A real hand cannot produce these: an out-of-range delta (pointer warp) or the same large delta repeated
+   event after event (VM absolute-pointer drivers under pointer lock). Clamping them still turned the view on
+   every event and pinned it to the floor, so such events are dropped whole. */
+const LOOK_REPEAT_MIN=20,LOOK_REPEAT_RUN=6;
+function lookFilter(mx,my){
+  try{
+    if(!Number.isFinite(mx)||!Number.isFinite(my)){IN.sanN++;IN.dropN++;return {ok:true,drop:true,why:'non-finite',dx:0,dy:0};}
+    const big=Math.max(Math.abs(mx),Math.abs(my));
+    if(big>MAX_LOOK_DELTA){IN.sanN++;IN.dropN++;if(big>IN.sanMax)IN.sanMax=big;IN.repRun=0;return {ok:true,drop:true,why:'range',dx:0,dy:0};}
+    if(mx===IN.repX&&my===IN.repY&&big>=LOOK_REPEAT_MIN)IN.repRun++;else{IN.repRun=0;IN.repX=mx;IN.repY=my;}
+    if(IN.repRun>=LOOK_REPEAT_RUN){
+      /* the run is now known to be an artefact: take back the copies that were let through before it was recognised */
+      if(IN.repRun===LOOK_REPEAT_RUN){IN.accX-=sanitizeDelta(mx)*LOOK_REPEAT_RUN;IN.accY-=sanitizeDelta(my)*LOOK_REPEAT_RUN;}
+      IN.sanN++;IN.repN++;return {ok:true,drop:true,why:'repeat',dx:0,dy:0};
+    }
+    return {ok:true,drop:false,dx:sanitizeDelta(mx),dy:sanitizeDelta(my)};
+  }catch(e){IN.sanN++;return {ok:false,drop:true,dx:0,dy:0,error:String(e&&e.message||e)};}
+}
 function sanitizeTelemetry(now){
   try{
     if(IN.sanN>IN.sanRec&&now-IN.lastTel>10000){
@@ -2981,7 +2999,7 @@ function mcToggle(on,ms){
 }
 function updateMascot(dt){
   try{
-    if(!MC.on||G.mode!=='play')return {ok:true,idle:true};
+    if(!MC.on||(G.mode!=='playing'&&G.mode!=='play'))return {ok:true,idle:true};
     const deck=$('vmDeck'),ch=$('cheese'),ms=$('mouseMascot');
     if(!deck||!ch||!ms)return {ok:false,error:'mc dom missing'};
     if(performance.now()>MC.until)mcToggle(false,0);
@@ -3323,7 +3341,7 @@ function bindInput(){
   document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===$('glcanvas');
     if(isPointerLocked&&!locked)lastLockExit=performance.now();
     isPointerLocked=locked;LK.state=locked?'LOCKED':'UNLOCKED';
-    if(locked)IN.lockGrantAt=performance.now();});
+    if(locked){IN.lockGrantAt=performance.now();IN.repRun=0;}});
   document.addEventListener('pointerlockerror',()=>{LK.state='UNLOCKED';lockErrors++;showToast(t('lockIssue')+' ('+lockErrors+')');});
   window.addEventListener('unhandledrejection',e=>{const msg=String(e.reason);if(/lock/i.test(msg)){lockErrors++;e.preventDefault();return;}showErr('REJECT: '+msg);});
   document.addEventListener('keydown',e=>{
@@ -3362,8 +3380,8 @@ function bindInput(){
       const now=performance.now();
       if(now-IN.lockGrantAt<50)return; // Chromium emits a giant first delta right after lock grant
       IN.evCount++;
-      IN.accX+=sanitizeDelta(e.movementX);
-      IN.accY+=sanitizeDelta(e.movementY);
+      const lf=lookFilter(e.movementX,e.movementY);
+      if(!lf.drop){IN.accX+=lf.dx;IN.accY+=lf.dy;}
       if(typeof e.buttons==='number')keys['Mouse0']=(e.buttons&1)===1;
       sanitizeTelemetry(now);
     }catch(err){IN.sanN++;}
@@ -3755,7 +3773,7 @@ const FN_REGISTRY=['kernel.imul32','kernel.iabs','kernel.iclamp','kernel.imin','
  'i18n.parity','i18n.typos',
  'sim.spawnTableFor','sim.spawnEnemyArch','sim.updateTurret','sim.updateDash','sim.updateShielder',
  'sim.spawnPyre','sim.updatePyre',
- 'input.sanitizeDelta','input.lookGuard','input.lookAccumulate','input.lookFlush','input.eventRate',
+ 'input.sanitizeDelta','input.lookFilter','input.lookGuard','input.lookAccumulate','input.lookFlush','input.eventRate',
  'render.matFinite','render.nanFirewall','render.recoverView',
  'input.tapFireZone','input.setFireZone','input.hapticsFire','input.touchCancel','input.touchWatchdog',
  'input.lockMachine','input.lockStateGet',
@@ -5103,6 +5121,17 @@ function runBenchmark(){
         return {ok:okv,error:'fields='+fields+' stored='+(stored&&stored.kind)+' dump='+JSON.stringify(d.card&&d.card.kind)};
       }finally{CR.last=bL;CR.ring=bR;window.__CRASH_CARD__=bC;
         try{if(raw===null)sessionStorage.removeItem(CR.key);else sessionStorage.setItem(CR.key,raw);}catch(e){}}});
+    test('input.lookFilter',()=>{mark('input.lookFilter');
+      const bak=Object.assign({},IN);
+      try{
+        IN.repRun=0;IN.repX=0;IN.repY=0;
+        const a=lookFilter(12,-7),b=lookFilter(1e9,3),c=lookFilter(4,NaN);
+        let passed=0;for(let i=0;i<40;i++){if(!lookFilter(180,180).drop)passed++;}
+        const d=lookFilter(-30,5);
+        let small=0;for(let i=0;i<40;i++){if(!lookFilter(2,1).drop)small++;}
+        return {ok:a.drop===false&&a.dx===12&&a.dy===-7&&b.drop===true&&c.drop===true&&passed<=LOOK_REPEAT_RUN&&d.drop===false&&small===40,
+          error:'passed='+passed+' small='+small};
+      }finally{Object.assign(IN,bak);}});
     test('input.sanitizeDelta',()=>{mark('input.sanitizeDelta');mark('input.lookGuard');
       const sanBak=IN.sanN,maxBak=IN.sanMax,recBak=IN.sanRec,telBak=IN.lastTel;
       const y0=player.yaw,p0=player.pitch;
@@ -5536,7 +5565,7 @@ function boot(){
       forceCrashCard:kind=>{crashRecord();return crashCapture(kind||'manual','forced');},
       drillContextLoss:()=>{try{const ext=gl&&gl.getExtension('WEBGL_lose_context');if(!ext)return {ok:false,error:'no WEBGL_lose_context'};ext.loseContext();setTimeout(()=>{try{ext.restoreContext();}catch(e){}},800);return {ok:true};}catch(e){return {ok:false,error:String(e&&e.message||e)};}},
       stormMouse,stormTouch,stormReport,
-      get inputStats(){return {san:IN.sanN,sanMax:IN.sanMax,evHz:IN.evHz,lock:LK.state,ghosts:TW.ghosts,nearMiss:FW.nearMiss};},
+      get inputStats(){return {san:IN.sanN,sanMax:IN.sanMax,drop:IN.dropN,rep:IN.repN,evHz:IN.evHz,lock:LK.state,ghosts:TW.ghosts,nearMiss:FW.nearMiss};},
       startGame,requestLock,runBenchmark,togglePause,toMenu,restoreGraphics,
       spawnEnemyType:(arch,x,z)=>{try{const r=spawnEnemyArch(arch,x,z);return r.ok?{ok:true,arch:r.arch,type:r.type}:r;}catch(e){return {ok:false,error:String(e&&e.message||e)};}},
       spawnPyre:(ph)=>{try{const r=spawnPyre();if(!r.ok)return r;const e=enemies[enemies.length-1];const p=clamp(ph|0||1,1,3);e.hp=e.maxhp*(p===1?1:p===2?0.5:0.2);e.phase=p;if(p>=2)e.speed=1.4;return {ok:true,phase:p,type:11};}catch(e){return {ok:false,error:String(e&&e.message||e)};}},
