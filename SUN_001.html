@@ -326,7 +326,7 @@ body.lefty #wpnBtns{right:auto;left:26px}
     <div class="eyebrow" data-i18n="eyebrow">NEON ARENA · WAVE SURVIVAL · WEBGL2 + WASM</div>
     <h1 class="title"><span class="r">RED</span><span class="c">BOLT</span></h1>
     <p class="tagline" data-i18n="tagline">Hold the arena against escalating waves of neon drones. Chain kills for combo multipliers, grab power-ups, and survive as long as you can. Built clean from zero — a stateless WASM math kernel drives the procedural arena.</p>
-    <div class="ver">v<span id="verVal">0.8.1</span> · SUN_011</div>
+    <div class="ver">v<span id="verVal">0.8.2</span> · SUN_011</div>
     <div class="controls">
       <div class="field">
         <label data-i18n="difficulty">DIFFICULTY</label>
@@ -676,7 +676,7 @@ function initKernel(){
 /* ============================ GLOBAL STATE ============================ */
 const $=id=>document.getElementById(id);
 const DEBUG=new URLSearchParams(location.search).get('debug')==='1';
-const GAME_VERSION='0.8.1';
+const GAME_VERSION='0.8.2';
 const ARENA_W=48, ARENA_D=48, MAX_H=14;
 const EYE_H=1.62, FOV=72*Math.PI/180, NEAR=0.08, FAR=220;
 const MAG=12;
@@ -2922,6 +2922,7 @@ function requestLock(){
       return {ok:false,state:LK.state,error:'lock cooldown'};
     }
     if(document.hidden)return {ok:false,state:LK.state,error:'document hidden'};
+    if(benchRunning)return {ok:false,state:LK.state,error:'benchmark isolation'};
     LK.state='REQUESTING';LK.requestedAt=now;
     const pl=c.requestPointerLock();
     if(pl&&typeof pl.catch==='function')pl.catch(()=>{LK.state='UNLOCKED';lockErrors++;showToast(t('lockIssue')+' ('+lockErrors+')');});
@@ -3477,7 +3478,7 @@ function recordReplayFrame(dt){
     let w=-1;
     if(player.wi!==replayLastWi){w=player.wi;replayLastWi=player.wi;}
     replayLog.frames.push({k,l:[+replayLook[0].toFixed(3),+replayLook[1].toFixed(3)],
-      f:(keys['Mouse0']||touch.fire)?1:0,w,j:(keys['Space']||touch.jump)?1:0,dt:+dt.toFixed(6)});
+      f:(keys['Mouse0']||touch.fire)?1:0,w,j:(keys['Space']||touch.jump)?1:0,dt});
     replayLook[0]=0;replayLook[1]=0;replayCount++;
     return {ok:true,count:replayCount};
   }catch(e){return {ok:false,error:String(e&&e.message||e)};}
@@ -3755,8 +3756,8 @@ function releaseChecklist(){
     const checks={
       title:/SUN_011/.test(document.title),
       brand:/SUN_011/.test(brandEl?brandEl.textContent:''),
-      version:GAME_VERSION==='0.8.1',
-      verStamp:($('verVal')?$('verVal').textContent:'')==='0.8.1',
+      version:GAME_VERSION==='0.8.2',
+      verStamp:($('verVal')?$('verVal').textContent:'')==='0.8.2',
       replaySchema:REPLAY_SCHEMAS[0]==='sun011.replay.v2'&&REPLAY_SCHEMAS.indexOf('sun010.replay.v2')>=0,
       benchSchema:BENCH_SCHEMA==='SUN_011.benchmark.v1',
       storage:[SCORES_KEY,SETTINGS_KEY,ACH_KEY,META_KEY,DAILY_KEY,CR.key].every(k=>k.indexOf('sun011_')===0),
@@ -3802,13 +3803,19 @@ function restoreState(s){
   if(meshSeed!==(G.runSeed|0))syncArenaMesh();
 }
 function snapshotDOM(){
-  return {goHidden:$('gameOverOverlay').classList.contains('hidden'),hudOn:$('hud').classList.contains('on'),
+  const panels=['overlay','pauseOverlay','perkOverlay','bossBar','photoBtn','bgfx','gridfx','pbBar','pbEnd','watchBtn'].map(id=>({id,cls:$(id).getAttribute('class'),style:$(id).getAttribute('style')}));
+  const controls=Array.from(document.querySelectorAll('input,select,button')).map(el=>({el,value:el.value,checked:el.checked,disabled:el.disabled}));
+  const labels=['waveBig','waveSub','powerToast','bossLbl'].map(id=>({id,text:$(id).textContent}));
+  return {panels,controls,labels,goHidden:$('gameOverOverlay').classList.contains('hidden'),hudOn:$('hud').classList.contains('on'),
     crossOn:$('crosshair').classList.contains('on'),touchOn:$('touch').classList.contains('on'),
     pauseDisp:$('pauseBtn').style.display,bannerOp:$('waveBanner').style.opacity,toastOp:$('powerToast').style.opacity,
     damageOp:$('damage').style.opacity,lowhpOp:$('lowhp').style.opacity,hitOp:$('hitmarker').style.opacity,
     ctxHidden:$('ctxOverlay').classList.contains('hidden'),errDisp:$('errbox').style.display,bodyCls:document.body.className};
 }
 function restoreDOM(s){
+  for(const control of s.controls){if(control.el.type!=='file')control.el.value=control.value;control.el.disabled=control.disabled;if(control.checked!==undefined)control.el.checked=control.checked;}
+  for(const label of s.labels)$(label.id).textContent=label.text;
+  for(const panel of s.panels){const el=$(panel.id);for(const [attr,value] of [['class',panel.cls],['style',panel.style]]){if(value===null)el.removeAttribute(attr);else el.setAttribute(attr,value);}}
   $('gameOverOverlay').classList.toggle('hidden',s.goHidden);$('hud').classList.toggle('on',s.hudOn);
   $('crosshair').classList.toggle('on',s.crossOn);$('touch').classList.toggle('on',s.touchOn);
   $('pauseBtn').style.display=s.pauseDisp;$('waveBanner').style.opacity=s.bannerOp;$('powerToast').style.opacity=s.toastOp;
@@ -4530,7 +4537,7 @@ function runBenchmark(){
         for(let i=0;i<10;i++)updateGame(1/60);
         keys['KeyW']=false;touch.fire=false;
         const f=replayLog.frames;const f0=f[0]||{};
-        const okv=f.length===10&&f0.k===1&&f0.f===1&&f0.dt===0.016667&&f0.w===0&&Array.isArray(f0.l)&&f0.j===0;
+        const okv=f.length===10&&f0.k===1&&f0.f===1&&f0.dt===1/60&&f0.w===0&&Array.isArray(f0.l)&&f0.j===0;
         return {ok:okv,error:'frames='+f.length+' k='+f0.k+' f='+f0.f+' dt='+f0.dt+' w='+f0.w+' j='+f0.j};
       }finally{benchRunning=bakBench;restoreState(snap);}});
     test('replay.exportGuard',()=>{mark('replay.payload');
@@ -4581,7 +4588,7 @@ function runBenchmark(){
         const xh=$('crosshair').classList.contains('on');
         const lbl=$('pbCam').textContent;
         const bad=pbSetCam('orbit');
-        return {ok:c1.cam==='third'&&c2.cam==='free'&&c3.cam==='first'&&xh===true&&bad.ok===false&&/CAM/.test(lbl),
+        return {ok:c1.cam==='third'&&c2.cam==='free'&&c3.cam==='first'&&xh===true&&bad.ok===false&&lbl===t('pbCam')+': '+t('pbCamFirst'),
           error:'seq='+c1.cam+','+c2.cam+','+c3.cam+' xhair='+xh+' bad='+bad.ok+' lbl='+lbl};
       }finally{PB=bakPB;difficulty=bakDiff;restoreState(snap);restoreDOM(domSnap);$('pbBar').classList.add('hidden');$('pbEnd').classList.add('hidden');}});
     test('replay.freeOrbit',()=>{mark('replay.freeOrbit');
@@ -5131,7 +5138,6 @@ function runBenchmark(){
       return {ok:okv,error:okv?'snapshot/restore healed deliberate mutation':'restore mismatch'};});
   } finally {
     restoreState(snap);restoreDOM(domSnap);benchRunning=false;
-    replayLog=null;replayCount=0;replayLook=[0,0];replayLastWi=-1;
     try{if(musicWanted&&!muted&&SET.music&&AC)startMusic();}catch(e){}
   }
   const pass=results.filter(r=>r.status==='PASS').length;
@@ -5494,7 +5500,7 @@ function applySettingsUI(){
 }
 function boot(){
   initKernel();
-  if(!initWebGL())return;
+  if(!initWebGL()){clearTimeout($('errbox')._t);$('overlayBtn').disabled=true;$('benchmarkBtn').disabled=true;return;}
   resizeGL();genArena();buildArenaMesh();spawnPlayer();
   bindInput();bindUI();applySettingsUI();applyQuality();
   setLang(resolveLang());applyA11y();
