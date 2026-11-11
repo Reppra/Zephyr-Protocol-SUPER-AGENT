@@ -737,7 +737,7 @@ let isPointerLocked=false,lastLockExit=0,lockErrors=0;const LOCK_COOLDOWN_MS=130
 /* VM mouse drivers + the Chromium pointer-lock re-entry bug can deliver NaN or 1e9-pixel deltas.
    Every raw pointer delta passes sanitizeDelta before it can reach player.yaw. */
 const MAX_LOOK_DELTA=250;
-const IN={sanN:0,sanMax:0,sanRec:0,lastTel:0,lockGrantAt:0,accX:0,accY:0,evHz:0,evCount:0,vmNoted:false,dropN:0,repN:0,repRun:0,repX:0,repY:0};
+const IN={sanN:0,sanMax:0,sanRec:0,lastTel:0,lockGrantAt:0,accX:0,accY:0,evHz:0,evCount:0,vmNoted:false,dropN:0,repN:0,repRun:0,repX:0,repY:0,holdX:0,holdAt:0,holdT:0};
 /* NaN vertex data segfaults real GPU drivers (VM paravirtual / ANGLE-D3D); software rasterizers
    silently tolerate it, which is why MESH MELTDOWN never reproduced in the sandbox. The firewall
    converts that class of crash into a one-frame glitch plus telemetry. */
@@ -2942,19 +2942,22 @@ function sanitizeDelta(v,tag){
 }
 /* A real hand cannot produce these: an out-of-range delta (pointer warp) or the same large delta repeated
    event after event (VM absolute-pointer drivers under pointer lock). Clamping them still turned the view on
-   every event and pinned it to the floor, so such events are dropped whole. */
-const LOOK_REPEAT_MIN=20,LOOK_REPEAT_RUN=6;
+   every event and pinned it to the floor. Lone out-of-range events are dropped. A repeated run is what such a
+   driver sends while the cursor is parked away from the centre, so it is not applied per event either: it is
+   held as a steady left/right turn (lookFlush), and its up/down part is ignored. */
+const LOOK_REPEAT_MIN=20,LOOK_REPEAT_RUN=6,LOOK_HOLD_RATE=12,LOOK_HOLD_MS=60;
 function lookFilter(mx,my){
   try{
-    if(!Number.isFinite(mx)||!Number.isFinite(my)){IN.sanN++;IN.dropN++;return {ok:true,drop:true,why:'non-finite',dx:0,dy:0};}
+    if(!Number.isFinite(mx)||!Number.isFinite(my)){IN.sanN++;IN.dropN++;IN.repRun=0;IN.holdX=0;return {ok:true,drop:true,why:'non-finite',dx:0,dy:0};}
     const big=Math.max(Math.abs(mx),Math.abs(my));
-    if(big>MAX_LOOK_DELTA){IN.sanN++;IN.dropN++;if(big>IN.sanMax)IN.sanMax=big;IN.repRun=0;return {ok:true,drop:true,why:'range',dx:0,dy:0};}
-    if(mx===IN.repX&&my===IN.repY&&big>=LOOK_REPEAT_MIN)IN.repRun++;else{IN.repRun=0;IN.repX=mx;IN.repY=my;}
+    if(mx===IN.repX&&my===IN.repY&&big>=LOOK_REPEAT_MIN)IN.repRun++;else{IN.repRun=0;IN.repX=mx;IN.repY=my;IN.holdX=0;}
     if(IN.repRun>=LOOK_REPEAT_RUN){
       /* the run is now known to be an artefact: take back the copies that were let through before it was recognised */
-      if(IN.repRun===LOOK_REPEAT_RUN){IN.accX-=sanitizeDelta(mx)*LOOK_REPEAT_RUN;IN.accY-=sanitizeDelta(my)*LOOK_REPEAT_RUN;}
+      if(IN.repRun===LOOK_REPEAT_RUN&&big<=MAX_LOOK_DELTA){IN.accX-=sanitizeDelta(mx)*LOOK_REPEAT_RUN;IN.accY-=sanitizeDelta(my)*LOOK_REPEAT_RUN;}
+      IN.holdX=clamp(mx,-MAX_LOOK_DELTA,MAX_LOOK_DELTA);IN.holdAt=performance.now();
       IN.sanN++;IN.repN++;return {ok:true,drop:true,why:'repeat',dx:0,dy:0};
     }
+    if(big>MAX_LOOK_DELTA){IN.sanN++;IN.dropN++;if(big>IN.sanMax)IN.sanMax=big;return {ok:true,drop:true,why:'range',dx:0,dy:0};}
     return {ok:true,drop:false,dx:sanitizeDelta(mx),dy:sanitizeDelta(my)};
   }catch(e){IN.sanN++;return {ok:false,drop:true,dx:0,dy:0,error:String(e&&e.message||e)};}
 }
@@ -3043,6 +3046,9 @@ function mcReAnchor(){
 }
 function lookFlush(k){
   try{
+    const hn=performance.now();
+    if(IN.holdX&&hn-IN.holdAt<LOOK_HOLD_MS)IN.accX+=IN.holdX*LOOK_HOLD_RATE*clamp((hn-IN.holdT)/1000,0,0.05);else IN.holdX=0;
+    IN.holdT=hn;
     if(IN.accX===0&&IN.accY===0)return {ok:true,applied:false};
     const dx=IN.accX,dy=IN.accY;
     IN.accX=0;IN.accY=0;
@@ -3341,7 +3347,7 @@ function bindInput(){
   document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===$('glcanvas');
     if(isPointerLocked&&!locked)lastLockExit=performance.now();
     isPointerLocked=locked;LK.state=locked?'LOCKED':'UNLOCKED';
-    if(locked){IN.lockGrantAt=performance.now();IN.repRun=0;}});
+    if(locked){IN.lockGrantAt=performance.now();IN.repRun=0;IN.holdX=0;}});
   document.addEventListener('pointerlockerror',()=>{LK.state='UNLOCKED';lockErrors++;showToast(t('lockIssue')+' ('+lockErrors+')');});
   window.addEventListener('unhandledrejection',e=>{const msg=String(e.reason);if(/lock/i.test(msg)){lockErrors++;e.preventDefault();return;}showErr('REJECT: '+msg);});
   document.addEventListener('keydown',e=>{
