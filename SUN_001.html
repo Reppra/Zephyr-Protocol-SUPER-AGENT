@@ -3623,6 +3623,8 @@ function replayPlay(payload,opts){
     $('hud').classList.add('on');$('pauseBtn').style.display='none';
     if($('photoBtn'))$('photoBtn').style.display='none';
     $('crosshair').classList.toggle('on',cam==='first');
+    /* an imported replay can start straight from the menu, where the menu backdrop still covers the canvas */
+    $('bgfx').style.display='none';$('gridfx').style.display='none';
     $('pbBar').classList.remove('hidden');$('pbEnd').classList.add('hidden');
     updatePbBar();
     if(PB.legacy)showToast(t('pbLegacy'));
